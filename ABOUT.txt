@@ -1,0 +1,692 @@
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+                         XUJATECH - POS VA OMBOR TIZIMI
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📋 LOYIHA HAQIDA
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+XUJATECh - bu maishiy texnika do'konlari uchun maxsus ishlab chiqilgan 
+zamonaviy savdo va ombor boshqaruv tizimi. Tizim to'liq offline rejimda 
+ishlash imkoniyatiga ega bo'lib, internet aloqasi yo'qligida ham barcha 
+operatsiyalarni amalga oshirish mumkin.
+
+ASOSIY IMKONIYATLAR:
+✓ POS (Point of Sale) - Savdo nuqtasi tizimi
+✓ Ombor va mahsulot boshqaruvi
+✓ Mijozlar va qarzlar nazorati
+✓ Yetkazib berish boshqaruvi
+✓ Qaytarishlar (returns) tizimi
+✓ Offline-first arxitektura
+✓ Ko'p filial bilan ishlash
+✓ Barcode/QR kod skanerlash
+✓ Chek chop etish
+✓ Telegram bot integratsiya
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📌 TIZIM FUNKSIYALARI
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🏠 BOSH SAHIFA (Home)
+  ├─ Kassirlar ro'yxati
+  ├─ Kassir tanlash va kirish
+  ├─ Admin panel kirish
+  ├─ Ko'p tillilik (Lotin/Kirill)
+  └─ Zamonaviy va qulay interfeys
+
+📊 DASHBOARD (Statistika)
+  ├─ Kunlik savdo statistikasi
+  ├─ Eng ko'p sotiladigan mahsulotlar
+  ├─ Daromad va foyda tahlili
+  ├─ Qarzlar holati
+  ├─ Ombor qoldiqlari
+  ├─ Grafiklar va diagrammalar
+  └─ Real-time ma'lumotlar
+
+� POSh TIZIMI (Savdo nuqtasi)
+  ├─ Tez va qulay savdo interfeysi
+  ├─ Barcode/QR kod skanerlash
+  ├─ Mahsulot qidirish va tanlash
+  ├─ Savat boshqaruvi
+  ├─ Chegirma qo'llash
+  ├─ To'lov turlari:
+  │   ├─ Naqd pul
+  │   ├─ Plastik karta
+  │   ├─ Nasiya (qarz)
+  │   └─ Aralash to'lov
+  ├─ Chek chop etish
+  ├─ Saqlangan cheklar
+  ├─ Mijoz tanlash
+  ├─ Offline rejimda ishlash
+  └─ Mobil va desktop versiya
+
+📦 MAHSULOTLAR
+  ├─ Mahsulotlar katalogi
+  ├─ Mahsulot qo'shish/tahrirlash
+  ├─ Kategoriyalar boshqaruvi
+  ├─ Barcode yaratish va chop etish
+  ├─ Narxlar va chegirmalar
+  ├─ Mahsulot rasmlari
+  ├─ Ombor qoldiqlari
+  ├─ Import/Export (Excel)
+  └─ Qidiruv va filtrlash
+
+🏢 OMBORLAR
+  ├─ Omborlar ro'yxati
+  ├─ Ombor qo'shish/tahrirlash
+  ├─ Mahsulot qoldiqlari
+  ├─ Kirim/chiqim operatsiyalari
+  ├─ Omborlar o'rtasida ko'chirish
+  ├─ Inventarizatsiya
+  └─ Ombor hisobotlari
+
+👥 MIJOZLAR
+  ├─ Mijozlar bazasi
+  ├─ Mijoz qo'shish/tahrirlash
+  ├─ Kontakt ma'lumotlari
+  ├─ Xarid tarixi
+  ├─ Qarzlar holati
+  ├─ Chegirmalar
+  └─ Statistika
+
+💳 QARZLAR
+  ├─ Mijozlar qarzlari ro'yxati
+  ├─ Qarz berish
+  ├─ To'lov qabul qilish
+  ├─ To'lov tarixi
+  ├─ Qarz holati (to'langan/to'lanmagan)
+  ├─ Eslatmalar
+  ├─ Telegram orqali bildirishnoma
+  └─ Hisobotlar
+
+💰 MENING QARZLARIM
+  ├─ Ta'minotchilarga qarzlar
+  ├─ Boshqa qarzlar
+  ├─ To'lov rejasi
+  ├─ To'lov tarixi
+  └─ Eslatmalar
+
+� YETKAAZIB BERISH
+  ├─ Yetkazib berish buyurtmalari
+  ├─ Buyurtma qo'shish/tahrirlash
+  ├─ Holat kuzatuvi:
+  │   ├─ Kutilmoqda
+  │   ├─ Yo'lda
+  │   ├─ Yetkazildi
+  │   └─ Bekor qilindi
+  ├─ Haydovchi tayinlash
+  ├─ Manzil va kontakt
+  ├─ Yetkazib berish narxi
+  └─ Tarixi
+
+🔄 QAYTARISHLAR (Returns)
+  ├─ Qaytarilgan mahsulotlar
+  ├─ Qaytarish sababi
+  ├─ Pul qaytarish
+  ├─ Ombor qaytarish
+  ├─ Holat kuzatuvi
+  └─ Hisobotlar
+
+🏢 FILIALLAR
+  ├─ Filiallar ro'yxati
+  ├─ Filial qo'shish/tahrirlash
+  ├─ Manzil va kontaktlar
+  ├─ Ish vaqti
+  ├─ Mas'ul shaxs
+  └─ Statistika
+
+👤 KASSIRLAR (Cashiers)
+  ├─ Kassirlar ro'yxati
+  ├─ Kassir qo'shish/tahrirlash
+  ├─ Login va parol
+  ├─ Ruxsatlar (permissions)
+  ├─ Ish tarixi
+  └─ Statistika
+
+� HISFOBOTLAR
+  ├─ Savdo hisobotlari
+  ├─ Moliyaviy hisobotlar
+  ├─ Ombor hisobotlari
+  ├─ Qarzlar hisoboti
+  ├─ Kassir hisobotlari
+  ├─ Mahsulot hisobotlari
+  ├─ Sana bo'yicha filtrlash
+  └─ Excel/PDF eksport
+
+📜 TARIX (History)
+  ├─ Barcha operatsiyalar tarixi
+  ├─ Savdo tarixi
+  ├─ To'lov tarixi
+  ├─ Ombor operatsiyalari
+  ├─ Qidiruv va filtrlash
+  └─ Batafsil ma'lumot
+
+⚙️ SOZLAMALAR
+  ├─ Tizim sozlamalari
+  ├─ Foydalanuvchi profili
+  ├─ Til tanlash (Lotin/Kirill)
+  ├─ Telegram bot sozlamalari
+  ├─ Chek shablon sozlamalari
+  ├─ Printer sozlamalari
+  ├─ Backup va tiklash
+  └─ Xavfsizlik sozlamalari
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🛠 TEXNIK XUSUSIYATLAR
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+FRONTEND (Desktop/Web)
+  ├─ React 18 + TypeScript
+  ├─ Vite (build tool)
+  ├─ TailwindCSS (styling)
+  ├─ React Router (navigation)
+  ├─ Redux Toolkit (state management)
+  ├─ Axios (HTTP client)
+  ├─ i18next (ko'p tillilik)
+  ├─ PWA (Progressive Web App)
+  ├─ Service Worker (offline rejim)
+  ├─ Lucide React (icons)
+  └─ React Hot Toast (notifications)
+
+BACKEND (API Server)
+  ├─ Node.js + Express
+  ├─ TypeScript
+  ├─ PostgreSQL (database)
+  ├─ Knex.js (query builder)
+  ├─ JWT (autentifikatsiya)
+  ├─ Bcrypt (parol shifrlash)
+  ├─ Multer (fayl yuklash)
+  ├─ Node-cron (scheduler)
+  ├─ Telegram Bot API
+  └─ Rate limiting
+
+DATABASE
+  ├─ PostgreSQL 12+ (server)
+  ├─ SQLite (offline storage)
+  ├─ Migrations (Knex)
+  ├─ Relational schema
+  └─ Indexes va optimizatsiya
+
+OFFLINE ARXITEKTURA
+  ├─ Offline-first dizayn
+  ├─ Local SQLite database
+  ├─ Avtomatik sinxronizatsiya
+  ├─ Conflict resolution
+  ├─ Queue-based operations
+  └─ Real-time sync
+
+HARDWARE INTEGRATSIYA
+  ├─ Barcode scanner (USB/Camera)
+  ├─ Receipt printer (ESC/POS)
+  ├─ Cash drawer
+  └─ Payment terminals (kelajakda)
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📁 LOYIHA STRUKTURASI
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+xujatech-pos/
+├── backend/                     # Backend API server
+│   ├── src/
+│   │   ├── routes/             # API endpoints
+│   │   │   ├── auth.ts         # Autentifikatsiya
+│   │   │   ├── users.ts        # Foydalanuvchilar
+│   │   │   ├── products.ts     # Mahsulotlar
+│   │   │   ├── categories.ts   # Kategoriyalar
+│   │   │   ├── sales.ts        # Savdo operatsiyalari
+│   │   │   ├── customers.ts    # Mijozlar
+│   │   │   ├── warehouses.ts   # Omborlar
+│   │   │   ├── deliveries.ts   # Yetkazib berish
+│   │   │   ├── returns.ts      # Qaytarishlar
+│   │   │   ├── myDebts.ts      # Mening qarzlarim
+│   │   │   ├── branches.ts     # Filiallar
+│   │   │   ├── receipts.ts     # Cheklar
+│   │   │   ├── reports.ts      # Hisobotlar
+│   │   │   ├── settings.ts     # Sozlamalar
+│   │   │   ├── telegram.ts     # Telegram bot
+│   │   │   ├── sync.ts         # Sinxronizatsiya
+│   │   │   └── inventory.ts    # Inventarizatsiya
+│   │   ├── models/             # Database modellari
+│   │   │   ├── User.ts
+│   │   │   ├── Product.ts
+│   │   │   ├── Category.ts
+│   │   │   ├── Sale.ts
+│   │   │   ├── Customer.ts
+│   │   │   ├── WarehouseProduct.ts
+│   │   │   ├── Delivery.ts
+│   │   │   ├── Return.ts
+│   │   │   ├── MyDebt.ts
+│   │   │   ├── Branch.ts
+│   │   │   ├── SavedReceipt.ts
+│   │   │   ├── Setting.ts
+│   │   │   └── TelegramUser.ts
+│   │   ├── services/           # Business logic
+│   │   │   ├── telegram.service.ts
+│   │   │   ├── notification.service.ts
+│   │   │   └── scheduler.service.ts
+│   │   ├── middleware/         # Express middleware
+│   │   │   ├── auth.ts
+│   │   │   ├── errorHandler.ts
+│   │   │   └── rateLimiter.ts
+│   │   ├── config/             # Konfiguratsiya
+│   │   │   └── database.ts
+│   │   ├── migrations/         # Database migrations
+│   │   ├── seeds/              # Default data
+│   │   └── server.ts           # Asosiy server fayl
+│   └── package.json
+
+├── desktop/                     # Frontend web/desktop app
+│   ├── src/
+│   │   ├── components/         # React komponentlar
+│   │   │   ├── Layout.tsx
+│   │   │   ├── POS/           # POS komponentlari
+│   │   │   │   ├── ProductScanner.tsx
+│   │   │   │   ├── SavedReceipts.tsx
+│   │   │   │   └── MobilePOS.tsx
+│   │   │   ├── PWA/           # PWA komponentlari
+│   │   │   │   ├── InstallPrompt.tsx
+│   │   │   │   └── OfflineIndicator.tsx
+│   │   │   └── Returns/       # Qaytarish komponentlari
+│   │   ├── pages/              # Sahifalar
+│   │   │   ├── Home.tsx        # Bosh sahifa
+│   │   │   ├── Dashboard.tsx   # Statistika
+│   │   │   ├── POS.tsx         # POS tizimi
+│   │   │   ├── Products.tsx    # Mahsulotlar
+│   │   │   ├── Warehouses.tsx  # Omborlar
+│   │   │   ├── Customers.tsx   # Mijozlar
+│   │   │   ├── Debts.tsx       # Qarzlar
+│   │   │   ├── Deliveries.tsx  # Yetkazib berish
+│   │   │   ├── Returns.tsx     # Qaytarishlar
+│   │   │   ├── Branches.tsx    # Filiallar
+│   │   │   ├── Cashiers.tsx    # Kassirlar
+│   │   │   ├── History.tsx     # Tarix
+│   │   │   ├── Reports.tsx     # Hisobotlar
+│   │   │   └── Settings.tsx    # Sozlamalar
+│   │   ├── services/           # Xizmatlar
+│   │   │   ├── ApiService.ts
+│   │   │   ├── DatabaseManager.ts
+│   │   │   ├── HardwareManager.ts
+│   │   │   ├── OfflineStorage.ts
+│   │   │   ├── ScannerService.ts
+│   │   │   └── SyncManager.ts
+│   │   ├── store/              # Redux store
+│   │   │   ├── store.ts
+│   │   │   └── slices/
+│   │   ├── hooks/              # Custom hooks
+│   │   │   ├── usePWA.ts
+│   │   │   ├── useUniversalScanner.ts
+│   │   │   ├── useKeyboardScanner.ts
+│   │   │   └── useMobileDetect.ts
+│   │   ├── utils/              # Yordamchi funksiyalar
+│   │   │   ├── transliterate.ts
+│   │   │   └── scanner/
+│   │   ├── i18n/               # Tarjimalar
+│   │   │   ├── translations.ts
+│   │   │   └── LanguageContext.tsx
+│   │   ├── context/            # React context
+│   │   │   └── ThemeContext.tsx
+│   │   └── App.tsx             # Asosiy komponent
+│   ├── public/
+│   │   ├── manifest.json       # PWA manifest
+│   │   ├── sw.js               # Service Worker
+│   │   └── offline.html        # Offline sahifa
+│   ├── package.json
+│   ├── vite.config.ts
+│   └── tsconfig.json
+
+├── docs/                        # Hujjatlar
+├── docker-compose.yml           # Docker konfiguratsiya
+├── DEPLOY.md                    # Deploy yo'riqnomasi
+├── README.md                    # Loyiha haqida
+└── package.json                 # Root workspace config
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🔐 XAVFSIZLIK
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✓ JWT token autentifikatsiya
+✓ Parollar bcrypt bilan shifrlangan
+✓ HTTPS/SSL shifrlash
+✓ SQL injection himoyasi
+✓ XSS himoyasi
+✓ CORS sozlamalari
+✓ Rate limiting
+✓ Input validatsiya
+✓ Fayllar xavfsizligi
+✓ Environment variables
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🌟 ASOSIY XUSUSIYATLAR
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ Offline-first arxitektura (internet yo'qligida ham ishlaydi)
+✅ Ko'p tillilik (Lotin va Kirill alifbosi)
+✅ Responsive dizayn (mobil, planshet, desktop)
+✅ PWA (Progressive Web App) - brauzerdan o'rnatish mumkin
+✅ Telegram bot integratsiya
+✅ Barcode/QR kod skanerlash (USB va kamera)
+✅ Chek chop etish (thermal printer)
+✅ Avtomatik sinxronizatsiya
+✅ Qarz nazorati va eslatmalar
+✅ POS tizimi (savdo nuqtasi)
+✅ Ombor boshqaruvi
+✅ Yetkazib berish boshqaruvi
+✅ Qaytarishlar tizimi
+✅ Moliyaviy hisobotlar
+✅ Backup va tiklash
+✅ Role-based access control (RBAC)
+✅ Real-time bildirishnomalar
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+💡 OFFLINE REJIM
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Tizim offline-first arxitektura asosida qurilgan:
+
+✓ Local SQLite database - server ma'lumotlarini nusxalaydi
+✓ Avtomatik sinxronizatsiya - internet qayta ulanganda
+✓ Conflict resolution - ziddiyatlarni hal qilish
+✓ Queue-based operations - ishonchli operatsiyalar
+✓ Offline indicator - foydalanuvchiga holat ko'rsatish
+✓ Pending operations counter - sinxronlanmagan operatsiyalar soni
+
+Internet yo'qligida ham:
+  ├─ Savdo qilish mumkin
+  ├─ Mijoz qo'shish mumkin
+  ├─ Qarz berish va qabul qilish mumkin
+  ├─ Mahsulot qidirish mumkin
+  └─ Chek chop etish mumkin
+
+Internet qayta ulanganda barcha ma'lumotlar avtomatik sinxronlanadi.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📊 DATABASE STRUKTURASI
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+ASOSIY JADVALLAR:
+
+users                        # Foydalanuvchilar (admin, manager, kassir)
+  ├─ _id, username, password
+  ├─ fullName, role
+  ├─ phone, email
+  └─ createdAt, updatedAt
+
+products                     # Mahsulotlar katalogi
+  ├─ _id, name, barcode
+  ├─ category, price, cost
+  ├─ description, image
+  ├─ unit, minStock
+  └─ isActive
+
+categories                   # Mahsulot kategoriyalari
+  ├─ _id, name
+  └─ description
+
+warehouses                   # Omborlar
+  ├─ _id, name, address
+  ├─ phone, manager
+  └─ isActive
+
+warehouse_products           # Ombor qoldiqlari
+  ├─ _id, warehouseId
+  ├─ productId, quantity
+  └─ lastUpdated
+
+sales                        # Savdo operatsiyalari
+  ├─ _id, receiptNumber
+  ├─ cashierId, customerId
+  ├─ items (JSON), totalAmount
+  ├─ paymentMethod, discount
+  ├─ status, notes
+  └─ createdAt
+
+customers                    # Mijozlar
+  ├─ _id, fullName, phone
+  ├─ address, email
+  ├─ totalDebt, totalPaid
+  ├─ discount, notes
+  └─ createdAt
+
+debt_logs                    # Qarz tarixi
+  ├─ _id, customerId
+  ├─ amount, type (debt/payment)
+  ├─ saleId, notes
+  └─ createdAt
+
+my_debts                     # Mening qarzlarim (ta'minotchilarga)
+  ├─ _id, creditorName
+  ├─ amount, paidAmount
+  ├─ dueDate, status
+  ├─ description, notes
+  └─ createdAt
+
+deliveries                   # Yetkazib berish
+  ├─ _id, customerName
+  ├─ address, phone
+  ├─ items (JSON), totalAmount
+  ├─ deliveryFee, status
+  ├─ driverId, notes
+  └─ createdAt, deliveredAt
+
+returns                      # Qaytarishlar
+  ├─ _id, saleId, customerId
+  ├─ items (JSON), totalAmount
+  ├─ reason, status
+  ├─ refundMethod, notes
+  └─ createdAt
+
+branches                     # Filiallar
+  ├─ _id, name, address
+  ├─ phone, manager
+  ├─ workingHours
+  └─ isActive
+
+saved_receipts               # Saqlangan cheklar
+  ├─ _id, cashierId
+  ├─ items (JSON), totalAmount
+  ├─ customerInfo, notes
+  └─ createdAt
+
+settings                     # Tizim sozlamalari
+  ├─ _id, key, value
+  └─ updatedAt
+
+telegram_users               # Telegram foydalanuvchilar
+  ├─ _id, chatId, username
+  ├─ isActive, role
+  └─ createdAt
+
+notification_logs            # Bildirishnomalar tarixi
+  ├─ _id, type, recipient
+  ├─ message, status
+  └─ createdAt
+
+suppliers                    # Ta'minotchilar
+  ├─ _id, name, phone
+  ├─ address, email
+  ├─ totalDebt, notes
+  └─ createdAt
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🚀 ISHGA TUSHIRISH
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+TALABLAR:
+  ├─ Node.js 18+ va npm
+  ├─ PostgreSQL 12+
+  └─ Windows 10+ (desktop ilova uchun)
+
+O'RNATISH:
+
+1. Loyihani yuklab olish va bog'liqliklarni o'rnatish:
+   npm run install:all
+
+2. PostgreSQL database yaratish:
+   createdb xujatech_pos
+
+3. Backend .env faylini sozlash:
+   cd backend
+   cp .env.example .env
+   # .env faylida database ma'lumotlarini kiriting
+
+4. Database migratsiya va seed:
+   cd backend
+   npm run migrate
+   npm run seed
+
+5. Ishga tushirish:
+   npm run dev
+   # Backend: http://localhost:3000
+   # Desktop: Electron oynasi ochiladi
+
+STANDART LOGIN:
+  Username: admin
+  Password: admin123
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🛠️ DEVELOPMENT BUYRUQLAR
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# Barcha bog'liqliklarni o'rnatish
+npm run install:all
+
+# Development (backend va desktop)
+npm run dev
+
+# Faqat backend
+npm run dev:backend
+
+# Faqat desktop
+npm run dev:desktop
+
+# Production build
+npm run build
+
+# Desktop installer yaratish
+npm run dist
+
+# Database operatsiyalari
+cd backend
+npm run migrate    # Migratsiyalarni ishga tushirish
+npm run seed       # Default ma'lumotlarni yuklash
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+👥 FOYDALANUVCHI ROLLARI
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+ADMIN (Administrator)
+  ├─ To'liq tizim boshqaruvi
+  ├─ Barcha ma'lumotlarni ko'rish va tahrirlash
+  ├─ Foydalanuvchilar boshqaruvi
+  ├─ Kassirlar qo'shish/o'chirish
+  ├─ Sozlamalar
+  ├─ Backup va tiklash
+  └─ Barcha hisobotlar
+
+MANAGER (Menejer)
+  ├─ Mahsulotlar boshqaruvi
+  ├─ Omborlar nazorati
+  ├─ Mijozlar va qarzlar
+  ├─ Yetkazib berish boshqaruvi
+  ├─ Qaytarishlar
+  ├─ Hisobotlar
+  └─ Statistika
+
+CASHIER (Kassir)
+  ├─ POS tizimi (savdo)
+  ├─ Mijozlar boshqaruvi
+  ├─ Qarz berish va qabul qilish
+  ├─ Chek chop etish
+  ├─ O'z statistikasi
+  └─ Kunlik hisobotlar
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📞 INTEGRATSIYALAR
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✓ Telegram Bot (bildirishnomalar va qarz eslatmalari)
+✓ Barcode/QR scanner (USB va kamera)
+✓ Receipt printer (ESC/POS thermal printer)
+✓ Cash drawer (avtomatik ochilish)
+✓ Excel/PDF eksport
+✓ PWA (Progressive Web App)
+✓ Offline storage (SQLite)
+✓ Payment terminals (kelajakda - Click, Payme)
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🎯 RIVOJLANISH BOSQICHLARI
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+MVP (Joriy) - Asosiy POS funksiyalari
+  ✅ Foydalanuvchilar va autentifikatsiya
+  ✅ Mahsulotlar katalogi va barcode
+  ✅ POS operatsiyalari (naqd to'lov)
+  ✅ Mijozlar va qarz nazorati
+  ✅ Ombor boshqaruvi
+  ✅ Windows desktop ilovasi
+  ✅ Offline rejim
+  ✅ Yetkazib berish
+  ✅ Qaytarishlar
+  ✅ Telegram integratsiya
+
+Bosqich 2 - Kengaytirilgan POS
+  ⏳ Ko'p to'lov usullari (Karta, Click/Payme)
+  ⏳ Mijozlar uchun chegirmalar va bonuslar
+  ⏳ Mahsulot variantlari va kafolat
+  ⏳ Kengaytirilgan hisobotlar
+  ⏳ Foyda tahlili
+
+Bosqich 3 - Mobil va ko'p filial
+  ⏳ Android POS ilovasi
+  ⏳ Ko'p filial qo'llab-quvvatlash
+  ⏳ Ta'minotchilar boshqaruvi
+  ⏳ Kengaytirilgan sinxronizatsiya
+  ⏳ Real-time bildirishnomalar
+
+Bosqich 4 - Korporativ funksiyalar
+  ⏳ Business intelligence va analytics
+  ⏳ Buxgalteriya integratsiya
+  ⏳ E-commerce integratsiya
+  ⏳ Avtomatik ombor boshqaruvi
+  ⏳ Prognozlash va tahlil
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📝 LITSENZIYA VA MUALLIF HUQUQI
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+© 2024-2026 XUJATECh - POS va Ombor Boshqaruv Tizimi
+Barcha huquqlar himoyalangan.
+
+Bu tizim maishiy texnika do'konlari uchun maxsus ishlab chiqilgan 
+professional yechim hisoblanadi.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📧 ALOQA VA QO'LLAB-QUVVATLASH
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Texnik yordam va qo'llab-quvvatlash uchun:
+- Telegram: @xujatech_support
+- Email: support@xujatech.uz
+- Telefon: +998 XX XXX XX XX
+
+Hujjatlar: /docs papkasida
+Deploy yo'riqnomasi: DEPLOY.md
+README: README.md
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+                         MUVAFFAQIYATLAR TILAYMIZ! 🚀
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

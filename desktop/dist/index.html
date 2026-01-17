@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="uz">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#0891b2" />
+    <meta name="background-color" content="#f8fafc" />
+    <meta name="description" content="XUJATECH POS - Savdo va ombor boshqaruv tizimi" />
+    
+    <!-- iOS PWA Meta Tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="XUJATECH POS" />
+    
+    <!-- Android PWA Meta Tags -->
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="application-name" content="XUJATECH POS" />
+    
+    <!-- MS Tile -->
+    <meta name="msapplication-TileColor" content="#0891b2" />
+    <meta name="msapplication-TileImage" content="/icons/icon-144x144.png" />
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/icons/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/icons/icon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/icons/icon-16x16.png" />
+    
+    <!-- Apple Touch Icons -->
+    <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
+    <link rel="apple-touch-icon" sizes="152x152" href="/icons/icon-152x152.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/icons/icon-180x180.png" />
+    <link rel="apple-touch-icon" sizes="167x167" href="/icons/icon-167x167.png" />
+    
+    <!-- Splash Screens for iOS -->
+    <link rel="apple-touch-startup-image" href="/splash/splash-640x1136.png" media="(device-width: 320px) and (device-height: 568px)" />
+    <link rel="apple-touch-startup-image" href="/splash/splash-750x1334.png" media="(device-width: 375px) and (device-height: 667px)" />
+    <link rel="apple-touch-startup-image" href="/splash/splash-1242x2208.png" media="(device-width: 414px) and (device-height: 736px)" />
+    <link rel="apple-touch-startup-image" href="/splash/splash-1125x2436.png" media="(device-width: 375px) and (device-height: 812px)" />
+    <link rel="apple-touch-startup-image" href="/splash/splash-1536x2048.png" media="(device-width: 768px) and (device-height: 1024px)" />
+    <link rel="apple-touch-startup-image" href="/splash/splash-1668x2224.png" media="(device-width: 834px) and (device-height: 1112px)" />
+    <link rel="apple-touch-startup-image" href="/splash/splash-2048x2732.png" media="(device-width: 1024px) and (device-height: 1366px)" />
+    
+    <!-- Manifest -->
+    <link rel="manifest" href="/manifest.json" />
+    
+    <title>XUJATECH POS</title>
+    
+    <!-- Preconnect -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="dns-prefetch" href="https://cbu.uz" />
+    
+    <style>
+      /* PWA Install Prompt Styles */
+      #pwa-install-prompt {
+        display: none;
+        position: fixed;
+        bottom: 20px;
+        left: 20px;
+        right: 20px;
+        background: linear-gradient(135deg, #0891b2 0%, #0e7490 100%);
+        color: white;
+        padding: 16px 20px;
+        border-radius: 16px;
+        box-shadow: 0 10px 40px -10px rgba(8, 145, 178, 0.5);
+        z-index: 9999;
+        animation: slideUp 0.3s ease-out;
+      }
+      @keyframes slideUp {
+        from { transform: translateY(100px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+      }
+      #pwa-install-prompt .content {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+      }
+      #pwa-install-prompt .icon {
+        width: 48px;
+        height: 48px;
+        background: white;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+      }
+      #pwa-install-prompt .icon img {
+        width: 32px;
+        height: 32px;
+      }
+      #pwa-install-prompt .text h4 {
+        font-size: 16px;
+        font-weight: 600;
+        margin: 0 0 4px;
+      }
+      #pwa-install-prompt .text p {
+        font-size: 13px;
+        opacity: 0.9;
+        margin: 0;
+      }
+      #pwa-install-prompt .buttons {
+        display: flex;
+        gap: 8px;
+        margin-top: 12px;
+      }
+      #pwa-install-prompt button {
+        flex: 1;
+        padding: 10px 16px;
+        border-radius: 10px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        border: none;
+        transition: transform 0.2s;
+      }
+      #pwa-install-prompt button:active {
+        transform: scale(0.98);
+      }
+      #pwa-install-prompt .install-btn {
+        background: white;
+        color: #0891b2;
+      }
+      #pwa-install-prompt .close-btn {
+        background: rgba(255,255,255,0.2);
+        color: white;
+      }
+      
+      /* Loading Screen */
+      #app-loading {
+        position: fixed;
+        inset: 0;
+        background: linear-gradient(135deg, #0891b2 0%, #0e7490 100%);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        z-index: 9998;
+        transition: opacity 0.3s;
+      }
+      #app-loading.hidden {
+        opacity: 0;
+        pointer-events: none;
+      }
+      #app-loading .logo {
+        width: 80px;
+        height: 80px;
+        background: white;
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 24px;
+        box-shadow: 0 20px 40px -10px rgba(0,0,0,0.3);
+      }
+      #app-loading .logo svg {
+        width: 48px;
+        height: 48px;
+        color: #0891b2;
+      }
+      #app-loading h1 {
+        color: white;
+        font-size: 24px;
+        font-weight: 700;
+        margin: 0 0 8px;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      }
+      #app-loading p {
+        color: rgba(255,255,255,0.8);
+        font-size: 14px;
+        margin: 0;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      }
+      #app-loading .spinner {
+        width: 40px;
+        height: 40px;
+        border: 3px solid rgba(255,255,255,0.3);
+        border-top-color: white;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin-top: 32px;
+      }
+      @keyframes spin {
+        to { transform: rotate(360deg); }
+      }
+    </style>
+    <script type="module" crossorigin src="/assets/index-DO6w4PBb.js"></script>
+    <link rel="modulepreload" crossorigin href="/assets/vendor-B5TkZEpg.js">
+    <link rel="modulepreload" crossorigin href="/assets/redux-_azv19C4.js">
+    <link rel="stylesheet" crossorigin href="/assets/index-CWKVPbMo.css">
+  </head>
+  <body>
+    <!-- Loading Screen -->
+    <div id="app-loading">
+      <div class="logo">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+        </svg>
+      </div>
+      <h1>XUJATECH POS</h1>
+      <p>Yuklanmoqda...</p>
+      <div class="spinner"></div>
+    </div>
+
+    <!-- PWA Install Prompt -->
+    <div id="pwa-install-prompt">
+      <div class="content">
+        <div class="icon">
+          <img src="/icons/icon-192x192.png" alt="XUJATECH POS" onerror="this.style.display='none'" />
+        </div>
+        <div class="text">
+          <h4>Ilovani o'rnating</h4>
+          <p>Tezroq kirish uchun qurilmangizga o'rnating</p>
+        </div>
+      </div>
+      <div class="buttons">
+        <button class="close-btn" onclick="dismissInstallPrompt()">Keyinroq</button>
+        <button class="install-btn" onclick="installPWA()">O'rnatish</button>
+      </div>
+    </div>
+
+    <div id="root"></div>
+    
+    <script>
+      // PWA Install Prompt
+      let deferredPrompt;
+      const installPrompt = document.getElementById('pwa-install-prompt');
+      
+      window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        
+        // Ko'rsatilganligini tekshirish
+        const dismissed = localStorage.getItem('pwa-install-dismissed');
+        const dismissedTime = dismissed ? parseInt(dismissed) : 0;
+        const daysPassed = (Date.now() - dismissedTime) / (1000 * 60 * 60 * 24);
+        
+        if (!dismissed || daysPassed > 7) {
+          setTimeout(() => {
+            installPrompt.style.display = 'block';
+          }, 3000);
+        }
+      });
+      
+      function installPWA() {
+        if (deferredPrompt) {
+          deferredPrompt.prompt();
+          deferredPrompt.userChoice.then((choiceResult) => {
+            if (choiceResult.outcome === 'accepted') {
+              console.log('PWA o\'rnatildi');
+            }
+            deferredPrompt = null;
+            installPrompt.style.display = 'none';
+          });
+        }
+      }
+      
+      function dismissInstallPrompt() {
+        installPrompt.style.display = 'none';
+        localStorage.setItem('pwa-install-dismissed', Date.now().toString());
+      }
+      
+      // Hide loading screen when app is ready
+      window.addEventListener('load', () => {
+        setTimeout(() => {
+          document.getElementById('app-loading').classList.add('hidden');
+        }, 500);
+      });
+    </script>
+    
+    
+    <!-- Register Service Worker -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js')
+            .then((registration) => {
+              console.log('SW registered:', registration.scope);
+              
+              // Update check
+              registration.addEventListener('updatefound', () => {
+                const newWorker = registration.installing;
+                newWorker.addEventListener('statechange', () => {
+                  if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                    // Yangi versiya mavjud
+                    if (confirm('Yangi versiya mavjud. Yangilashni xohlaysizmi?')) {
+                      newWorker.postMessage({ type: 'SKIP_WAITING' });
+                      window.location.reload();
+                    }
+                  }
+                });
+              });
+            })
+            .catch((error) => {
+              console.log('SW registration failed:', error);
+            });
+        });
+      }
+    </script>
+  </body>
+</html>
