@@ -1,0 +1,232 @@
+{
+  "users": [
+    {
+      "_id": "696dcf814bf4c8b045b728ac",
+      "username": "admin",
+      "password": "$2a$10$l4KblDD6Bwd9MXb6dMI/EuVKYJ/URrmre7QaPl7xbnLzgklUpn1Fu",
+      "fullName": "Администратор",
+      "email": "admin@xujatech.com",
+      "role": "admin",
+      "isActive": true,
+      "createdAt": "2026-01-19T06:30:25.258Z",
+      "updatedAt": "2026-01-19T06:31:10.266Z",
+      "__v": 0,
+      "lastLogin": "2026-01-19T06:31:10.259Z"
+    },
+    {
+      "_id": "696dcf814bf4c8b045b728ae",
+      "username": "kassir1",
+      "password": "$2a$10$fwLJjCgmo/5NUTbN1IijM.3ZCdwy1TEUxiXDLE0qDWU8ZtIOaLHxq",
+      "fullName": "Азиз Каримов",
+      "role": "cashier",
+      "isActive": true,
+      "createdAt": "2026-01-19T06:30:25.592Z",
+      "updatedAt": "2026-01-19T06:30:25.592Z",
+      "__v": 0
+    },
+    {
+      "_id": "696dcf814bf4c8b045b728af",
+      "username": "kassir2",
+      "password": "$2a$10$wbvgyUYnJuGBPJe2.xJnQ.8wM9nX.TJAQxS7JAyV3U/mpI4DeWnUy",
+      "fullName": "Малика Раҳимова",
+      "role": "cashier",
+      "isActive": true,
+      "createdAt": "2026-01-19T06:30:25.592Z",
+      "updatedAt": "2026-01-19T06:30:25.592Z",
+      "__v": 0
+    },
+    {
+      "_id": "696dcf814bf4c8b045b728b0",
+      "username": "kassir3",
+      "password": "$2a$10$zPMoaRJoQJdBHrbNutOuye59DXekRujD49aGKL0sJ1OI2VMnBnbMi",
+      "fullName": "Жасур Тошматов",
+      "role": "cashier",
+      "isActive": true,
+      "createdAt": "2026-01-19T06:30:25.592Z",
+      "updatedAt": "2026-01-19T06:30:25.592Z",
+      "__v": 0
+    }
+  ],
+  "categories": [
+    {
+      "_id": "696dcf824bf4c8b045b728b4",
+      "name": "Электроника",
+      "isActive": true,
+      "createdAt": "2026-01-19T06:30:26.044Z",
+      "updatedAt": "2026-01-19T06:30:26.044Z",
+      "__v": 0
+    },
+    {
+      "_id": "696dcf824bf4c8b045b728b6",
+      "name": "Маиший техника",
+      "isActive": true,
+      "createdAt": "2026-01-19T06:30:26.298Z",
+      "updatedAt": "2026-01-19T06:30:26.298Z",
+      "__v": 0
+    },
+    {
+      "_id": "696dcf824bf4c8b045b728b8",
+      "name": "Телефонлар",
+      "parentId": "696dcf824bf4c8b045b728b4",
+      "isActive": true,
+      "createdAt": "2026-01-19T06:30:26.542Z",
+      "updatedAt": "2026-01-19T06:30:26.542Z",
+      "__v": 0
+    }
+  ],
+  "products": [
+    {
+      "_id": "696dcf824bf4c8b045b728ba",
+      "name": "Samsung Galaxy A54",
+      "barcode": "8801643123456",
+      "categoryId": "696dcf824bf4c8b045b728b8",
+      "purchasePrice": 3500000,
+      "sellingPrice": 4200000,
+      "currentStock": 15,
+      "minimumStock": 3,
+      "unit": "дона",
+      "isActive": true,
+      "createdAt": "2026-01-19T06:30:26.767Z",
+      "updatedAt": "2026-01-19T06:30:26.767Z",
+      "__v": 0
+    },
+    {
+      "_id": "696dcf824bf4c8b045b728bb",
+      "name": "iPhone 15",
+      "barcode": "0194253123456",
+      "categoryId": "696dcf824bf4c8b045b728b8",
+      "purchasePrice": 12000000,
+      "sellingPrice": 14500000,
+      "currentStock": 8,
+      "minimumStock": 2,
+      "unit": "дона",
+      "isActive": true,
+      "createdAt": "2026-01-19T06:30:26.767Z",
+      "updatedAt": "2026-01-19T06:30:26.767Z",
+      "__v": 0
+    },
+    {
+      "_id": "696dcf824bf4c8b045b728bd",
+      "name": "Samsung Музлатгич RT38",
+      "barcode": "8801643789012",
+      "categoryId": "696dcf824bf4c8b045b728b6",
+      "purchasePrice": 8500000,
+      "sellingPrice": 10200000,
+      "currentStock": 5,
+      "minimumStock": 2,
+      "unit": "дона",
+      "isActive": true,
+      "createdAt": "2026-01-19T06:30:26.767Z",
+      "updatedAt": "2026-01-19T06:30:26.767Z",
+      "__v": 0
+    },
+    {
+      "_id": "696dcf824bf4c8b045b728be",
+      "name": "LG Кир ювиш машинаси",
+      "barcode": "8806091123456",
+      "categoryId": "696dcf824bf4c8b045b728b6",
+      "purchasePrice": 6000000,
+      "sellingPrice": 7500000,
+      "currentStock": 3,
+      "minimumStock": 2,
+      "unit": "дона",
+      "isActive": true,
+      "createdAt": "2026-01-19T06:30:26.767Z",
+      "updatedAt": "2026-01-19T06:30:26.767Z",
+      "__v": 0
+    },
+    {
+      "_id": "696dcf824bf4c8b045b728bc",
+      "name": "Xiaomi Redmi Note 13",
+      "barcode": "6941812123456",
+      "categoryId": "696dcf824bf4c8b045b728b8",
+      "purchasePrice": 2800000,
+      "sellingPrice": 3400000,
+      "currentStock": 20,
+      "minimumStock": 5,
+      "unit": "дона",
+      "isActive": true,
+      "createdAt": "2026-01-19T06:30:26.767Z",
+      "updatedAt": "2026-01-19T06:30:26.767Z",
+      "__v": 0
+    }
+  ],
+  "customers": [
+    {
+      "_id": "696dcf834bf4c8b045b728c5",
+      "fullName": "Дилноза Раҳимова",
+      "phone": "+998909876543",
+      "address": "Тошкент, Юнусобод",
+      "currentDebt": 0,
+      "debtLimit": 3000000,
+      "totalPurchases": 0,
+      "isActive": true,
+      "createdAt": "2026-01-19T06:30:27.004Z",
+      "updatedAt": "2026-01-19T06:30:27.004Z",
+      "__v": 0
+    },
+    {
+      "_id": "696dcf834bf4c8b045b728c4",
+      "fullName": "Алишер Каримов",
+      "phone": "+998901234567",
+      "address": "Тошкент, Чилонзор",
+      "currentDebt": 2500000,
+      "debtLimit": 5000000,
+      "totalPurchases": 0,
+      "isActive": true,
+      "createdAt": "2026-01-19T06:30:27.004Z",
+      "updatedAt": "2026-01-19T06:30:27.004Z",
+      "__v": 0
+    }
+  ],
+  "settings": [
+    {
+      "_id": "696dcf834bf4c8b045b728cb",
+      "key": "storeName",
+      "value": "XUJATECH Дўкон",
+      "createdAt": "2026-01-19T06:30:27.244Z",
+      "updatedAt": "2026-01-19T06:30:27.244Z",
+      "__v": 0
+    },
+    {
+      "_id": "696dcf834bf4c8b045b728c9",
+      "key": "tax_rate",
+      "value": "0",
+      "createdAt": "2026-01-19T06:30:27.244Z",
+      "updatedAt": "2026-01-19T06:30:27.244Z",
+      "__v": 0
+    },
+    {
+      "_id": "696dcf834bf4c8b045b728c8",
+      "key": "currency",
+      "value": "UZS",
+      "createdAt": "2026-01-19T06:30:27.244Z",
+      "updatedAt": "2026-01-19T06:30:27.244Z",
+      "__v": 0
+    },
+    {
+      "_id": "696dcf834bf4c8b045b728ca",
+      "key": "low_stock_threshold",
+      "value": "5",
+      "createdAt": "2026-01-19T06:30:27.244Z",
+      "updatedAt": "2026-01-19T06:30:27.244Z",
+      "__v": 0
+    },
+    {
+      "_id": "696dcf834bf4c8b045b728cc",
+      "key": "storePhone",
+      "value": "+998 90 123 45 67",
+      "createdAt": "2026-01-19T06:30:27.244Z",
+      "updatedAt": "2026-01-19T06:30:27.244Z",
+      "__v": 0
+    },
+    {
+      "_id": "696dcf834bf4c8b045b728cd",
+      "key": "footerText",
+      "value": "Харидингиз учун раҳмат!",
+      "createdAt": "2026-01-19T06:30:27.244Z",
+      "updatedAt": "2026-01-19T06:30:27.244Z",
+      "__v": 0
+    }
+  ]
+}

@@ -80,6 +80,51 @@ router.post('/:id/pay', authenticateToken, async (req, res) => {
   }
 });
 
+// Qarzni qisman to'lash (bir qismini berish)
+router.post('/:id/partial-pay', authenticateToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { amount, notes, recipientName, recipientPhone } = req.body;
+    
+    const debt = await MyDebt.findById(id);
+    if (!debt) {
+      return res.status(404).json({ success: false, message: 'Qarz topilmadi' });
+    }
+    
+    if (amount <= 0 || amount > debt.remainingAmount) {
+      return res.status(400).json({ success: false, message: "Noto'g'ri summa" });
+    }
+    
+    const partialPayment = {
+      _id: `partial_payment_${Date.now()}`,
+      amount,
+      paidAt: new Date(),
+      notes: notes || `Qisman to'lov - ${recipientName || 'Noma\'lum'}`,
+      recipientName: recipientName || '',
+      recipientPhone: recipientPhone || '',
+      type: 'partial' as 'partial', // Qisman to'lov ekanligini belgilash
+    };
+    
+    debt.payments.push(partialPayment);
+    debt.paidAmount += amount;
+    debt.remainingAmount -= amount;
+    
+    if (debt.remainingAmount === 0) {
+      debt.status = 'paid';
+    }
+    
+    await debt.save();
+    res.json({ 
+      success: true, 
+      data: debt,
+      message: `${amount.toLocaleString()} so'm qisman to'lov qilindi`
+    });
+  } catch (error) {
+    console.error('Partial pay my debt error:', error);
+    res.status(500).json({ success: false, message: 'Server xatosi' });
+  }
+});
+
 // Qarzni o'chirish
 router.delete('/:id', authenticateToken, async (req, res) => {
   try {

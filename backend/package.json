@@ -9,6 +9,8 @@
     "start": "node dist/server.js",
     "test": "jest",
     "seed": "ts-node src/seeds/seed.ts",
+    "restore": "ts-node src/seeds/restore.ts",
+    "backup": "mongodump --db xujatech_pos --out ./mongodb_backup",
     "type-check": "tsc --noEmit"
   },
   "dependencies": {

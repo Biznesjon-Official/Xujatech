@@ -156,7 +156,7 @@ router.post('/:id/pay-debt', async (req: Request, res: Response) => {
 // Add debt (Qarz qo'shish)
 router.post('/:id/add-debt', async (req: Request, res: Response) => {
   try {
-    const { amount, dueDate, notes, cashierId, guarantor, isInstallment, installmentCount, installmentDates } = req.body;
+    const { amount, initialPayment, dueDate, notes, cashierId, guarantor, isInstallment, installmentCount, installmentDates } = req.body;
     const customer = await Customer.findById(req.params.id);
 
     if (!customer) {
@@ -167,8 +167,16 @@ router.post('/:id/add-debt', async (req: Request, res: Response) => {
       return res.status(400).json({ success: false, message: 'Qarz summasi noto\'g\'ri' });
     }
 
+    // Boshlang'ich to'lovni tekshirish
+    const initialPaymentAmount = initialPayment || 0;
+    if (initialPaymentAmount > amount) {
+      return res.status(400).json({ success: false, message: 'Boshlang\'ich to\'lov jami summadan katta bo\'lishi mumkin emas' });
+    }
+
     const previousDebt = customer.currentDebt || 0;
-    customer.currentDebt = previousDebt + amount;
+    // Qarz summasi = jami summa - boshlang'ich to'lov
+    const finalDebtAmount = amount - initialPaymentAmount;
+    customer.currentDebt = previousDebt + finalDebtAmount;
     
     // Muddat belgilash
     if (dueDate) {
@@ -178,7 +186,7 @@ router.post('/:id/add-debt', async (req: Request, res: Response) => {
     // Bo'lib to'lash (Installment) hisoblash - foydalanuvchi belgilagan sanalar bilan
     let installments: any[] = [];
     if (isInstallment && installmentCount && installmentCount > 1) {
-      const installmentAmount = Math.ceil(amount / installmentCount);
+      const installmentAmount = Math.ceil(finalDebtAmount / installmentCount);
       
       for (let i = 0; i < installmentCount; i++) {
         // Foydalanuvchi belgilagan sana yoki default sana
@@ -193,7 +201,7 @@ router.post('/:id/add-debt', async (req: Request, res: Response) => {
         // Oxirgi bo'lakda qoldiqni to'g'rilash
         const isLast = i === installmentCount - 1;
         const thisAmount = isLast 
-          ? amount - (installmentAmount * (installmentCount - 1)) 
+          ? finalDebtAmount - (installmentAmount * (installmentCount - 1)) 
           : installmentAmount;
         
         installments.push({
@@ -207,14 +215,18 @@ router.post('/:id/add-debt', async (req: Request, res: Response) => {
     }
 
     // Log debt addition with guarantor and installment info
+    const logNotes = initialPaymentAmount > 0 
+      ? `${amount} so'm qarz qo'shildi. Boshlang'ich to'lov: ${initialPaymentAmount} so'm. Qoldiq qarz: ${finalDebtAmount} so'm`
+      : `${amount} so'm qarz qo'shildi`;
+
     await DebtLog.create({
       customerId: customer._id,
       cashierId: cashierId || null,
       action: 'added',
       previousAmount: previousDebt,
       newAmount: customer.currentDebt,
-      changeAmount: amount,
-      notes: notes || `${amount} so'm qarz qo'shildi`,
+      changeAmount: finalDebtAmount,
+      notes: notes || logNotes,
       // Kafil ma'lumotlari
       guarantor: guarantor ? {
         fullName: guarantor.fullName,
@@ -225,11 +237,30 @@ router.post('/:id/add-debt', async (req: Request, res: Response) => {
       isInstallment: isInstallment || false,
       installmentCount: installmentCount || undefined,
       installments: installments.length > 0 ? installments : undefined,
+      // Boshlang'ich to'lov ma'lumoti
+      initialPayment: initialPaymentAmount > 0 ? initialPaymentAmount : undefined,
     });
+
+    // Agar boshlang'ich to'lov bo'lsa, uni alohida log qilish
+    if (initialPaymentAmount > 0) {
+      await DebtLog.create({
+        customerId: customer._id,
+        cashierId: cashierId || null,
+        action: 'payment',
+        previousAmount: previousDebt + amount,
+        newAmount: customer.currentDebt,
+        changeAmount: initialPaymentAmount,
+        notes: `Boshlang'ich to'lov: ${initialPaymentAmount} so'm`,
+      });
+    }
 
     await customer.save();
 
-    res.json({ success: true, data: customer, message: "Qarz qo'shildi" });
+    const responseMessage = initialPaymentAmount > 0 
+      ? `Qarz qo'shildi. Boshlang'ich to'lov: ${initialPaymentAmount.toLocaleString()} so'm`
+      : "Qarz qo'shildi";
+
+    res.json({ success: true, data: customer, message: responseMessage });
   } catch (error) {
     console.error('Add debt error:', error);
     res.status(500).json({ success: false, message: 'Server xatosi' });

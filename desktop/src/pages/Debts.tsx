@@ -42,6 +42,9 @@ interface MyDebtPayment {
   amount: number;
   paidAt: string;
   notes?: string;
+  recipientName?: string;
+  recipientPhone?: string;
+  type?: 'full' | 'partial';
 }
 
 interface MyDebt {
@@ -87,6 +90,7 @@ const Debts: React.FC = () => {
   const [showHistoryModal, setShowHistoryModal] = useState(false);
   const [showAddMyDebtModal, setShowAddMyDebtModal] = useState(false);
   const [showPayMyDebtModal, setShowPayMyDebtModal] = useState(false);
+  const [showPartialPayModal, setShowPartialPayModal] = useState(false);
   const [showMyDebtDetailModal, setShowMyDebtDetailModal] = useState(false);
   const [showCustomerDetailModal, setShowCustomerDetailModal] = useState(false);
   
@@ -94,8 +98,22 @@ const Debts: React.FC = () => {
   const [selectedMyDebt, setSelectedMyDebt] = useState<MyDebt | null>(null);
   const [payAmount, setPayAmount] = useState('');
   const [payReceivedBy, setPayReceivedBy] = useState('');
+  const [partialPayForm, setPartialPayForm] = useState({
+    amount: '',
+    recipientName: '',
+    recipientPhone: '',
+    notes: ''
+  });
   const [debtHistory, setDebtHistory] = useState<any[]>([]);
-  const [form, setForm] = useState({ customerId: '', amountUsd: '', amountUzs: '', dueDate: '', notes: '' });
+  const [form, setForm] = useState({ 
+    customerId: '', 
+    amountUsd: '', 
+    amountUzs: '', 
+    dueDate: '', 
+    notes: '',
+    initialPaymentUsd: '',
+    initialPaymentUzs: ''
+  });
   const [newCustomerMode, setNewCustomerMode] = useState(false);
   const [newCustomerForm, setNewCustomerForm] = useState({ fullName: '', phone: '' });
   const [customerSearch, setCustomerSearch] = useState('');
@@ -156,6 +174,26 @@ const Debts: React.FC = () => {
     } else {
       setMyDebtForm({ ...myDebtForm, amountUzs: value, amountUsd: uzsValue ? (uzsValue / usdRate).toFixed(2) : '' });
     }
+  };
+
+  // Boshlang'ich to'lov USD o'zgarganda UZS ni hisoblash
+  const handleInitialPaymentUsdChange = (value: string) => {
+    const usdValue = parseFloat(value) || 0;
+    setForm({ 
+      ...form, 
+      initialPaymentUsd: value, 
+      initialPaymentUzs: usdValue ? Math.round(usdValue * usdRate).toString() : '' 
+    });
+  };
+
+  // Boshlang'ich to'lov UZS o'zgarganda USD ni hisoblash
+  const handleInitialPaymentUzsChange = (value: string) => {
+    const uzsValue = parseFloat(value) || 0;
+    setForm({ 
+      ...form, 
+      initialPaymentUzs: value, 
+      initialPaymentUsd: uzsValue ? (uzsValue / usdRate).toFixed(2) : '' 
+    });
   };
 
   const selectedCashier = JSON.parse(localStorage.getItem('selectedCashier') || '{}');
@@ -420,6 +458,92 @@ const Debts: React.FC = () => {
     }
   };
 
+  const handlePartialPayMyDebt = async () => {
+    if (!selectedMyDebt || !partialPayForm.amount || !partialPayForm.recipientName) {
+      toast.error("Summa va qabul qiluvchi nomi kiritilishi shart");
+      return;
+    }
+    
+    const amount = parseFloat(partialPayForm.amount);
+    if (amount <= 0 || amount > selectedMyDebt.remainingAmount) {
+      toast.error("Noto'g'ri summa kiritildi");
+      return;
+    }
+    
+    try {
+      const token = localStorage.getItem('accessToken');
+      const response = await fetch(`/api/my-debts/${selectedMyDebt._id}/partial-pay`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({
+          amount,
+          recipientName: partialPayForm.recipientName,
+          recipientPhone: partialPayForm.recipientPhone,
+          notes: partialPayForm.notes
+        }),
+      });
+      const data = await response.json();
+      
+      if (data.success) {
+        const updatedDebt = data.data;
+        setMyDebts(prev => prev.map(d => d._id === selectedMyDebt._id ? updatedDebt : d));
+        calculateMyDebtsStats(myDebts.map(d => d._id === selectedMyDebt._id ? updatedDebt : d));
+        
+        toast.success(data.message || `${formatMoney(amount)} so'm qisman to'lov qilindi`);
+        setShowPartialPayModal(false);
+        setSelectedMyDebt(updatedDebt);
+        setShowMyDebtDetailModal(true);
+        setPartialPayForm({ amount: '', recipientName: '', recipientPhone: '', notes: '' });
+      } else {
+        // Fallback to localStorage
+        handlePartialPayMyDebtLocal(amount);
+      }
+    } catch {
+      // Fallback to localStorage
+      handlePartialPayMyDebtLocal(amount);
+    }
+  };
+
+  const handlePartialPayMyDebtLocal = (amount: number) => {
+    if (!selectedMyDebt) return;
+    
+    const newPayment: MyDebtPayment = {
+      _id: `partial_payment_${Date.now()}`,
+      amount: amount,
+      paidAt: new Date().toISOString(),
+      recipientName: partialPayForm.recipientName,
+      recipientPhone: partialPayForm.recipientPhone,
+      notes: partialPayForm.notes || `Qisman to'lov - ${partialPayForm.recipientName}`,
+      type: 'partial',
+    };
+    
+    const newRemainingAmount = selectedMyDebt.remainingAmount - amount;
+    const updatedDebt: MyDebt = {
+      ...selectedMyDebt,
+      paidAmount: selectedMyDebt.paidAmount + amount,
+      remainingAmount: newRemainingAmount,
+      payments: [...(selectedMyDebt.payments || []), newPayment],
+      status: newRemainingAmount === 0 ? 'paid' : 'active',
+    };
+
+    const saved = localStorage.getItem('myDebts');
+    const debts: MyDebt[] = saved ? JSON.parse(saved) : [];
+    const idx = debts.findIndex(d => d._id === selectedMyDebt._id);
+    if (idx !== -1) {
+      debts[idx] = updatedDebt;
+      localStorage.setItem('myDebts', JSON.stringify(debts));
+    }
+    
+    setMyDebts(prev => prev.map(d => d._id === selectedMyDebt._id ? updatedDebt : d));
+    calculateMyDebtsStats(myDebts.map(d => d._id === selectedMyDebt._id ? updatedDebt : d));
+    
+    toast.success(`${formatMoney(amount)} so'm qisman to'lov qilindi`);
+    setShowPartialPayModal(false);
+    setSelectedMyDebt(updatedDebt);
+    setShowMyDebtDetailModal(true);
+    setPartialPayForm({ amount: '', recipientName: '', recipientPhone: '', notes: '' });
+  };
+
   const handlePayMyDebtLocal = (amount: number) => {
     if (!selectedMyDebt) return;
     
@@ -517,13 +641,23 @@ const Debts: React.FC = () => {
       address: guarantorForm.address || undefined,
     } : undefined;
 
+    // Boshlang'ich to'lovni hisoblash
+    const initialPayment = parseFloat(form.initialPaymentUzs) || 0;
+    const totalAmount = parseFloat(form.amountUzs) || 0;
+    
+    // Boshlang'ich to'lov jami summadan katta bo'lmasligi kerak
+    if (initialPayment > totalAmount) {
+      toast.error("Boshlang'ich to'lov jami summadan katta bo'lishi mumkin emas");
+      return;
+    }
+
     // Yangi mijoz qo'shish rejimi
     if (newCustomerMode) {
       if (!newCustomerForm.fullName || (!form.amountUzs && !form.amountUsd)) {
         toast.error(t('errors.requiredField'));
         return;
       }
-      const finalAmount = parseFloat(form.amountUzs) || 0;
+      const finalAmount = totalAmount;
       try {
         const token = localStorage.getItem('accessToken');
         // Avval yangi mijoz yaratamiz
@@ -548,6 +682,7 @@ const Debts: React.FC = () => {
           headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
           body: JSON.stringify({ 
             amount: finalAmount, 
+            initialPayment: initialPayment, // Boshlang'ich to'lovni qo'shamiz
             dueDate: form.dueDate || undefined, 
             notes: form.notes || undefined,
             cashierId: currentCashierId || undefined,
@@ -559,9 +694,13 @@ const Debts: React.FC = () => {
         });
         const data = await response.json();
         if (data.success) {
-          toast.success(t('debts.debtAdded'));
+          if (initialPayment > 0) {
+            toast.success(`Qarz qo'shildi. Boshlang'ich to'lov: ${initialPayment.toLocaleString()} so'm`);
+          } else {
+            toast.success(t('debts.debtAdded'));
+          }
           setShowAddModal(false);
-          setForm({ customerId: '', amountUsd: '', amountUzs: '', dueDate: '', notes: '' });
+          setForm({ customerId: '', amountUsd: '', amountUzs: '', dueDate: '', notes: '', initialPaymentUsd: '', initialPaymentUzs: '' });
           setNewCustomerForm({ fullName: '', phone: '' });
           setGuarantorForm({ fullName: '', phone: '', address: '' });
           setShowGuarantorSection(false);
@@ -586,7 +725,7 @@ const Debts: React.FC = () => {
       toast.error(t('errors.requiredField'));
       return;
     }
-    const finalAmount = parseFloat(form.amountUzs) || 0;
+    const finalAmount = totalAmount;
     try {
       const token = localStorage.getItem('accessToken');
       const response = await fetch(`/api/customers/${form.customerId}/add-debt`, {
@@ -594,6 +733,7 @@ const Debts: React.FC = () => {
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ 
           amount: finalAmount, 
+          initialPayment: initialPayment, // Boshlang'ich to'lovni qo'shamiz
           dueDate: form.dueDate || undefined, 
           notes: form.notes || undefined,
           cashierId: currentCashierId || undefined,
@@ -605,9 +745,13 @@ const Debts: React.FC = () => {
       });
       const data = await response.json();
       if (data.success) {
-        toast.success(t('debts.debtAdded'));
+        if (initialPayment > 0) {
+          toast.success(`Qarz qo'shildi. Boshlang'ich to'lov: ${initialPayment.toLocaleString()} so'm`);
+        } else {
+          toast.success(t('debts.debtAdded'));
+        }
         setShowAddModal(false);
-        setForm({ customerId: '', amountUsd: '', amountUzs: '', dueDate: '', notes: '' });
+        setForm({ customerId: '', amountUsd: '', amountUzs: '', dueDate: '', notes: '', initialPaymentUsd: '', initialPaymentUzs: '' });
         setGuarantorForm({ fullName: '', phone: '', address: '' });
         setShowGuarantorSection(false);
         setIsInstallment(false);
@@ -1090,13 +1234,26 @@ const Debts: React.FC = () => {
                           </div>
                           <div className="flex items-center gap-1">
                             {!isPaid && (
-                              <button 
-                                onClick={() => { setSelectedMyDebt(debt); setPayAmount(''); setShowPayMyDebtModal(true); }} 
-                                className="p-2 text-cyan-600 hover:bg-cyan-100 rounded-lg"
-                                title={convertToLanguage("To'lov qilish", language)}
-                              >
-                                <DollarSign className="w-4 h-4" />
-                              </button>
+                              <>
+                                <button 
+                                  onClick={() => { setSelectedMyDebt(debt); setPayAmount(''); setShowPayMyDebtModal(true); }} 
+                                  className="p-2 text-cyan-600 hover:bg-cyan-100 rounded-lg"
+                                  title={convertToLanguage("To'lov qilish", language)}
+                                >
+                                  <DollarSign className="w-4 h-4" />
+                                </button>
+                                <button 
+                                  onClick={() => { 
+                                    setSelectedMyDebt(debt); 
+                                    setPartialPayForm({ amount: '', recipientName: '', recipientPhone: '', notes: '' }); 
+                                    setShowPartialPayModal(true); 
+                                  }} 
+                                  className="p-2 text-orange-600 hover:bg-orange-100 rounded-lg"
+                                  title={convertToLanguage(t('debts.partialPay'), language)}
+                                >
+                                  <ArrowUpRight className="w-4 h-4" />
+                                </button>
+                              </>
                             )}
                             <button onClick={() => handleDeleteMyDebt(debt)} className="p-2 text-red-600 hover:bg-red-100 rounded-lg" title={convertToLanguage("O'chirish", language)}>
                               <Trash2 className="w-4 h-4" />
@@ -1172,7 +1329,17 @@ const Debts: React.FC = () => {
           <div className="bg-white rounded-3xl w-full max-w-md overflow-hidden shadow-2xl max-h-[90vh] overflow-y-auto">
             <div className="p-6 flex justify-between items-center bg-gradient-to-r from-cyan-500 to-teal-600">
               <h3 className="text-xl font-bold text-white">{convertToLanguage("Yangi qarz qo'shish", language)}</h3>
-              <button onClick={() => { setShowAddModal(false); setNewCustomerMode(false); setCustomerSearch(''); setGuarantorForm({ fullName: '', phone: '', address: '' }); setShowGuarantorSection(false); setIsInstallment(false); setInstallmentCount(2); setInstallmentDates([]); }} className="p-2 hover:bg-white/20 rounded-xl">
+              <button onClick={() => { 
+                setShowAddModal(false); 
+                setNewCustomerMode(false); 
+                setCustomerSearch(''); 
+                setForm({ customerId: '', amountUsd: '', amountUzs: '', dueDate: '', notes: '', initialPaymentUsd: '', initialPaymentUzs: '' });
+                setGuarantorForm({ fullName: '', phone: '', address: '' }); 
+                setShowGuarantorSection(false); 
+                setIsInstallment(false); 
+                setInstallmentCount(2); 
+                setInstallmentDates([]); 
+              }} className="p-2 hover:bg-white/20 rounded-xl">
                 <X className="w-5 h-5 text-white" />
               </button>
             </div>
@@ -1313,6 +1480,64 @@ const Debts: React.FC = () => {
                   </div>
                 </div>
               </div>
+              
+              {/* Boshlang'ich to'lov */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  {convertToLanguage(t('debts.initialPaymentOptional'), language)}
+                  <span className="text-xs text-gray-500 ml-2">- {convertToLanguage(t('debts.paidImmediately'), language)}</span>
+                </label>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="relative">
+                    <input 
+                      type="number" 
+                      value={form.initialPaymentUsd} 
+                      onChange={(e) => handleInitialPaymentUsdChange(e.target.value)} 
+                      className="w-full px-4 py-3 bg-blue-50 border-0 rounded-xl focus:ring-2 focus:ring-blue-500 pr-14" 
+                      placeholder="0" 
+                    />
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-blue-600">USD</span>
+                  </div>
+                  <div className="relative">
+                    <input 
+                      type="number" 
+                      value={form.initialPaymentUzs} 
+                      onChange={(e) => handleInitialPaymentUzsChange(e.target.value)} 
+                      className="w-full px-4 py-3 bg-blue-50 border-0 rounded-xl focus:ring-2 focus:ring-blue-500 pr-14" 
+                      placeholder="0" 
+                    />
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-blue-600">UZS</span>
+                  </div>
+                </div>
+                {/* Qoldiq qarzni ko'rsatish */}
+                {(form.amountUzs || form.initialPaymentUzs) && (
+                  <div className="mt-3 p-3 bg-gradient-to-r from-cyan-50 to-blue-50 rounded-xl border border-cyan-200">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm font-medium text-gray-700">{convertToLanguage(t('debts.totalDebtAmount'), language)}:</span>
+                      <span className="text-sm font-bold text-gray-900">
+                        {(parseFloat(form.amountUzs) || 0).toLocaleString()} {convertToLanguage("so'm", language)}
+                      </span>
+                    </div>
+                    {form.initialPaymentUzs && parseFloat(form.initialPaymentUzs) > 0 && (
+                      <>
+                        <div className="flex justify-between items-center mt-1">
+                          <span className="text-sm font-medium text-blue-700">{convertToLanguage(t('debts.initialPayment'), language)}:</span>
+                          <span className="text-sm font-bold text-blue-700">
+                            -{(parseFloat(form.initialPaymentUzs) || 0).toLocaleString()} {convertToLanguage("so'm", language)}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center mt-2 pt-2 border-t border-cyan-300">
+                          <span className="text-sm font-semibold text-cyan-700">{convertToLanguage(t('debts.remainingDebt'), language)}:</span>
+                          <span className="text-lg font-bold text-cyan-700">
+                            {((parseFloat(form.amountUzs) || 0) - (parseFloat(form.initialPaymentUzs) || 0)).toLocaleString()} {convertToLanguage("so'm", language)}
+                          </span>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                )}
+              </div>
+              
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">To'lov muddati</label>
                 <input type="date" value={form.dueDate} onChange={(e) => setForm({ ...form, dueDate: e.target.value })} className="w-full px-4 py-3 bg-gray-50 border-0 rounded-xl focus:ring-2 focus:ring-cyan-500" />
@@ -1521,7 +1746,17 @@ const Debts: React.FC = () => {
               </div>
             </div>
             <div className="p-6 bg-gray-50 flex gap-3">
-              <button onClick={() => { setShowAddModal(false); setNewCustomerMode(false); setCustomerSearch(''); setGuarantorForm({ fullName: '', phone: '', address: '' }); setShowGuarantorSection(false); setIsInstallment(false); setInstallmentCount(2); setInstallmentDates([]); }} className="flex-1 px-4 py-3 text-gray-700 bg-white rounded-xl font-semibold border border-gray-200">{convertToLanguage('Bekor', language)}</button>
+              <button onClick={() => { 
+                setShowAddModal(false); 
+                setNewCustomerMode(false); 
+                setCustomerSearch(''); 
+                setForm({ customerId: '', amountUsd: '', amountUzs: '', dueDate: '', notes: '', initialPaymentUsd: '', initialPaymentUzs: '' });
+                setGuarantorForm({ fullName: '', phone: '', address: '' }); 
+                setShowGuarantorSection(false); 
+                setIsInstallment(false); 
+                setInstallmentCount(2); 
+                setInstallmentDates([]); 
+              }} className="flex-1 px-4 py-3 text-gray-700 bg-white rounded-xl font-semibold border border-gray-200">{convertToLanguage('Bekor', language)}</button>
               <button onClick={handleAddDebt} className="flex-1 px-4 py-3 bg-gradient-to-r from-cyan-500 to-teal-600 text-white rounded-xl font-semibold">{convertToLanguage("Qo'shish", language)}</button>
             </div>
           </div>
@@ -1653,6 +1888,114 @@ const Debts: React.FC = () => {
             <div className="p-6 bg-gray-50 flex gap-3">
               <button onClick={() => setShowPayMyDebtModal(false)} className="flex-1 px-4 py-3 text-gray-700 bg-white rounded-xl font-semibold border border-gray-200">{convertToLanguage('Bekor', language)}</button>
               <button onClick={handlePayMyDebt} className="flex-1 px-4 py-3 bg-gradient-to-r from-cyan-500 to-teal-600 text-white rounded-xl font-semibold">{convertToLanguage("To'lash", language)}</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Partial Pay Modal (Qisman berish) */}
+      {showPartialPayModal && selectedMyDebt && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl w-full max-w-md overflow-hidden shadow-2xl">
+            <div className="p-6 flex justify-between items-center bg-gradient-to-r from-orange-500 to-amber-600">
+              <h3 className="text-xl font-bold text-white">{convertToLanguage(t('debts.partialPay'), language)}</h3>
+              <button onClick={() => setShowPartialPayModal(false)} className="p-2 hover:bg-white/20 rounded-xl">
+                <X className="w-5 h-5 text-white" />
+              </button>
+            </div>
+            <div className="p-6 space-y-4">
+              <div className="text-center mb-4">
+                <p className="font-semibold text-gray-900">{selectedMyDebt.creditorName}</p>
+                <p className="text-2xl font-bold text-red-600 mt-2">{formatMoney(selectedMyDebt.remainingAmount)} {convertToLanguage("so'm", language)}</p>
+                <p className="text-sm text-gray-500">{convertToLanguage('Qoldiq qarz', language)}</p>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">{convertToLanguage(t('debts.amountToGive'), language)} *</label>
+                <input 
+                  type="number" 
+                  value={partialPayForm.amount} 
+                  onChange={(e) => setPartialPayForm({...partialPayForm, amount: e.target.value})} 
+                  className="w-full px-4 py-4 bg-gray-50 border-0 rounded-xl text-center text-xl font-bold focus:ring-2 focus:ring-orange-500" 
+                  placeholder="0" 
+                  autoFocus 
+                />
+                <div className="flex gap-2 mt-2">
+                  <button 
+                    onClick={() => setPartialPayForm({...partialPayForm, amount: Math.floor(selectedMyDebt.remainingAmount / 4).toString()})} 
+                    className="flex-1 py-2 bg-gray-100 rounded-lg text-xs font-semibold hover:bg-gray-200"
+                  >
+                    25%
+                  </button>
+                  <button 
+                    onClick={() => setPartialPayForm({...partialPayForm, amount: Math.floor(selectedMyDebt.remainingAmount / 2).toString()})} 
+                    className="flex-1 py-2 bg-gray-100 rounded-lg text-xs font-semibold hover:bg-gray-200"
+                  >
+                    50%
+                  </button>
+                  <button 
+                    onClick={() => setPartialPayForm({...partialPayForm, amount: Math.floor(selectedMyDebt.remainingAmount * 0.75).toString()})} 
+                    className="flex-1 py-2 bg-gray-100 rounded-lg text-xs font-semibold hover:bg-gray-200"
+                  >
+                    75%
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">{convertToLanguage(t('debts.recipientName'), language)} *</label>
+                <input 
+                  type="text" 
+                  value={partialPayForm.recipientName} 
+                  onChange={(e) => setPartialPayForm({...partialPayForm, recipientName: e.target.value})} 
+                  className="w-full px-4 py-3 bg-gray-50 border-0 rounded-xl focus:ring-2 focus:ring-orange-500" 
+                  placeholder="Ism familiya..." 
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">{convertToLanguage(t('debts.recipientPhone'), language)}</label>
+                <div className="relative">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 text-sm font-medium">+998</span>
+                  <input
+                    type="tel"
+                    value={partialPayForm.recipientPhone.replace('+998', '')}
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/\D/g, '').slice(0, 9);
+                      setPartialPayForm({...partialPayForm, recipientPhone: value ? `+998${value}` : ''});
+                    }}
+                    className="w-full pl-16 pr-4 py-3 bg-gray-50 border-0 rounded-xl focus:ring-2 focus:ring-orange-500"
+                    placeholder="XX XXX XX XX"
+                    maxLength={9}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">{convertToLanguage("Izoh", language)}</label>
+                <textarea 
+                  value={partialPayForm.notes} 
+                  onChange={(e) => setPartialPayForm({...partialPayForm, notes: e.target.value})} 
+                  className="w-full px-4 py-3 bg-gray-50 border-0 rounded-xl focus:ring-2 focus:ring-orange-500 resize-none" 
+                  rows={2} 
+                  placeholder="Qo'shimcha ma'lumot..." 
+                />
+              </div>
+            </div>
+            <div className="p-6 bg-gray-50 flex gap-3">
+              <button 
+                onClick={() => setShowPartialPayModal(false)} 
+                className="flex-1 px-4 py-3 text-gray-700 bg-white rounded-xl font-semibold border border-gray-200"
+              >
+                {convertToLanguage('Bekor', language)}
+              </button>
+              <button 
+                onClick={handlePartialPayMyDebt} 
+                disabled={!partialPayForm.amount || !partialPayForm.recipientName}
+                className="flex-1 px-4 py-3 bg-gradient-to-r from-orange-500 to-amber-600 text-white rounded-xl font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {convertToLanguage("Berish", language)}
+              </button>
             </div>
           </div>
         </div>
@@ -2074,19 +2417,45 @@ const Debts: React.FC = () => {
               ) : (
                 <div className="space-y-2">
                   {selectedMyDebt.payments.map((payment, index) => (
-                    <div key={payment._id} className="flex items-center gap-3 p-3 bg-emerald-50 rounded-xl border border-emerald-200">
-                      <div className="w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center text-white text-xs font-bold">
-                        {index + 1}
+                    <div key={payment._id} className={`flex items-center gap-3 p-3 rounded-xl border ${
+                      payment.type === 'partial' ? 'bg-orange-50 border-orange-200' : 'bg-emerald-50 border-emerald-200'
+                    }`}>
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold ${
+                        payment.type === 'partial' ? 'bg-orange-500' : 'bg-emerald-500'
+                      }`}>
+                        {payment.type === 'partial' ? '↗' : index + 1}
                       </div>
                       <div className="flex-1">
-                        <p className="text-sm font-semibold text-emerald-700">
-                          -{formatMoney(payment.amount)} {convertToLanguage("so'm", language)}
-                        </p>
+                        <div className="flex items-center gap-2">
+                          <p className={`text-sm font-semibold ${
+                            payment.type === 'partial' ? 'text-orange-700' : 'text-emerald-700'
+                          }`}>
+                            -{formatMoney(payment.amount)} {convertToLanguage("so'm", language)}
+                          </p>
+                          {payment.type === 'partial' && (
+                            <span className="px-2 py-0.5 bg-orange-100 text-orange-700 text-xs font-medium rounded-full">
+                              {convertToLanguage(t('debts.partialPayment'), language)}
+                            </span>
+                          )}
+                        </div>
                         <p className="text-xs text-gray-500">
                           {new Date(payment.paidAt).toLocaleDateString('uz-UZ')} - {new Date(payment.paidAt).toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' })}
                         </p>
+                        {payment.recipientName && (
+                          <p className="text-xs text-gray-600 mt-1">
+                            👤 {payment.recipientName}
+                            {payment.recipientPhone && ` • ${payment.recipientPhone}`}
+                          </p>
+                        )}
+                        {payment.notes && payment.notes !== `Qisman to'lov - ${payment.recipientName}` && (
+                          <p className="text-xs text-gray-500 mt-1">{payment.notes}</p>
+                        )}
                       </div>
-                      <CheckCircle className="w-5 h-5 text-emerald-500" />
+                      {payment.type === 'partial' ? (
+                        <ArrowUpRight className="w-5 h-5 text-orange-500" />
+                      ) : (
+                        <CheckCircle className="w-5 h-5 text-emerald-500" />
+                      )}
                     </div>
                   ))}
                 </div>
@@ -2102,13 +2471,26 @@ const Debts: React.FC = () => {
                 Yopish
               </button>
               {selectedMyDebt.remainingAmount > 0 && (
-                <button 
-                  onClick={() => { setShowMyDebtDetailModal(false); setPayAmount(''); setShowPayMyDebtModal(true); }} 
-                  className="flex-1 px-4 py-3 bg-gradient-to-r from-cyan-500 to-teal-600 text-white rounded-xl font-semibold flex items-center justify-center gap-2"
-                >
-                  <DollarSign className="w-4 h-4" />
-                  To'lov qilish
-                </button>
+                <>
+                  <button 
+                    onClick={() => { 
+                      setShowMyDebtDetailModal(false); 
+                      setPartialPayForm({ amount: '', recipientName: '', recipientPhone: '', notes: '' }); 
+                      setShowPartialPayModal(true); 
+                    }} 
+                    className="flex-1 px-4 py-3 bg-gradient-to-r from-orange-500 to-amber-600 text-white rounded-xl font-semibold flex items-center justify-center gap-2"
+                  >
+                    <ArrowUpRight className="w-4 h-4" />
+                    {convertToLanguage(t('debts.partialPay'), language)}
+                  </button>
+                  <button 
+                    onClick={() => { setShowMyDebtDetailModal(false); setPayAmount(''); setShowPayMyDebtModal(true); }} 
+                    className="flex-1 px-4 py-3 bg-gradient-to-r from-cyan-500 to-teal-600 text-white rounded-xl font-semibold flex items-center justify-center gap-2"
+                  >
+                    <DollarSign className="w-4 h-4" />
+                    To'lov qilish
+                  </button>
+                </>
               )}
             </div>
           </div>

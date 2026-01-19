@@ -5,6 +5,9 @@ export interface IMyDebtPayment {
   amount: number;
   paidAt: Date;
   notes?: string;
+  recipientName?: string;
+  recipientPhone?: string;
+  type?: 'full' | 'partial';
 }
 
 export interface IMyDebt extends Document {
@@ -29,6 +32,9 @@ const MyDebtPaymentSchema = new Schema({
   amount: { type: Number, required: true },
   paidAt: { type: Date, default: Date.now },
   notes: { type: String },
+  recipientName: { type: String },
+  recipientPhone: { type: String },
+  type: { type: String, enum: ['full', 'partial'], default: 'full' },
 });
 
 const MyDebtSchema = new Schema({

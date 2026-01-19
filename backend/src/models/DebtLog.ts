@@ -26,6 +26,7 @@ export interface IDebtLog extends Document {
   changeAmount: number;
   notes?: string;
   receivedBy?: string; // Pulni kim qabul qildi
+  initialPayment?: number; // Boshlang'ich to'lov
   // Kafil ma'lumotlari
   guarantor?: IGuarantor;
   // Bo'lib to'lash (Installment)
@@ -68,6 +69,7 @@ const DebtLogSchema = new Schema<IDebtLog>(
     changeAmount: { type: Number, required: true },
     notes: { type: String },
     receivedBy: { type: String }, // Pulni kim qabul qildi
+    initialPayment: { type: Number }, // Boshlang'ich to'lov
     // Kafil ma'lumotlari
     guarantor: { type: GuarantorSchema },
     // Bo'lib to'lash

@@ -221,10 +221,10 @@ export async function checkLowStockAndNotify(): Promise<void> {
   console.log('🔍 Kam qolgan mahsulotlarni tekshirish...');
   
   try {
-    // 1 dona yoki undan kam qolgan mahsulotlar
+    // Kam qolgan mahsulotlar (3 dona yoki undan kam)
     const lowStockProducts = await Product.find({
       isActive: true,
-      currentStock: { $lte: 1 },
+      currentStock: { $lte: 3 }, // Bu yerda chegarani o'zgartirish mumkin
     });
 
     console.log(`📦 Kam qolgan mahsulotlar: ${lowStockProducts.length} ta`);
