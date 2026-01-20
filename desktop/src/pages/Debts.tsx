@@ -641,7 +641,7 @@ const Debts: React.FC = () => {
       address: guarantorForm.address || undefined,
     } : undefined;
 
-    // Boshlang'ich to'lovni hisoblash
+    // Boshlang'ich to'lovni tekshirish
     const initialPayment = parseFloat(form.initialPaymentUzs) || 0;
     const totalAmount = parseFloat(form.amountUzs) || 0;
     
@@ -649,6 +649,13 @@ const Debts: React.FC = () => {
     if (initialPayment > totalAmount) {
       toast.error("Boshlang'ich to'lov jami summadan katta bo'lishi mumkin emas");
       return;
+    }
+
+    // Agar boshlang'ich to'lov jami summaga teng bo'lsa, ogohlantirish
+    if (initialPayment === totalAmount && totalAmount > 0) {
+      if (!window.confirm("Boshlang'ich to'lov jami summaga teng. Bu holda qarz qolmaydi. Davom etasizmi?")) {
+        return;
+      }
     }
 
     // Yangi mijoz qo'shish rejimi
@@ -1482,18 +1489,23 @@ const Debts: React.FC = () => {
               </div>
               
               {/* Boshlang'ich to'lov */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  {convertToLanguage(t('debts.initialPaymentOptional'), language)}
-                  <span className="text-xs text-gray-500 ml-2">- {convertToLanguage(t('debts.paidImmediately'), language)}</span>
-                </label>
+              <div className="bg-gradient-to-r from-blue-50 to-cyan-50 rounded-xl p-4 border border-blue-200">
+                <div className="flex items-center gap-2 mb-3">
+                  <DollarSign className="w-5 h-5 text-blue-600" />
+                  <label className="text-sm font-semibold text-blue-700">
+                    {convertToLanguage(t('debts.initialPaymentOptional'), language)}
+                  </label>
+                </div>
+                <p className="text-xs text-blue-600 mb-3">
+                  {convertToLanguage("Qarz belgilanayotgan paytda darhol to'lanadigan summa", language)}
+                </p>
                 <div className="grid grid-cols-2 gap-3">
                   <div className="relative">
                     <input 
                       type="number" 
                       value={form.initialPaymentUsd} 
                       onChange={(e) => handleInitialPaymentUsdChange(e.target.value)} 
-                      className="w-full px-4 py-3 bg-blue-50 border-0 rounded-xl focus:ring-2 focus:ring-blue-500 pr-14" 
+                      className="w-full px-4 py-3 bg-white border border-blue-300 rounded-xl focus:ring-2 focus:ring-blue-500 pr-14" 
                       placeholder="0" 
                     />
                     <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-blue-600">USD</span>
@@ -1503,37 +1515,80 @@ const Debts: React.FC = () => {
                       type="number" 
                       value={form.initialPaymentUzs} 
                       onChange={(e) => handleInitialPaymentUzsChange(e.target.value)} 
-                      className="w-full px-4 py-3 bg-blue-50 border-0 rounded-xl focus:ring-2 focus:ring-blue-500 pr-14" 
+                      className="w-full px-4 py-3 bg-white border border-blue-300 rounded-xl focus:ring-2 focus:ring-blue-500 pr-14" 
                       placeholder="0" 
                     />
                     <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-blue-600">UZS</span>
                   </div>
                 </div>
+                
+                {/* Tezkor to'lov tugmalari */}
+                {form.amountUzs && parseFloat(form.amountUzs) > 0 && (
+                  <div className="mt-3">
+                    <p className="text-xs text-blue-600 mb-2">{convertToLanguage(t('common.quickSelect'), language)}:</p>
+                    <div className="flex gap-2">
+                      {[10, 25, 50].map((percent) => (
+                        <button
+                          key={percent}
+                          type="button"
+                          onClick={() => {
+                            const totalAmount = parseFloat(form.amountUzs) || 0;
+                            const initialAmount = Math.floor(totalAmount * (percent / 100));
+                            setForm({ 
+                              ...form, 
+                              initialPaymentUzs: initialAmount.toString(),
+                              initialPaymentUsd: (initialAmount / usdRate).toFixed(2)
+                            });
+                          }}
+                          className="flex-1 py-2 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-lg text-xs font-semibold transition-colors"
+                        >
+                          {percent}%
+                        </button>
+                      ))}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setForm({ 
+                            ...form, 
+                            initialPaymentUzs: '',
+                            initialPaymentUsd: ''
+                          });
+                        }}
+                        className="px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-lg text-xs font-semibold transition-colors"
+                      >
+                        {convertToLanguage(t('common.clear'), language)}
+                      </button>
+                    </div>
+                  </div>
+                )}
+                
                 {/* Qoldiq qarzni ko'rsatish */}
                 {(form.amountUzs || form.initialPaymentUzs) && (
-                  <div className="mt-3 p-3 bg-gradient-to-r from-cyan-50 to-blue-50 rounded-xl border border-cyan-200">
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm font-medium text-gray-700">{convertToLanguage(t('debts.totalDebtAmount'), language)}:</span>
-                      <span className="text-sm font-bold text-gray-900">
-                        {(parseFloat(form.amountUzs) || 0).toLocaleString()} {convertToLanguage("so'm", language)}
-                      </span>
+                  <div className="mt-4 p-3 bg-white rounded-xl border border-blue-200">
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm font-medium text-gray-700">{convertToLanguage(t('debts.totalDebtAmount'), language)}:</span>
+                        <span className="text-sm font-bold text-gray-900">
+                          {(parseFloat(form.amountUzs) || 0).toLocaleString()} {convertToLanguage("so'm", language)}
+                        </span>
+                      </div>
+                      {form.initialPaymentUzs && parseFloat(form.initialPaymentUzs) > 0 && (
+                        <>
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm font-medium text-blue-700">{convertToLanguage(t('debts.initialPayment'), language)}:</span>
+                            <span className="text-sm font-bold text-blue-700">
+                              -{(parseFloat(form.initialPaymentUzs) || 0).toLocaleString()} {convertToLanguage("so'm", language)}
+                            </span>
+                          </div>
+                          <div className="flex justify-between items-center pt-2 border-t border-blue-200">
+                            <span className="text-sm font-semibold text-cyan-700">{convertToLanguage(t('debts.remainingDebt'), language)}:</span>
+                            <span className="text-lg font-bold text-cyan-700">
+                              {((parseFloat(form.amountUzs) || 0) - (parseFloat(form.initialPaymentUzs) || 0)).toLocaleString()} {convertToLanguage("so'm", language)}
+                            </span>
+                          </div>
+                        </>
+                      )}
                     </div>
-                    {form.initialPaymentUzs && parseFloat(form.initialPaymentUzs) > 0 && (
-                      <>
-                        <div className="flex justify-between items-center mt-1">
-                          <span className="text-sm font-medium text-blue-700">{convertToLanguage(t('debts.initialPayment'), language)}:</span>
-                          <span className="text-sm font-bold text-blue-700">
-                            -{(parseFloat(form.initialPaymentUzs) || 0).toLocaleString()} {convertToLanguage("so'm", language)}
-                          </span>
-                        </div>
-                        <div className="flex justify-between items-center mt-2 pt-2 border-t border-cyan-300">
-                          <span className="text-sm font-semibold text-cyan-700">{convertToLanguage(t('debts.remainingDebt'), language)}:</span>
-                          <span className="text-lg font-bold text-cyan-700">
-                            {((parseFloat(form.amountUzs) || 0) - (parseFloat(form.initialPaymentUzs) || 0)).toLocaleString()} {convertToLanguage("so'm", language)}
-                          </span>
-                        </div>
-                      </>
-                    )}
                   </div>
                 )}
               </div>

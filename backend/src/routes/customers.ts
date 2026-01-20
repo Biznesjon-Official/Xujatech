@@ -217,7 +217,7 @@ router.post('/:id/add-debt', async (req: Request, res: Response) => {
     // Log debt addition with guarantor and installment info
     const logNotes = initialPaymentAmount > 0 
       ? `${amount} so'm qarz qo'shildi. Boshlang'ich to'lov: ${initialPaymentAmount} so'm. Qoldiq qarz: ${finalDebtAmount} so'm`
-      : `${amount} so'm qarz qo'shildi`;
+      : `${finalDebtAmount} so'm qarz qo'shildi`;
 
     await DebtLog.create({
       customerId: customer._id,
