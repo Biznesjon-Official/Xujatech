@@ -51,7 +51,7 @@ const InstallmentSchema = new mongoose_1.Schema({
 const DebtLogSchema = new mongoose_1.Schema({
     customerId: { type: mongoose_1.Schema.Types.ObjectId, ref: 'Customer', required: true },
     cashierId: { type: mongoose_1.Schema.Types.ObjectId, ref: 'User' },
-    action: { type: String, enum: ['created', 'edited', 'deleted', 'paid', 'added'], required: true },
+    action: { type: String, enum: ['created', 'edited', 'deleted', 'paid', 'added', 'payment'], required: true },
     previousAmount: { type: Number, required: true },
     newAmount: { type: Number, required: true },
     changeAmount: { type: Number, required: true },

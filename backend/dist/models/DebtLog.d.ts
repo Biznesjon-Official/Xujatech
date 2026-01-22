@@ -15,7 +15,7 @@ export interface IInstallment {
 export interface IDebtLog extends Document {
     customerId: mongoose.Types.ObjectId;
     cashierId?: mongoose.Types.ObjectId;
-    action: 'created' | 'edited' | 'deleted' | 'paid' | 'added';
+    action: 'created' | 'edited' | 'deleted' | 'paid' | 'added' | 'payment';
     previousAmount: number;
     newAmount: number;
     changeAmount: number;

@@ -456,7 +456,6 @@ export const translations = {
     debtDeleted: { cyr: 'Қарз ўчирилди', lat: "Qarz o'chirildi" },
     confirmDelete: { cyr: 'нинг қарзини ўчиришни тасдиқлайсизми?', lat: "ning qarzini o'chirishni tasdiqlaysizmi?" },
     currentDebt: { cyr: 'Жорий қарз', lat: 'Joriy qarz' },
-    currentDebt: { cyr: 'Жорий қарз', lat: 'Joriy qarz' },
     newTotalDebt: { cyr: 'Янги жами қарз', lat: 'Yangi jami qarz' },
     all: { cyr: 'Ҳаммаси', lat: 'Hammasi' },
     debtors: { cyr: 'та қарздор', lat: 'ta qarzdor' },
