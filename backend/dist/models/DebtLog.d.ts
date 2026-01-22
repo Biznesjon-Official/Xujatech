@@ -21,6 +21,7 @@ export interface IDebtLog extends Document {
     changeAmount: number;
     notes?: string;
     receivedBy?: string;
+    initialPayment?: number;
     guarantor?: IGuarantor;
     isInstallment?: boolean;
     installmentCount?: number;

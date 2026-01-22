@@ -149,7 +149,7 @@ async function checkLowStockAndNotify() {
     try {
         const lowStockProducts = await models_1.Product.find({
             isActive: true,
-            currentStock: { $lte: 1 },
+            currentStock: { $lte: 3 },
         });
         console.log(`📦 Kam qolgan mahsulotlar: ${lowStockProducts.length} ta`);
         let sentCount = 0;

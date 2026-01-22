@@ -39,6 +39,9 @@ const MyDebtPaymentSchema = new mongoose_1.Schema({
     amount: { type: Number, required: true },
     paidAt: { type: Date, default: Date.now },
     notes: { type: String },
+    recipientName: { type: String },
+    recipientPhone: { type: String },
+    type: { type: String, enum: ['full', 'partial'], default: 'full' },
 });
 const MyDebtSchema = new mongoose_1.Schema({
     creditorName: { type: String, required: true },

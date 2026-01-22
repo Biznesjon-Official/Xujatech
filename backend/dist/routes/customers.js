@@ -158,7 +158,7 @@ router.post('/:id/pay-debt', async (req, res) => {
 });
 router.post('/:id/add-debt', async (req, res) => {
     try {
-        const { amount, dueDate, notes, cashierId, guarantor, isInstallment, installmentCount, installmentDates } = req.body;
+        const { amount, initialPayment, dueDate, notes, cashierId, guarantor, isInstallment, installmentCount, installmentDates } = req.body;
         const customer = await models_1.Customer.findById(req.params.id);
         if (!customer) {
             return res.status(404).json({ success: false, message: 'Mijoz topilmadi' });
@@ -166,14 +166,19 @@ router.post('/:id/add-debt', async (req, res) => {
         if (!amount || amount <= 0) {
             return res.status(400).json({ success: false, message: 'Qarz summasi noto\'g\'ri' });
         }
+        const initialPaymentAmount = initialPayment || 0;
+        if (initialPaymentAmount > amount) {
+            return res.status(400).json({ success: false, message: 'Boshlang\'ich to\'lov jami summadan katta bo\'lishi mumkin emas' });
+        }
         const previousDebt = customer.currentDebt || 0;
-        customer.currentDebt = previousDebt + amount;
+        const finalDebtAmount = amount - initialPaymentAmount;
+        customer.currentDebt = previousDebt + finalDebtAmount;
         if (dueDate) {
             customer.debtDueDate = new Date(dueDate);
         }
         let installments = [];
         if (isInstallment && installmentCount && installmentCount > 1) {
-            const installmentAmount = Math.ceil(amount / installmentCount);
+            const installmentAmount = Math.ceil(finalDebtAmount / installmentCount);
             for (let i = 0; i < installmentCount; i++) {
                 let installmentDueDate;
                 if (installmentDates && installmentDates[i]) {
@@ -185,7 +190,7 @@ router.post('/:id/add-debt', async (req, res) => {
                 }
                 const isLast = i === installmentCount - 1;
                 const thisAmount = isLast
-                    ? amount - (installmentAmount * (installmentCount - 1))
+                    ? finalDebtAmount - (installmentAmount * (installmentCount - 1))
                     : installmentAmount;
                 installments.push({
                     installmentNumber: i + 1,
@@ -196,14 +201,17 @@ router.post('/:id/add-debt', async (req, res) => {
                 });
             }
         }
+        const logNotes = initialPaymentAmount > 0
+            ? `${amount} so'm qarz qo'shildi. Boshlang'ich to'lov: ${initialPaymentAmount} so'm. Qoldiq qarz: ${finalDebtAmount} so'm`
+            : `${finalDebtAmount} so'm qarz qo'shildi`;
         await models_1.DebtLog.create({
             customerId: customer._id,
             cashierId: cashierId || null,
             action: 'added',
             previousAmount: previousDebt,
             newAmount: customer.currentDebt,
-            changeAmount: amount,
-            notes: notes || `${amount} so'm qarz qo'shildi`,
+            changeAmount: finalDebtAmount,
+            notes: notes || logNotes,
             guarantor: guarantor ? {
                 fullName: guarantor.fullName,
                 phone: guarantor.phone || undefined,
@@ -212,9 +220,24 @@ router.post('/:id/add-debt', async (req, res) => {
             isInstallment: isInstallment || false,
             installmentCount: installmentCount || undefined,
             installments: installments.length > 0 ? installments : undefined,
+            initialPayment: initialPaymentAmount > 0 ? initialPaymentAmount : undefined,
         });
+        if (initialPaymentAmount > 0) {
+            await models_1.DebtLog.create({
+                customerId: customer._id,
+                cashierId: cashierId || null,
+                action: 'payment',
+                previousAmount: previousDebt + amount,
+                newAmount: customer.currentDebt,
+                changeAmount: initialPaymentAmount,
+                notes: `Boshlang'ich to'lov: ${initialPaymentAmount} so'm`,
+            });
+        }
         await customer.save();
-        res.json({ success: true, data: customer, message: "Qarz qo'shildi" });
+        const responseMessage = initialPaymentAmount > 0
+            ? `Qarz qo'shildi. Boshlang'ich to'lov: ${initialPaymentAmount.toLocaleString()} so'm`
+            : "Qarz qo'shildi";
+        res.json({ success: true, data: customer, message: responseMessage });
     }
     catch (error) {
         console.error('Add debt error:', error);

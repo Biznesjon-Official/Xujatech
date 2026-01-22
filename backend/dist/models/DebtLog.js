@@ -57,6 +57,7 @@ const DebtLogSchema = new mongoose_1.Schema({
     changeAmount: { type: Number, required: true },
     notes: { type: String },
     receivedBy: { type: String },
+    initialPayment: { type: Number },
     guarantor: { type: GuarantorSchema },
     isInstallment: { type: Boolean, default: false },
     installmentCount: { type: Number },

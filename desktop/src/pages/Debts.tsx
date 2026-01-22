@@ -73,18 +73,18 @@ interface DebtStats {
 const Debts: React.FC = () => {
   const { t, language } = useLanguage();
   const [activeTab, setActiveTab] = useState<'receivable' | 'payable'>('receivable');
-  
+
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [allCustomers, setAllCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState<'all' | 'pending' | 'overdue' | 'today'>('all');
   const [stats, setStats] = useState<DebtStats>({ pending: 0, todayDue: 0, paid: 0, overdue: 0, total: 0 });
-  
+
   const [myDebts, setMyDebts] = useState<MyDebt[]>([]);
   const [myDebtsLoading, setMyDebtsLoading] = useState(false);
   const [myDebtsStats, setMyDebtsStats] = useState<DebtStats>({ pending: 0, todayDue: 0, paid: 0, overdue: 0, total: 0 });
-  
+
   const [showAddModal, setShowAddModal] = useState(false);
   const [showPayModal, setShowPayModal] = useState(false);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
@@ -93,7 +93,7 @@ const Debts: React.FC = () => {
   const [showPartialPayModal, setShowPartialPayModal] = useState(false);
   const [showMyDebtDetailModal, setShowMyDebtDetailModal] = useState(false);
   const [showCustomerDetailModal, setShowCustomerDetailModal] = useState(false);
-  
+
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [selectedMyDebt, setSelectedMyDebt] = useState<MyDebt | null>(null);
   const [payAmount, setPayAmount] = useState('');
@@ -105,11 +105,11 @@ const Debts: React.FC = () => {
     notes: ''
   });
   const [debtHistory, setDebtHistory] = useState<any[]>([]);
-  const [form, setForm] = useState({ 
-    customerId: '', 
-    amountUsd: '', 
-    amountUzs: '', 
-    dueDate: '', 
+  const [form, setForm] = useState({
+    customerId: '',
+    amountUsd: '',
+    amountUzs: '',
+    dueDate: '',
     notes: '',
     initialPaymentUsd: '',
     initialPaymentUzs: ''
@@ -132,6 +132,8 @@ const Debts: React.FC = () => {
     dueDate: '',
     notes: '',
     type: 'supplier' as 'supplier' | 'person' | 'other',
+    initialPaymentUsd: '',
+    initialPaymentUzs: '',
   });
 
   // Currency exchange rate
@@ -179,21 +181,133 @@ const Debts: React.FC = () => {
   // Boshlang'ich to'lov USD o'zgarganda UZS ni hisoblash
   const handleInitialPaymentUsdChange = (value: string) => {
     const usdValue = parseFloat(value) || 0;
-    setForm({ 
-      ...form, 
-      initialPaymentUsd: value, 
-      initialPaymentUzs: usdValue ? Math.round(usdValue * usdRate).toString() : '' 
+    setForm({
+      ...form,
+      initialPaymentUsd: value,
+      initialPaymentUzs: usdValue ? Math.round(usdValue * usdRate).toString() : ''
     });
   };
 
   // Boshlang'ich to'lov UZS o'zgarganda USD ni hisoblash
   const handleInitialPaymentUzsChange = (value: string) => {
     const uzsValue = parseFloat(value) || 0;
-    setForm({ 
-      ...form, 
-      initialPaymentUzs: value, 
-      initialPaymentUsd: uzsValue ? (uzsValue / usdRate).toFixed(2) : '' 
+    setForm({
+      ...form,
+      initialPaymentUzs: value,
+      initialPaymentUsd: uzsValue ? (uzsValue / usdRate).toFixed(2) : ''
     });
+  };
+
+  // Boshlang'ich to'lov USD o'zgarganda UZS ni hisoblash (Men qarzdorman uchun)
+  const handleMyDebtInitialPaymentUsdChange = (value: string) => {
+    const usdValue = parseFloat(value) || 0;
+    setMyDebtForm({
+      ...myDebtForm,
+      initialPaymentUsd: value,
+      initialPaymentUzs: usdValue ? Math.round(usdValue * usdRate).toString() : ''
+    });
+  };
+
+  // Boshlang'ich to'lov UZS o'zgarganda USD ni hisoblash (Men qarzdorman uchun)
+  const handleMyDebtInitialPaymentUzsChange = (value: string) => {
+    const uzsValue = parseFloat(value) || 0;
+    setMyDebtForm({
+      ...myDebtForm,
+      initialPaymentUzs: value,
+      initialPaymentUsd: uzsValue ? (uzsValue / usdRate).toFixed(2) : ''
+    });
+  };
+
+  // Oddiy sana komponenti - kun/oy/yil
+  const SimpleDateInput = ({ 
+    value, 
+    onChange, 
+    className = "" 
+  }: { 
+    value: string; 
+    onChange: (value: string) => void; 
+    className?: string; 
+  }) => {
+    const [day, setDay] = useState('');
+    const [month, setMonth] = useState('');
+    const [year, setYear] = useState('');
+
+    // Value o'zgarganda ichki qiymatlarni yangilash
+    useEffect(() => {
+      if (value) {
+        const date = new Date(value);
+        if (!isNaN(date.getTime())) {
+          setDay(date.getDate().toString());
+          setMonth((date.getMonth() + 1).toString());
+          setYear(date.getFullYear().toString());
+        }
+      }
+    }, [value]);
+
+    // Sana yaratish
+    const updateDate = () => {
+      if (day && month && year) {
+        const dayNum = parseInt(day);
+        const monthNum = parseInt(month);
+        const yearNum = parseInt(year);
+        
+        if (dayNum >= 1 && dayNum <= 31 && monthNum >= 1 && monthNum <= 12 && yearNum >= 1900) {
+          const date = new Date(yearNum, monthNum - 1, dayNum);
+          onChange(date.toISOString().split('T')[0]);
+        }
+      }
+    };
+
+    return (
+      <div className={`flex gap-2 ${className}`}>
+        <div className="flex-1">
+          <input
+            type="text"
+            value={day}
+            onChange={(e) => {
+              const val = e.target.value.replace(/[^0-9]/g, '');
+              if (val === '' || (parseInt(val) >= 1 && parseInt(val) <= 31)) {
+                setDay(val);
+              }
+            }}
+            onBlur={updateDate}
+            className="w-full px-3 py-3 bg-gray-50 border-0 rounded-xl focus:ring-2 focus:ring-cyan-500 text-center"
+            placeholder="Kun"
+            maxLength={2}
+          />
+        </div>
+        <div className="flex-1">
+          <input
+            type="text"
+            value={month}
+            onChange={(e) => {
+              const val = e.target.value.replace(/[^0-9]/g, '');
+              if (val === '' || (parseInt(val) >= 1 && parseInt(val) <= 12)) {
+                setMonth(val);
+              }
+            }}
+            onBlur={updateDate}
+            className="w-full px-3 py-3 bg-gray-50 border-0 rounded-xl focus:ring-2 focus:ring-cyan-500 text-center"
+            placeholder="Oy"
+            maxLength={2}
+          />
+        </div>
+        <div className="flex-1">
+          <input
+            type="text"
+            value={year}
+            onChange={(e) => {
+              const val = e.target.value.replace(/[^0-9]/g, '');
+              setYear(val);
+            }}
+            onBlur={updateDate}
+            className="w-full px-3 py-3 bg-gray-50 border-0 rounded-xl focus:ring-2 focus:ring-cyan-500 text-center"
+            placeholder="Yil"
+            maxLength={4}
+          />
+        </div>
+      </div>
+    );
   };
 
   const selectedCashier = JSON.parse(localStorage.getItem('selectedCashier') || '{}');
@@ -213,10 +327,10 @@ const Debts: React.FC = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('accessToken');
-      const url = currentCashierId 
+      const url = currentCashierId
         ? `/api/customers/debts/by-cashier/${currentCashierId}`
         : '/api/customers/debts/all';
-      
+
       console.log('Loading debts from:', url);
       const response = await fetch(url, {
         headers: { Authorization: `Bearer ${token}` },
@@ -284,7 +398,7 @@ const Debts: React.FC = () => {
     today.setHours(0, 0, 0, 0);
     const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
-    
+
     data.forEach((c) => {
       total += c.currentDebt;
       if (c.currentDebt === 0) { paid++; return; }
@@ -334,7 +448,7 @@ const Debts: React.FC = () => {
     today.setHours(0, 0, 0, 0);
     const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
-    
+
     data.forEach((d) => {
       total += d.remainingAmount;
       if (d.remainingAmount === 0) { paid++; return; }
@@ -356,13 +470,28 @@ const Debts: React.FC = () => {
       toast.error(t('errors.requiredField'));
       return;
     }
-    
+
     const finalAmount = parseFloat(myDebtForm.amountUzs) || 0;
-    
+    const initialPayment = parseFloat(myDebtForm.initialPaymentUzs) || 0;
+
+    // Boshlang'ich to'lovni tekshirish
+    if (initialPayment > finalAmount) {
+      toast.error("Boshlang'ich to'lov jami summadan katta bo'lishi mumkin emas");
+      return;
+    }
+
+    // Agar boshlang'ich to'lov jami summaga teng bo'lsa, ogohlantirish
+    if (initialPayment === finalAmount && finalAmount > 0) {
+      if (!window.confirm("Boshlang'ich to'lov jami summaga teng. Bu holda qarz qolmaydi. Davom etasizmi?")) {
+        return;
+      }
+    }
+
     const newDebtData = {
       creditorName: myDebtForm.creditorName,
       creditorPhone: myDebtForm.creditorPhone,
       amount: finalAmount,
+      initialPayment: initialPayment,
       dueDate: myDebtForm.dueDate || undefined,
       notes: myDebtForm.notes,
       type: myDebtForm.type,
@@ -377,54 +506,88 @@ const Debts: React.FC = () => {
       });
       const data = await response.json();
       if (data.success) {
-        toast.success("Qarz qo'shildi");
+        toast.success(data.message || "Qarz qo'shildi");
         loadMyDebts();
       } else {
         // Fallback to localStorage
-        addMyDebtLocal(finalAmount);
+        addMyDebtLocal(finalAmount, initialPayment);
       }
     } catch {
       // Fallback to localStorage
-      addMyDebtLocal(finalAmount);
+      addMyDebtLocal(finalAmount, initialPayment);
     }
-    
+
     setShowAddMyDebtModal(false);
-    setMyDebtForm({ creditorName: '', creditorPhone: '', amountUsd: '', amountUzs: '', dueDate: '', notes: '', type: 'supplier' });
+    setMyDebtForm({
+      creditorName: '',
+      creditorPhone: '',
+      amountUsd: '',
+      amountUzs: '',
+      dueDate: '',
+      notes: '',
+      type: 'supplier',
+      initialPaymentUsd: '',
+      initialPaymentUzs: ''
+    });
   };
 
-  const addMyDebtLocal = (finalAmount: number) => {
+  const addMyDebtLocal = (finalAmount: number, initialPayment: number = 0) => {
+    const remainingAmount = finalAmount - initialPayment;
+    const payments = [];
+
+    // Agar boshlang'ich to'lov bo'lsa, uni to'lov sifatida qo'shamiz
+    if (initialPayment > 0) {
+      payments.push({
+        _id: `initial_payment_${Date.now()}`,
+        amount: initialPayment,
+        paidAt: new Date().toISOString(),
+        notes: `Boshlang'ich to'lov - qarz belgilanayotgan paytda to'landi`,
+        type: 'full' as 'full',
+      });
+    }
+
     const newDebt: MyDebt = {
       _id: `debt_${Date.now()}`,
       creditorName: myDebtForm.creditorName,
       creditorPhone: myDebtForm.creditorPhone,
       amount: finalAmount,
-      paidAmount: 0,
-      remainingAmount: finalAmount,
+      paidAmount: initialPayment,
+      remainingAmount: remainingAmount,
       dueDate: myDebtForm.dueDate || undefined,
       notes: myDebtForm.notes,
       createdAt: new Date().toISOString(),
       type: myDebtForm.type,
-      payments: [],
+      payments: payments,
+      status: remainingAmount === 0 ? 'paid' : 'active',
     };
-    
+
     const saved = localStorage.getItem('myDebts');
     const debts = saved ? JSON.parse(saved) : [];
     debts.push(newDebt);
     localStorage.setItem('myDebts', JSON.stringify(debts));
     setMyDebts(debts);
     calculateMyDebtsStats(debts);
-    toast.success("Qarz qo'shildi");
+
+    let message = "Qarz qo'shildi";
+    if (initialPayment > 0) {
+      if (remainingAmount === 0) {
+        message = `Qarz to'liq to'landi! Boshlang'ich to'lov: ${initialPayment.toLocaleString()} so'm`;
+      } else {
+        message = `Qarz qo'shildi. Boshlang'ich to'lov: ${initialPayment.toLocaleString()} so'm. Qoldiq: ${remainingAmount.toLocaleString()} so'm`;
+      }
+    }
+    toast.success(message);
   };
 
   const handlePayMyDebt = async () => {
     if (!selectedMyDebt || !payAmount) return;
-    
+
     const amount = parseFloat(payAmount);
     if (amount <= 0 || amount > selectedMyDebt.remainingAmount) {
       toast.error("Noto'g'ri summa kiritildi");
       return;
     }
-    
+
     try {
       const token = localStorage.getItem('accessToken');
       const response = await fetch(`/api/my-debts/${selectedMyDebt._id}/pay`, {
@@ -433,12 +596,12 @@ const Debts: React.FC = () => {
         body: JSON.stringify({ amount }),
       });
       const data = await response.json();
-      
+
       if (data.success) {
         const updatedDebt = data.data;
         setMyDebts(prev => prev.map(d => d._id === selectedMyDebt._id ? updatedDebt : d));
         calculateMyDebtsStats(myDebts.map(d => d._id === selectedMyDebt._id ? updatedDebt : d));
-        
+
         if (updatedDebt.remainingAmount === 0) {
           toast.success("Qarz to'liq to'landi! ✅");
         } else {
@@ -463,13 +626,13 @@ const Debts: React.FC = () => {
       toast.error("Summa va qabul qiluvchi nomi kiritilishi shart");
       return;
     }
-    
+
     const amount = parseFloat(partialPayForm.amount);
     if (amount <= 0 || amount > selectedMyDebt.remainingAmount) {
       toast.error("Noto'g'ri summa kiritildi");
       return;
     }
-    
+
     try {
       const token = localStorage.getItem('accessToken');
       const response = await fetch(`/api/my-debts/${selectedMyDebt._id}/partial-pay`, {
@@ -483,12 +646,12 @@ const Debts: React.FC = () => {
         }),
       });
       const data = await response.json();
-      
+
       if (data.success) {
         const updatedDebt = data.data;
         setMyDebts(prev => prev.map(d => d._id === selectedMyDebt._id ? updatedDebt : d));
         calculateMyDebtsStats(myDebts.map(d => d._id === selectedMyDebt._id ? updatedDebt : d));
-        
+
         toast.success(data.message || `${formatMoney(amount)} so'm qisman to'lov qilindi`);
         setShowPartialPayModal(false);
         setSelectedMyDebt(updatedDebt);
@@ -506,7 +669,7 @@ const Debts: React.FC = () => {
 
   const handlePartialPayMyDebtLocal = (amount: number) => {
     if (!selectedMyDebt) return;
-    
+
     const newPayment: MyDebtPayment = {
       _id: `partial_payment_${Date.now()}`,
       amount: amount,
@@ -516,7 +679,7 @@ const Debts: React.FC = () => {
       notes: partialPayForm.notes || `Qisman to'lov - ${partialPayForm.recipientName}`,
       type: 'partial',
     };
-    
+
     const newRemainingAmount = selectedMyDebt.remainingAmount - amount;
     const updatedDebt: MyDebt = {
       ...selectedMyDebt,
@@ -533,10 +696,10 @@ const Debts: React.FC = () => {
       debts[idx] = updatedDebt;
       localStorage.setItem('myDebts', JSON.stringify(debts));
     }
-    
+
     setMyDebts(prev => prev.map(d => d._id === selectedMyDebt._id ? updatedDebt : d));
     calculateMyDebtsStats(myDebts.map(d => d._id === selectedMyDebt._id ? updatedDebt : d));
-    
+
     toast.success(`${formatMoney(amount)} so'm qisman to'lov qilindi`);
     setShowPartialPayModal(false);
     setSelectedMyDebt(updatedDebt);
@@ -546,13 +709,13 @@ const Debts: React.FC = () => {
 
   const handlePayMyDebtLocal = (amount: number) => {
     if (!selectedMyDebt) return;
-    
+
     const newPayment: MyDebtPayment = {
       _id: `payment_${Date.now()}`,
       amount: amount,
       paidAt: new Date().toISOString(),
     };
-    
+
     const newRemainingAmount = selectedMyDebt.remainingAmount - amount;
     const updatedDebt: MyDebt = {
       ...selectedMyDebt,
@@ -569,10 +732,10 @@ const Debts: React.FC = () => {
       debts[idx] = updatedDebt;
       localStorage.setItem('myDebts', JSON.stringify(debts));
     }
-    
+
     setMyDebts(prev => prev.map(d => d._id === selectedMyDebt._id ? updatedDebt : d));
     calculateMyDebtsStats(myDebts.map(d => d._id === selectedMyDebt._id ? updatedDebt : d));
-    
+
     if (newRemainingAmount === 0) {
       toast.success("Qarz to'liq to'landi! ✅");
     } else {
@@ -586,7 +749,7 @@ const Debts: React.FC = () => {
 
   const handleDeleteMyDebt = async (debt: MyDebt) => {
     if (!window.confirm(`${debt.creditorName} - qarzni o'chirmoqchimisiz?`)) return;
-    
+
     try {
       const token = localStorage.getItem('accessToken');
       const response = await fetch(`/api/my-debts/${debt._id}`, {
@@ -594,7 +757,7 @@ const Debts: React.FC = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await response.json();
-      
+
       if (data.success) {
         setMyDebts(prev => prev.filter(d => d._id !== debt._id));
         calculateMyDebtsStats(myDebts.filter(d => d._id !== debt._id));
@@ -644,7 +807,7 @@ const Debts: React.FC = () => {
     // Boshlang'ich to'lovni tekshirish
     const initialPayment = parseFloat(form.initialPaymentUzs) || 0;
     const totalAmount = parseFloat(form.amountUzs) || 0;
-    
+
     // Boshlang'ich to'lov jami summadan katta bo'lmasligi kerak
     if (initialPayment > totalAmount) {
       toast.error("Boshlang'ich to'lov jami summadan katta bo'lishi mumkin emas");
@@ -671,9 +834,9 @@ const Debts: React.FC = () => {
         const customerResponse = await fetch('/api/customers', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-          body: JSON.stringify({ 
-            fullName: newCustomerForm.fullName, 
-            phone: newCustomerForm.phone || undefined 
+          body: JSON.stringify({
+            fullName: newCustomerForm.fullName,
+            phone: newCustomerForm.phone || undefined
           }),
         });
         const customerData = await customerResponse.json();
@@ -682,15 +845,15 @@ const Debts: React.FC = () => {
           return;
         }
         const newCustomerId = customerData.data._id;
-        
+
         // Keyin qarz qo'shamiz (kafil va bo'lib to'lash bilan)
         const response = await fetch(`/api/customers/${newCustomerId}/add-debt`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-          body: JSON.stringify({ 
-            amount: finalAmount, 
+          body: JSON.stringify({
+            amount: finalAmount,
             initialPayment: initialPayment, // Boshlang'ich to'lovni qo'shamiz
-            dueDate: form.dueDate || undefined, 
+            dueDate: form.dueDate || undefined,
             notes: form.notes || undefined,
             cashierId: currentCashierId || undefined,
             guarantor: guarantorData,
@@ -738,10 +901,10 @@ const Debts: React.FC = () => {
       const response = await fetch(`/api/customers/${form.customerId}/add-debt`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ 
-          amount: finalAmount, 
+        body: JSON.stringify({
+          amount: finalAmount,
           initialPayment: initialPayment, // Boshlang'ich to'lovni qo'shamiz
-          dueDate: form.dueDate || undefined, 
+          dueDate: form.dueDate || undefined,
           notes: form.notes || undefined,
           cashierId: currentCashierId || undefined,
           guarantor: guarantorData,
@@ -784,8 +947,8 @@ const Debts: React.FC = () => {
       const response = await fetch(`/api/customers/${selectedCustomer._id}/pay-debt`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ 
-          amount: parseFloat(payAmount), 
+        body: JSON.stringify({
+          amount: parseFloat(payAmount),
           cashierId: currentCashierId || undefined,
           receivedBy: payReceivedBy || undefined,
         }),
@@ -857,14 +1020,14 @@ const Debts: React.FC = () => {
     return [...customers].sort((a, b) => {
       const statusA = getCustomerStatus(a);
       const statusB = getCustomerStatus(b);
-      
+
       // Prioritet: overdue > today > pending > paid
       const priority: Record<string, number> = { overdue: 0, today: 1, pending: 2, paid: 3 };
-      
+
       if (priority[statusA] !== priority[statusB]) {
         return priority[statusA] - priority[statusB];
       }
-      
+
       // Bir xil statusda bo'lsa, qarz summasiga qarab (kattasi yuqorida)
       return b.currentDebt - a.currentDebt;
     });
@@ -883,21 +1046,21 @@ const Debts: React.FC = () => {
     return [...debts].sort((a, b) => {
       const statusA = getMyDebtStatus(a);
       const statusB = getMyDebtStatus(b);
-      
+
       const priority: Record<string, number> = { overdue: 0, pending: 1, paid: 2 };
-      
+
       if (priority[statusA] !== priority[statusB]) {
         return priority[statusA] - priority[statusB];
       }
-      
+
       return b.remainingAmount - a.remainingAmount;
     });
   };
 
   const filteredMyDebts = sortMyDebtsByPriority(
     myDebts.filter((d) => {
-      return d.creditorName.toLowerCase().includes(searchQuery.toLowerCase()) || 
-             (d.creditorPhone && d.creditorPhone.includes(searchQuery));
+      return d.creditorName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (d.creditorPhone && d.creditorPhone.includes(searchQuery));
     })
   );
 
@@ -964,22 +1127,20 @@ const Debts: React.FC = () => {
           <div className="flex bg-gray-100 rounded-xl p-1">
             <button
               onClick={() => setActiveTab('receivable')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                activeTab === 'receivable'
-                  ? 'bg-white text-cyan-600 shadow-sm'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${activeTab === 'receivable'
+                ? 'bg-white text-cyan-600 shadow-sm'
+                : 'text-gray-600 hover:text-gray-900'
+                }`}
             >
               <ArrowDownLeft className="w-4 h-4" />
               {convertToLanguage('Menga qarzdor', language)}
             </button>
             <button
               onClick={() => setActiveTab('payable')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                activeTab === 'payable'
-                  ? 'bg-white text-orange-600 shadow-sm'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${activeTab === 'payable'
+                ? 'bg-white text-orange-600 shadow-sm'
+                : 'text-gray-600 hover:text-gray-900'
+                }`}
             >
               <ArrowUpRight className="w-4 h-4" />
               {convertToLanguage('Men qarzdorman', language)}
@@ -990,16 +1151,16 @@ const Debts: React.FC = () => {
           <div className="flex-1 flex items-center gap-3">
             <div className="flex-1 relative">
               <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <input 
-                type="text" 
-                value={searchQuery} 
-                onChange={(e) => setSearchQuery(e.target.value)} 
-                placeholder={convertToLanguage('Qidirish...', language)} 
-                className="w-full pl-10 pr-4 py-2.5 bg-gray-100/80 border-0 rounded-xl text-sm focus:ring-2 focus:ring-cyan-500/50 focus:bg-white transition-all" 
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder={convertToLanguage('Qidirish...', language)}
+                className="w-full pl-10 pr-4 py-2.5 bg-gray-100/80 border-0 rounded-xl text-sm focus:ring-2 focus:ring-cyan-500/50 focus:bg-white transition-all"
               />
             </div>
-            <button 
-              onClick={() => activeTab === 'receivable' ? setShowAddModal(true) : setShowAddMyDebtModal(true)} 
+            <button
+              onClick={() => activeTab === 'receivable' ? setShowAddModal(true) : setShowAddMyDebtModal(true)}
               className="flex items-center gap-2 px-4 py-2.5 bg-cyan-500 hover:bg-cyan-600 text-white rounded-xl text-sm font-semibold transition-all shadow-lg shadow-cyan-500/25 hover:-translate-y-0.5"
             >
               <Plus className="w-4 h-4" />
@@ -1094,15 +1255,14 @@ const Debts: React.FC = () => {
                     const status = getCustomerStatus(customer);
                     const isOverdue = status === 'overdue';
                     return (
-                      <div 
-                        key={customer._id} 
-                        className={`p-4 hover:bg-gray-50 cursor-pointer transition-all ${
-                          isOverdue 
-                            ? 'bg-gradient-to-r from-red-50 to-red-100/50 border-l-4 border-l-red-500' 
-                            : status === 'today' 
+                      <div
+                        key={customer._id}
+                        className={`p-4 hover:bg-gray-50 cursor-pointer transition-all ${isOverdue
+                          ? 'bg-gradient-to-r from-red-50 to-red-100/50 border-l-4 border-l-red-500'
+                          : status === 'today'
                             ? 'bg-gradient-to-r from-amber-50 to-amber-100/50 border-l-4 border-l-amber-500'
                             : ''
-                        }`}
+                          }`}
                         onClick={(e) => {
                           if ((e.target as HTMLElement).closest('button')) return;
                           setSelectedCustomer(customer);
@@ -1111,11 +1271,10 @@ const Debts: React.FC = () => {
                         }}
                       >
                         <div className="flex items-center gap-3">
-                          <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-                            isOverdue ? 'bg-gradient-to-br from-red-500 to-red-600 shadow-lg shadow-red-500/30' : 
-                            status === 'today' ? 'bg-gradient-to-br from-amber-400 to-orange-500 shadow-lg shadow-amber-500/30' : 
-                            'bg-gradient-to-br from-cyan-400 to-teal-500'
-                          }`}>
+                          <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${isOverdue ? 'bg-gradient-to-br from-red-500 to-red-600 shadow-lg shadow-red-500/30' :
+                            status === 'today' ? 'bg-gradient-to-br from-amber-400 to-orange-500 shadow-lg shadow-amber-500/30' :
+                              'bg-gradient-to-br from-cyan-400 to-teal-500'
+                            }`}>
                             {isOverdue ? <AlertCircle className="w-5 h-5 text-white" /> : <User className="w-5 h-5 text-white" />}
                           </div>
                           <div className="flex-1 min-w-0">
@@ -1128,11 +1287,33 @@ const Debts: React.FC = () => {
                               </p>
                             )}
                           </div>
-                          <div className="text-right">
-                            <p className={`text-lg font-bold ${isOverdue ? 'text-red-600' : status === 'today' ? 'text-amber-600' : 'text-gray-900'}`}>
-                              {formatMoney(customer.currentDebt)} {convertToLanguage("so'm", language)}
-                            </p>
-                            {getStatusBadge(customer)}
+                          <div className="text-right min-w-0">
+                            <div className="space-y-2">
+                              {/* Faqat joriy qarz ko'rsatamiz, chunki boshqa ma'lumotlar yo'q */}
+                              <div className={`text-center p-3 rounded-lg border ${
+                                isOverdue ? 'bg-red-50 border-red-200' : 
+                                status === 'today' ? 'bg-amber-50 border-amber-200' : 
+                                'bg-blue-50 border-blue-200'
+                              }`}>
+                                <p className={`text-xs font-medium ${
+                                  isOverdue ? 'text-red-600' : 
+                                  status === 'today' ? 'text-amber-600' : 
+                                  'text-blue-600'
+                                }`}>{convertToLanguage('Joriy qarz', language)}</p>
+                                <p className={`text-lg font-bold ${
+                                  isOverdue ? 'text-red-700' : 
+                                  status === 'today' ? 'text-amber-700' : 
+                                  'text-blue-700'
+                                }`}>
+                                  {formatMoney(customer.currentDebt)} {convertToLanguage("so'm", language)}
+                                </p>
+                              </div>
+
+                              {/* Status badge */}
+                              <div className="mt-2">
+                                {getStatusBadge(customer)}
+                              </div>
+                            </div>
                           </div>
                           <div className="flex items-center gap-1">
                             <button onClick={() => loadDebtHistory(customer)} className="p-2 text-gray-500 hover:bg-gray-100 rounded-lg">
@@ -1181,12 +1362,11 @@ const Debts: React.FC = () => {
                     const status = getMyDebtStatus(debt);
                     const isPaid = debt.remainingAmount === 0;
                     return (
-                      <div 
-                        key={debt._id} 
-                        className={`p-4 hover:bg-gray-50 cursor-pointer transition-all ${
-                          status === 'overdue' ? 'bg-red-50/30' : 
+                      <div
+                        key={debt._id}
+                        className={`p-4 hover:bg-gray-50 cursor-pointer transition-all ${status === 'overdue' ? 'bg-red-50/30' :
                           isPaid ? 'bg-emerald-50/30' : ''
-                        }`}
+                          }`}
                         onClick={(e) => {
                           // Agar tugma bosilgan bo'lsa, modal ochilmasin
                           if ((e.target as HTMLElement).closest('button')) return;
@@ -1195,14 +1375,13 @@ const Debts: React.FC = () => {
                         }}
                       >
                         <div className="flex items-center gap-3">
-                          <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-                            isPaid ? 'bg-gradient-to-br from-emerald-400 to-green-500' :
+                          <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${isPaid ? 'bg-gradient-to-br from-emerald-400 to-green-500' :
                             debt.type === 'supplier' ? 'bg-gradient-to-br from-blue-400 to-indigo-500' :
-                            debt.type === 'person' ? 'bg-gradient-to-br from-purple-400 to-violet-500' :
-                            'bg-gradient-to-br from-gray-400 to-slate-500'
-                          }`}>
+                              debt.type === 'person' ? 'bg-gradient-to-br from-purple-400 to-violet-500' :
+                                'bg-gradient-to-br from-gray-400 to-slate-500'
+                            }`}>
                             {isPaid ? <CheckCircle className="w-5 h-5 text-white" /> :
-                             debt.type === 'supplier' ? <Building className="w-5 h-5 text-white" /> : <User className="w-5 h-5 text-white" />}
+                              debt.type === 'supplier' ? <Building className="w-5 h-5 text-white" /> : <User className="w-5 h-5 text-white" />}
                           </div>
                           <div className="flex-1 min-w-0">
                             <p className={`font-semibold ${isPaid ? 'text-emerald-700' : 'text-gray-900'}`}>{debt.creditorName}</p>
@@ -1212,28 +1391,36 @@ const Debts: React.FC = () => {
                               </p>
                             )}
                           </div>
-                          <div className="text-right">
+                          <div className="text-right min-w-0">
                             {isPaid ? (
                               <span className="inline-flex items-center gap-1 px-3 py-1 bg-emerald-100 text-emerald-700 text-sm font-semibold rounded-full">
                                 <CheckCircle className="w-4 h-4" />
                                 {convertToLanguage("To'langan", language)}
                               </span>
                             ) : (
-                              <>
-                                <p className={`text-lg font-bold ${status === 'overdue' ? 'text-red-600' : 'text-gray-900'}`}>
-                                  {formatMoney(debt.remainingAmount)} {convertToLanguage("so'm", language)}
-                                </p>
-                                {debt.paidAmount > 0 && (
-                                  <p className="text-xs text-emerald-600">
-                                    {convertToLanguage("To'langan", language)}: {formatMoney(debt.paidAmount)}
-                                  </p>
-                                )}
-                              </>
+                              <div className="grid grid-cols-3 gap-2">
+                                {/* 1. Jami qarz */}
+                                <div className="text-center p-2 bg-blue-50 rounded-lg border border-blue-200">
+                                  <p className="text-xs text-blue-600 font-medium">{convertToLanguage('Jami', language)}</p>
+                                  <p className="text-sm font-bold text-blue-700">{formatMoney(debt.amount)}</p>
+                                </div>
+                                
+                                {/* 2. To'langan */}
+                                <div className="text-center p-2 bg-emerald-50 rounded-lg border border-emerald-200">
+                                  <p className="text-xs text-emerald-600 font-medium">{convertToLanguage("To'langan", language)}</p>
+                                  <p className="text-sm font-bold text-emerald-700">{formatMoney(debt.paidAmount)}</p>
+                                </div>
+                                
+                                {/* 3. Qoldiq */}
+                                <div className={`text-center p-2 rounded-lg border ${status === 'overdue' ? 'bg-red-50 border-red-200' : 'bg-amber-50 border-amber-200'}`}>
+                                  <p className={`text-xs font-medium ${status === 'overdue' ? 'text-red-600' : 'text-amber-600'}`}>{convertToLanguage('Qoldiq', language)}</p>
+                                  <p className={`text-sm font-bold ${status === 'overdue' ? 'text-red-700' : 'text-amber-700'}`}>{formatMoney(debt.remainingAmount)}</p>
+                                </div>
+                              </div>
                             )}
                             {debt.dueDate && !isPaid && (
-                              <span className={`inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded-full mt-1 ${
-                                status === 'overdue' ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'
-                              }`}>
+                              <span className={`inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded-full mt-2 ${status === 'overdue' ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'
+                                }`}>
                                 <Calendar className="w-3 h-3" />
                                 {formatDate(debt.dueDate)}
                               </span>
@@ -1242,19 +1429,19 @@ const Debts: React.FC = () => {
                           <div className="flex items-center gap-1">
                             {!isPaid && (
                               <>
-                                <button 
-                                  onClick={() => { setSelectedMyDebt(debt); setPayAmount(''); setShowPayMyDebtModal(true); }} 
+                                <button
+                                  onClick={() => { setSelectedMyDebt(debt); setPayAmount(''); setShowPayMyDebtModal(true); }}
                                   className="p-2 text-cyan-600 hover:bg-cyan-100 rounded-lg"
                                   title={convertToLanguage("To'lov qilish", language)}
                                 >
                                   <DollarSign className="w-4 h-4" />
                                 </button>
-                                <button 
-                                  onClick={() => { 
-                                    setSelectedMyDebt(debt); 
-                                    setPartialPayForm({ amount: '', recipientName: '', recipientPhone: '', notes: '' }); 
-                                    setShowPartialPayModal(true); 
-                                  }} 
+                                <button
+                                  onClick={() => {
+                                    setSelectedMyDebt(debt);
+                                    setPartialPayForm({ amount: '', recipientName: '', recipientPhone: '', notes: '' });
+                                    setShowPartialPayModal(true);
+                                  }}
                                   className="p-2 text-orange-600 hover:bg-orange-100 rounded-lg"
                                   title={convertToLanguage(t('debts.partialPay'), language)}
                                 >
@@ -1275,7 +1462,7 @@ const Debts: React.FC = () => {
                               <span>{Math.round((debt.paidAmount / debt.amount) * 100)}%</span>
                             </div>
                             <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
-                              <div 
+                              <div
                                 className={`h-full rounded-full transition-all ${isPaid ? 'bg-emerald-500' : 'bg-cyan-500'}`}
                                 style={{ width: `${Math.min(100, (debt.paidAmount / debt.amount) * 100)}%` }}
                               />
@@ -1297,7 +1484,7 @@ const Debts: React.FC = () => {
 
 
       {/* ==================== MODALS ==================== */}
-      
+
       {/* Pay Modal (Receivable) */}
       {showPayModal && selectedCustomer && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
@@ -1336,16 +1523,16 @@ const Debts: React.FC = () => {
           <div className="bg-white rounded-3xl w-full max-w-md overflow-hidden shadow-2xl max-h-[90vh] overflow-y-auto">
             <div className="p-6 flex justify-between items-center bg-gradient-to-r from-cyan-500 to-teal-600">
               <h3 className="text-xl font-bold text-white">{convertToLanguage("Yangi qarz qo'shish", language)}</h3>
-              <button onClick={() => { 
-                setShowAddModal(false); 
-                setNewCustomerMode(false); 
-                setCustomerSearch(''); 
+              <button onClick={() => {
+                setShowAddModal(false);
+                setNewCustomerMode(false);
+                setCustomerSearch('');
                 setForm({ customerId: '', amountUsd: '', amountUzs: '', dueDate: '', notes: '', initialPaymentUsd: '', initialPaymentUzs: '' });
-                setGuarantorForm({ fullName: '', phone: '', address: '' }); 
-                setShowGuarantorSection(false); 
-                setIsInstallment(false); 
-                setInstallmentCount(2); 
-                setInstallmentDates([]); 
+                setGuarantorForm({ fullName: '', phone: '', address: '' });
+                setShowGuarantorSection(false);
+                setIsInstallment(false);
+                setInstallmentCount(2);
+                setInstallmentDates([]);
               }} className="p-2 hover:bg-white/20 rounded-xl">
                 <X className="w-5 h-5 text-white" />
               </button>
@@ -1362,16 +1549,15 @@ const Debts: React.FC = () => {
                       setForm({ ...form, customerId: '' });
                       setCustomerSearch('');
                     }}
-                    className={`text-xs font-medium px-3 py-1 rounded-lg transition-all ${
-                      newCustomerMode 
-                        ? 'bg-cyan-100 text-cyan-700' 
-                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                    }`}
+                    className={`text-xs font-medium px-3 py-1 rounded-lg transition-all ${newCustomerMode
+                      ? 'bg-cyan-100 text-cyan-700'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      }`}
                   >
                     {newCustomerMode ? 'Mavjud mijoz' : '+ Yangi mijoz'}
                   </button>
                 </div>
-                
+
                 {newCustomerMode ? (
                   <div className="space-y-3">
                     <input
@@ -1416,8 +1602,8 @@ const Debts: React.FC = () => {
                           if (!customerSearch) return true;
                           const search = customerSearch.toLowerCase();
                           const phoneSearch = customerSearch.replace(/\D/g, '');
-                          return c.fullName.toLowerCase().includes(search) || 
-                                 (c.phone && c.phone.replace(/\D/g, '').includes(phoneSearch));
+                          return c.fullName.toLowerCase().includes(search) ||
+                            (c.phone && c.phone.replace(/\D/g, '').includes(phoneSearch));
                         })
                         .map((c) => (
                           <div
@@ -1426,9 +1612,8 @@ const Debts: React.FC = () => {
                               setForm({ ...form, customerId: c._id });
                               setCustomerSearch(c.fullName + (c.phone ? ` (${c.phone})` : ''));
                             }}
-                            className={`px-4 py-3 cursor-pointer hover:bg-gray-50 border-b border-gray-100 last:border-b-0 ${
-                              form.customerId === c._id ? 'bg-cyan-50' : ''
-                            }`}
+                            className={`px-4 py-3 cursor-pointer hover:bg-gray-50 border-b border-gray-100 last:border-b-0 ${form.customerId === c._id ? 'bg-cyan-50' : ''
+                              }`}
                           >
                             <p className="font-medium text-gray-900">{convertToLanguage(c.fullName, language)}</p>
                             {c.phone && <p className="text-xs text-gray-500">{c.phone}</p>}
@@ -1438,13 +1623,13 @@ const Debts: React.FC = () => {
                         if (!customerSearch) return true;
                         const search = customerSearch.toLowerCase();
                         const phoneSearch = customerSearch.replace(/\D/g, '');
-                        return c.fullName.toLowerCase().includes(search) || 
-                               (c.phone && c.phone.replace(/\D/g, '').includes(phoneSearch));
+                        return c.fullName.toLowerCase().includes(search) ||
+                          (c.phone && c.phone.replace(/\D/g, '').includes(phoneSearch));
                       }).length === 0 && (
-                        <div className="px-4 py-6 text-center text-gray-500 text-sm">
-                          Mijoz topilmadi
-                        </div>
-                      )}
+                          <div className="px-4 py-6 text-center text-gray-500 text-sm">
+                            Mijoz topilmadi
+                          </div>
+                        )}
                     </div>
                   </div>
                 )}
@@ -1487,7 +1672,7 @@ const Debts: React.FC = () => {
                   </div>
                 </div>
               </div>
-              
+
               {/* Boshlang'ich to'lov */}
               <div className="bg-gradient-to-r from-blue-50 to-cyan-50 rounded-xl p-4 border border-blue-200">
                 <div className="flex items-center gap-2 mb-3">
@@ -1501,67 +1686,27 @@ const Debts: React.FC = () => {
                 </p>
                 <div className="grid grid-cols-2 gap-3">
                   <div className="relative">
-                    <input 
-                      type="number" 
-                      value={form.initialPaymentUsd} 
-                      onChange={(e) => handleInitialPaymentUsdChange(e.target.value)} 
-                      className="w-full px-4 py-3 bg-white border border-blue-300 rounded-xl focus:ring-2 focus:ring-blue-500 pr-14" 
-                      placeholder="0" 
+                    <input
+                      type="number"
+                      value={form.initialPaymentUsd}
+                      onChange={(e) => handleInitialPaymentUsdChange(e.target.value)}
+                      className="w-full px-4 py-3 bg-white border border-blue-300 rounded-xl focus:ring-2 focus:ring-blue-500 pr-14"
+                      placeholder="0"
                     />
                     <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-blue-600">USD</span>
                   </div>
                   <div className="relative">
-                    <input 
-                      type="number" 
-                      value={form.initialPaymentUzs} 
-                      onChange={(e) => handleInitialPaymentUzsChange(e.target.value)} 
-                      className="w-full px-4 py-3 bg-white border border-blue-300 rounded-xl focus:ring-2 focus:ring-blue-500 pr-14" 
-                      placeholder="0" 
+                    <input
+                      type="number"
+                      value={form.initialPaymentUzs}
+                      onChange={(e) => handleInitialPaymentUzsChange(e.target.value)}
+                      className="w-full px-4 py-3 bg-white border border-blue-300 rounded-xl focus:ring-2 focus:ring-blue-500 pr-14"
+                      placeholder="0"
                     />
                     <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-blue-600">UZS</span>
                   </div>
                 </div>
-                
-                {/* Tezkor to'lov tugmalari */}
-                {form.amountUzs && parseFloat(form.amountUzs) > 0 && (
-                  <div className="mt-3">
-                    <p className="text-xs text-blue-600 mb-2">{convertToLanguage(t('common.quickSelect'), language)}:</p>
-                    <div className="flex gap-2">
-                      {[10, 25, 50].map((percent) => (
-                        <button
-                          key={percent}
-                          type="button"
-                          onClick={() => {
-                            const totalAmount = parseFloat(form.amountUzs) || 0;
-                            const initialAmount = Math.floor(totalAmount * (percent / 100));
-                            setForm({ 
-                              ...form, 
-                              initialPaymentUzs: initialAmount.toString(),
-                              initialPaymentUsd: (initialAmount / usdRate).toFixed(2)
-                            });
-                          }}
-                          className="flex-1 py-2 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-lg text-xs font-semibold transition-colors"
-                        >
-                          {percent}%
-                        </button>
-                      ))}
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setForm({ 
-                            ...form, 
-                            initialPaymentUzs: '',
-                            initialPaymentUsd: ''
-                          });
-                        }}
-                        className="px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-lg text-xs font-semibold transition-colors"
-                      >
-                        {convertToLanguage(t('common.clear'), language)}
-                      </button>
-                    </div>
-                  </div>
-                )}
-                
+
                 {/* Qoldiq qarzni ko'rsatish */}
                 {(form.amountUzs || form.initialPaymentUzs) && (
                   <div className="mt-4 p-3 bg-white rounded-xl border border-blue-200">
@@ -1592,26 +1737,29 @@ const Debts: React.FC = () => {
                   </div>
                 )}
               </div>
-              
+
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">To'lov muddati</label>
-                <input type="date" value={form.dueDate} onChange={(e) => setForm({ ...form, dueDate: e.target.value })} className="w-full px-4 py-3 bg-gray-50 border-0 rounded-xl focus:ring-2 focus:ring-cyan-500" />
+                <SimpleDateInput 
+                  value={form.dueDate} 
+                  onChange={(value) => setForm({ ...form, dueDate: value })} 
+                  className="w-full"
+                />
               </div>
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">Izoh</label>
                 <textarea value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} className="w-full px-4 py-3 bg-gray-50 border-0 rounded-xl focus:ring-2 focus:ring-cyan-500 resize-none" rows={2} />
               </div>
-              
+
               {/* Kafil (Guarantor) Section */}
               <div className="border-t border-gray-200 pt-4">
                 <button
                   type="button"
                   onClick={() => setShowGuarantorSection(!showGuarantorSection)}
-                  className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all ${
-                    showGuarantorSection 
-                      ? 'bg-amber-50 border-2 border-amber-300' 
-                      : 'bg-gray-50 border-2 border-dashed border-gray-300 hover:border-gray-400'
-                  }`}
+                  className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all ${showGuarantorSection
+                    ? 'bg-amber-50 border-2 border-amber-300'
+                    : 'bg-gray-50 border-2 border-dashed border-gray-300 hover:border-gray-400'
+                    }`}
                 >
                   <div className="flex items-center gap-2">
                     <User className={`w-4 h-4 ${showGuarantorSection ? 'text-amber-600' : 'text-gray-500'}`} />
@@ -1623,7 +1771,7 @@ const Debts: React.FC = () => {
                     {showGuarantorSection ? 'Yopish' : 'Ixtiyoriy'}
                   </span>
                 </button>
-                
+
                 {showGuarantorSection && (
                   <div className="mt-3 p-4 bg-amber-50/50 rounded-xl border border-amber-200 space-y-3">
                     <p className="text-xs text-amber-700 mb-2">
@@ -1687,11 +1835,10 @@ const Debts: React.FC = () => {
                       setInstallmentDates(dates);
                     }
                   }}
-                  className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all ${
-                    isInstallment
-                      ? 'bg-purple-50 border-2 border-purple-300'
-                      : 'bg-gray-50 border-2 border-dashed border-gray-300 hover:border-gray-400'
-                  }`}
+                  className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all ${isInstallment
+                    ? 'bg-purple-50 border-2 border-purple-300'
+                    : 'bg-gray-50 border-2 border-dashed border-gray-300 hover:border-gray-400'
+                    }`}
                 >
                   <div className="flex items-center gap-2">
                     <Calendar className={`w-4 h-4 ${isInstallment ? 'text-purple-600' : 'text-gray-500'}`} />
@@ -1744,9 +1891,8 @@ const Debts: React.FC = () => {
                               }
                               setInstallmentDates(dates);
                             }}
-                            className={`flex-1 py-2 rounded-lg text-xs font-semibold transition-all ${
-                              installmentCount === count ? 'bg-purple-500 text-white' : 'bg-white border border-purple-200 text-purple-700 hover:bg-purple-100'
-                            }`}
+                            className={`flex-1 py-2 rounded-lg text-xs font-semibold transition-all ${installmentCount === count ? 'bg-purple-500 text-white' : 'bg-white border border-purple-200 text-purple-700 hover:bg-purple-100'
+                              }`}
                           >
                             {count} oy
                           </button>
@@ -1801,16 +1947,16 @@ const Debts: React.FC = () => {
               </div>
             </div>
             <div className="p-6 bg-gray-50 flex gap-3">
-              <button onClick={() => { 
-                setShowAddModal(false); 
-                setNewCustomerMode(false); 
-                setCustomerSearch(''); 
+              <button onClick={() => {
+                setShowAddModal(false);
+                setNewCustomerMode(false);
+                setCustomerSearch('');
                 setForm({ customerId: '', amountUsd: '', amountUzs: '', dueDate: '', notes: '', initialPaymentUsd: '', initialPaymentUzs: '' });
-                setGuarantorForm({ fullName: '', phone: '', address: '' }); 
-                setShowGuarantorSection(false); 
-                setIsInstallment(false); 
-                setInstallmentCount(2); 
-                setInstallmentDates([]); 
+                setGuarantorForm({ fullName: '', phone: '', address: '' });
+                setShowGuarantorSection(false);
+                setIsInstallment(false);
+                setInstallmentCount(2);
+                setInstallmentDates([]);
               }} className="flex-1 px-4 py-3 text-gray-700 bg-white rounded-xl font-semibold border border-gray-200">{convertToLanguage('Bekor', language)}</button>
               <button onClick={handleAddDebt} className="flex-1 px-4 py-3 bg-gradient-to-r from-cyan-500 to-teal-600 text-white rounded-xl font-semibold">{convertToLanguage("Qo'shish", language)}</button>
             </div>
@@ -1824,7 +1970,20 @@ const Debts: React.FC = () => {
           <div className="bg-white rounded-3xl w-full max-w-md overflow-hidden shadow-2xl max-h-[90vh] overflow-y-auto">
             <div className="p-6 flex justify-between items-center bg-gradient-to-r from-cyan-500 to-teal-600 sticky top-0">
               <h3 className="text-xl font-bold text-white">Mening qarzim</h3>
-              <button onClick={() => setShowAddMyDebtModal(false)} className="p-2 hover:bg-white/20 rounded-xl">
+              <button onClick={() => {
+                setShowAddMyDebtModal(false);
+                setMyDebtForm({
+                  creditorName: '',
+                  creditorPhone: '',
+                  amountUsd: '',
+                  amountUzs: '',
+                  dueDate: '',
+                  notes: '',
+                  type: 'supplier',
+                  initialPaymentUsd: '',
+                  initialPaymentUzs: ''
+                });
+              }} className="p-2 hover:bg-white/20 rounded-xl">
                 <X className="w-5 h-5 text-white" />
               </button>
             </div>
@@ -1840,9 +1999,8 @@ const Debts: React.FC = () => {
                     <button
                       key={type.id}
                       onClick={() => setMyDebtForm({ ...myDebtForm, type: type.id as any })}
-                      className={`p-3 rounded-xl border-2 flex flex-col items-center gap-1 transition-all ${
-                        myDebtForm.type === type.id ? 'border-cyan-500 bg-cyan-50' : 'border-gray-200 hover:border-gray-300'
-                      }`}
+                      className={`p-3 rounded-xl border-2 flex flex-col items-center gap-1 transition-all ${myDebtForm.type === type.id ? 'border-cyan-500 bg-cyan-50' : 'border-gray-200 hover:border-gray-300'
+                        }`}
                     >
                       <type.icon className={`w-5 h-5 ${myDebtForm.type === type.id ? 'text-cyan-600' : 'text-gray-500'}`} />
                       <span className={`text-xs font-medium ${myDebtForm.type === type.id ? 'text-cyan-600' : 'text-gray-600'}`}>{type.label}</span>
@@ -1898,9 +2056,78 @@ const Debts: React.FC = () => {
                   </div>
                 </div>
               </div>
+
+              {/* Boshlang'ich to'lov - Men qarzdorman uchun */}
+              <div className="bg-gradient-to-r from-blue-50 to-cyan-50 rounded-xl p-4 border border-blue-200">
+                <div className="flex items-center gap-2 mb-3">
+                  <DollarSign className="w-5 h-5 text-blue-600" />
+                  <label className="text-sm font-semibold text-blue-700">
+                    {convertToLanguage("Boshlang'ich to'lov (ixtiyoriy)", language)}
+                  </label>
+                </div>
+                <p className="text-xs text-blue-600 mb-3">
+                  {convertToLanguage("Qarz belgilanayotgan paytda darhol to'lanadigan summa", language)}
+                </p>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="relative">
+                    <input
+                      type="number"
+                      value={myDebtForm.initialPaymentUsd}
+                      onChange={(e) => handleMyDebtInitialPaymentUsdChange(e.target.value)}
+                      className="w-full px-4 py-3 bg-white border border-blue-300 rounded-xl focus:ring-2 focus:ring-blue-500 pr-14"
+                      placeholder="0"
+                    />
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-blue-600">USD</span>
+                  </div>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      value={myDebtForm.initialPaymentUzs}
+                      onChange={(e) => handleMyDebtInitialPaymentUzsChange(e.target.value)}
+                      className="w-full px-4 py-3 bg-white border border-blue-300 rounded-xl focus:ring-2 focus:ring-blue-500 pr-14"
+                      placeholder="0"
+                    />
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-blue-600">UZS</span>
+                  </div>
+                </div>
+
+                {/* Qoldiq qarzni ko'rsatish */}
+                {(myDebtForm.amountUzs || myDebtForm.initialPaymentUzs) && (
+                  <div className="mt-4 p-3 bg-white rounded-xl border border-blue-200">
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm font-medium text-gray-700">{convertToLanguage(t('debts.totalDebtAmount'), language)}:</span>
+                        <span className="text-sm font-bold text-gray-900">
+                          {(parseFloat(myDebtForm.amountUzs) || 0).toLocaleString()} {convertToLanguage("so'm", language)}
+                        </span>
+                      </div>
+                      {myDebtForm.initialPaymentUzs && parseFloat(myDebtForm.initialPaymentUzs) > 0 && (
+                        <>
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm font-medium text-blue-700">{convertToLanguage(t('debts.initialPayment'), language)}:</span>
+                            <span className="text-sm font-bold text-blue-700">
+                              -{(parseFloat(myDebtForm.initialPaymentUzs) || 0).toLocaleString()} {convertToLanguage("so'm", language)}
+                            </span>
+                          </div>
+                          <div className="flex justify-between items-center pt-2 border-t border-blue-200">
+                            <span className="text-sm font-semibold text-cyan-700">{convertToLanguage(t('debts.remainingDebt'), language)}:</span>
+                            <span className="text-lg font-bold text-cyan-700">
+                              {((parseFloat(myDebtForm.amountUzs) || 0) - (parseFloat(myDebtForm.initialPaymentUzs) || 0)).toLocaleString()} {convertToLanguage("so'm", language)}
+                            </span>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">To'lov muddati</label>
-                <input type="date" value={myDebtForm.dueDate} onChange={(e) => setMyDebtForm({ ...myDebtForm, dueDate: e.target.value })} className="w-full px-4 py-3 bg-gray-50 border-0 rounded-xl focus:ring-2 focus:ring-cyan-500" />
+                <SimpleDateInput 
+                  value={myDebtForm.dueDate} 
+                  onChange={(value) => setMyDebtForm({ ...myDebtForm, dueDate: value })} 
+                  className="w-full"
+                />
               </div>
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">Izoh</label>
@@ -1908,7 +2135,20 @@ const Debts: React.FC = () => {
               </div>
             </div>
             <div className="p-6 bg-gray-50 flex gap-3 sticky bottom-0">
-              <button onClick={() => setShowAddMyDebtModal(false)} className="flex-1 px-4 py-3 text-gray-700 bg-white rounded-xl font-semibold border border-gray-200">Bekor</button>
+              <button onClick={() => {
+                setShowAddMyDebtModal(false);
+                setMyDebtForm({
+                  creditorName: '',
+                  creditorPhone: '',
+                  amountUsd: '',
+                  amountUzs: '',
+                  dueDate: '',
+                  notes: '',
+                  type: 'supplier',
+                  initialPaymentUsd: '',
+                  initialPaymentUzs: ''
+                });
+              }} className="flex-1 px-4 py-3 text-gray-700 bg-white rounded-xl font-semibold border border-gray-200">Bekor</button>
               <button onClick={handleAddMyDebt} className="flex-1 px-4 py-3 bg-gradient-to-r from-cyan-500 to-teal-600 text-white rounded-xl font-semibold">Qo'shish</button>
             </div>
           </div>
@@ -1964,32 +2204,32 @@ const Debts: React.FC = () => {
                 <p className="text-2xl font-bold text-red-600 mt-2">{formatMoney(selectedMyDebt.remainingAmount)} {convertToLanguage("so'm", language)}</p>
                 <p className="text-sm text-gray-500">{convertToLanguage('Qoldiq qarz', language)}</p>
               </div>
-              
+
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">{convertToLanguage(t('debts.amountToGive'), language)} *</label>
-                <input 
-                  type="number" 
-                  value={partialPayForm.amount} 
-                  onChange={(e) => setPartialPayForm({...partialPayForm, amount: e.target.value})} 
-                  className="w-full px-4 py-4 bg-gray-50 border-0 rounded-xl text-center text-xl font-bold focus:ring-2 focus:ring-orange-500" 
-                  placeholder="0" 
-                  autoFocus 
+                <input
+                  type="number"
+                  value={partialPayForm.amount}
+                  onChange={(e) => setPartialPayForm({ ...partialPayForm, amount: e.target.value })}
+                  className="w-full px-4 py-4 bg-gray-50 border-0 rounded-xl text-center text-xl font-bold focus:ring-2 focus:ring-orange-500"
+                  placeholder="0"
+                  autoFocus
                 />
                 <div className="flex gap-2 mt-2">
-                  <button 
-                    onClick={() => setPartialPayForm({...partialPayForm, amount: Math.floor(selectedMyDebt.remainingAmount / 4).toString()})} 
+                  <button
+                    onClick={() => setPartialPayForm({ ...partialPayForm, amount: Math.floor(selectedMyDebt.remainingAmount / 4).toString() })}
                     className="flex-1 py-2 bg-gray-100 rounded-lg text-xs font-semibold hover:bg-gray-200"
                   >
                     25%
                   </button>
-                  <button 
-                    onClick={() => setPartialPayForm({...partialPayForm, amount: Math.floor(selectedMyDebt.remainingAmount / 2).toString()})} 
+                  <button
+                    onClick={() => setPartialPayForm({ ...partialPayForm, amount: Math.floor(selectedMyDebt.remainingAmount / 2).toString() })}
                     className="flex-1 py-2 bg-gray-100 rounded-lg text-xs font-semibold hover:bg-gray-200"
                   >
                     50%
                   </button>
-                  <button 
-                    onClick={() => setPartialPayForm({...partialPayForm, amount: Math.floor(selectedMyDebt.remainingAmount * 0.75).toString()})} 
+                  <button
+                    onClick={() => setPartialPayForm({ ...partialPayForm, amount: Math.floor(selectedMyDebt.remainingAmount * 0.75).toString() })}
                     className="flex-1 py-2 bg-gray-100 rounded-lg text-xs font-semibold hover:bg-gray-200"
                   >
                     75%
@@ -1999,12 +2239,12 @@ const Debts: React.FC = () => {
 
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">{convertToLanguage(t('debts.recipientName'), language)} *</label>
-                <input 
-                  type="text" 
-                  value={partialPayForm.recipientName} 
-                  onChange={(e) => setPartialPayForm({...partialPayForm, recipientName: e.target.value})} 
-                  className="w-full px-4 py-3 bg-gray-50 border-0 rounded-xl focus:ring-2 focus:ring-orange-500" 
-                  placeholder="Ism familiya..." 
+                <input
+                  type="text"
+                  value={partialPayForm.recipientName}
+                  onChange={(e) => setPartialPayForm({ ...partialPayForm, recipientName: e.target.value })}
+                  className="w-full px-4 py-3 bg-gray-50 border-0 rounded-xl focus:ring-2 focus:ring-orange-500"
+                  placeholder="Ism familiya..."
                 />
               </div>
 
@@ -2017,7 +2257,7 @@ const Debts: React.FC = () => {
                     value={partialPayForm.recipientPhone.replace('+998', '')}
                     onChange={(e) => {
                       const value = e.target.value.replace(/\D/g, '').slice(0, 9);
-                      setPartialPayForm({...partialPayForm, recipientPhone: value ? `+998${value}` : ''});
+                      setPartialPayForm({ ...partialPayForm, recipientPhone: value ? `+998${value}` : '' });
                     }}
                     className="w-full pl-16 pr-4 py-3 bg-gray-50 border-0 rounded-xl focus:ring-2 focus:ring-orange-500"
                     placeholder="XX XXX XX XX"
@@ -2028,24 +2268,24 @@ const Debts: React.FC = () => {
 
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">{convertToLanguage("Izoh", language)}</label>
-                <textarea 
-                  value={partialPayForm.notes} 
-                  onChange={(e) => setPartialPayForm({...partialPayForm, notes: e.target.value})} 
-                  className="w-full px-4 py-3 bg-gray-50 border-0 rounded-xl focus:ring-2 focus:ring-orange-500 resize-none" 
-                  rows={2} 
-                  placeholder="Qo'shimcha ma'lumot..." 
+                <textarea
+                  value={partialPayForm.notes}
+                  onChange={(e) => setPartialPayForm({ ...partialPayForm, notes: e.target.value })}
+                  className="w-full px-4 py-3 bg-gray-50 border-0 rounded-xl focus:ring-2 focus:ring-orange-500 resize-none"
+                  rows={2}
+                  placeholder="Qo'shimcha ma'lumot..."
                 />
               </div>
             </div>
             <div className="p-6 bg-gray-50 flex gap-3">
-              <button 
-                onClick={() => setShowPartialPayModal(false)} 
+              <button
+                onClick={() => setShowPartialPayModal(false)}
                 className="flex-1 px-4 py-3 text-gray-700 bg-white rounded-xl font-semibold border border-gray-200"
               >
                 {convertToLanguage('Bekor', language)}
               </button>
-              <button 
-                onClick={handlePartialPayMyDebt} 
+              <button
+                onClick={handlePartialPayMyDebt}
                 disabled={!partialPayForm.amount || !partialPayForm.recipientName}
                 className="flex-1 px-4 py-3 bg-gradient-to-r from-orange-500 to-amber-600 text-white rounded-xl font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
               >
@@ -2061,13 +2301,12 @@ const Debts: React.FC = () => {
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl w-full max-w-md overflow-hidden shadow-2xl max-h-[90vh] flex flex-col">
             <div
-              className={`p-6 flex justify-between items-center ${
-                selectedCustomer.currentDebt === 0
-                  ? 'bg-gradient-to-r from-emerald-500 to-green-600'
-                  : getCustomerStatus(selectedCustomer) === 'overdue'
-                    ? 'bg-gradient-to-r from-red-500 to-rose-600'
-                    : 'bg-gradient-to-r from-cyan-500 to-teal-600'
-              }`}
+              className={`p-6 flex justify-between items-center ${selectedCustomer.currentDebt === 0
+                ? 'bg-gradient-to-r from-emerald-500 to-green-600'
+                : getCustomerStatus(selectedCustomer) === 'overdue'
+                  ? 'bg-gradient-to-r from-red-500 to-rose-600'
+                  : 'bg-gradient-to-r from-cyan-500 to-teal-600'
+                }`}
             >
               <div>
                 <h3 className="text-xl font-bold text-white">{convertToLanguage(selectedCustomer.fullName, language)}</h3>
@@ -2098,13 +2337,12 @@ const Debts: React.FC = () => {
                     <p className="text-xs text-gray-500">{convertToLanguage("so'm", language)}</p>
                   </div>
                   <div
-                    className={`rounded-xl p-4 text-center ${
-                      selectedCustomer.currentDebt === 0
-                        ? 'bg-emerald-50'
-                        : getCustomerStatus(selectedCustomer) === 'overdue'
-                          ? 'bg-red-50'
-                          : 'bg-blue-50'
-                    }`}
+                    className={`rounded-xl p-4 text-center ${selectedCustomer.currentDebt === 0
+                      ? 'bg-emerald-50'
+                      : getCustomerStatus(selectedCustomer) === 'overdue'
+                        ? 'bg-red-50'
+                        : 'bg-blue-50'
+                      }`}
                   >
                     <p className="text-xs text-gray-500 mb-1">{convertToLanguage('Holat', language)}</p>
                     {getStatusBadge(selectedCustomer)}
@@ -2114,33 +2352,30 @@ const Debts: React.FC = () => {
                 {/* To'lov muddati */}
                 {selectedCustomer.debtDueDate && (
                   <div
-                    className={`mt-4 p-3 rounded-xl flex items-center gap-3 ${
-                      getCustomerStatus(selectedCustomer) === 'overdue'
-                        ? 'bg-red-50 border border-red-200'
-                        : getCustomerStatus(selectedCustomer) === 'today'
-                          ? 'bg-amber-50 border border-amber-200'
-                          : 'bg-blue-50 border border-blue-200'
-                    }`}
+                    className={`mt-4 p-3 rounded-xl flex items-center gap-3 ${getCustomerStatus(selectedCustomer) === 'overdue'
+                      ? 'bg-red-50 border border-red-200'
+                      : getCustomerStatus(selectedCustomer) === 'today'
+                        ? 'bg-amber-50 border border-amber-200'
+                        : 'bg-blue-50 border border-blue-200'
+                      }`}
                   >
                     <Calendar
-                      className={`w-5 h-5 ${
-                        getCustomerStatus(selectedCustomer) === 'overdue'
-                          ? 'text-red-500'
-                          : getCustomerStatus(selectedCustomer) === 'today'
-                            ? 'text-amber-500'
-                            : 'text-blue-500'
-                      }`}
+                      className={`w-5 h-5 ${getCustomerStatus(selectedCustomer) === 'overdue'
+                        ? 'text-red-500'
+                        : getCustomerStatus(selectedCustomer) === 'today'
+                          ? 'text-amber-500'
+                          : 'text-blue-500'
+                        }`}
                     />
                     <div>
                       <p className="text-xs text-gray-500">To'lov muddati</p>
                       <p
-                        className={`font-semibold ${
-                          getCustomerStatus(selectedCustomer) === 'overdue'
-                            ? 'text-red-700'
-                            : getCustomerStatus(selectedCustomer) === 'today'
-                              ? 'text-amber-700'
-                              : 'text-blue-700'
-                        }`}
+                        className={`font-semibold ${getCustomerStatus(selectedCustomer) === 'overdue'
+                          ? 'text-red-700'
+                          : getCustomerStatus(selectedCustomer) === 'today'
+                            ? 'text-amber-700'
+                            : 'text-blue-700'
+                          }`}
                       >
                         {formatDate(selectedCustomer.debtDueDate)}
                         {getCustomerStatus(selectedCustomer) === 'overdue' && (
@@ -2212,15 +2447,13 @@ const Debts: React.FC = () => {
                         {item.installments.map((inst: any, instIdx: number) => (
                           <div
                             key={instIdx}
-                            className={`flex items-center justify-between p-2 rounded-lg ${
-                              inst.isPaid ? 'bg-emerald-100' : new Date(inst.dueDate) < new Date() ? 'bg-red-100' : 'bg-white'
-                            }`}
+                            className={`flex items-center justify-between p-2 rounded-lg ${inst.isPaid ? 'bg-emerald-100' : new Date(inst.dueDate) < new Date() ? 'bg-red-100' : 'bg-white'
+                              }`}
                           >
                             <div className="flex items-center gap-2">
                               <span
-                                className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
-                                  inst.isPaid ? 'bg-emerald-500 text-white' : 'bg-purple-200 text-purple-700'
-                                }`}
+                                className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${inst.isPaid ? 'bg-emerald-500 text-white' : 'bg-purple-200 text-purple-700'
+                                  }`}
                               >
                                 {inst.isPaid ? '✓' : instIdx + 1}
                               </span>
@@ -2321,16 +2554,14 @@ const Debts: React.FC = () => {
                     {debtHistory.map((item, index) => (
                       <div
                         key={index}
-                        className={`p-3 rounded-xl border ${
-                          item.type === 'payment' ? 'bg-emerald-50 border-emerald-200' : 'bg-red-50 border-red-200'
-                        }`}
+                        className={`p-3 rounded-xl border ${item.type === 'payment' ? 'bg-emerald-50 border-emerald-200' : 'bg-red-50 border-red-200'
+                          }`}
                       >
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
                             <div
-                              className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                                item.type === 'payment' ? 'bg-emerald-500' : 'bg-red-500'
-                              } text-white text-xs font-bold`}
+                              className={`w-8 h-8 rounded-full flex items-center justify-center ${item.type === 'payment' ? 'bg-emerald-500' : 'bg-red-500'
+                                } text-white text-xs font-bold`}
                             >
                               {item.type === 'payment' ? '-' : '+'}
                             </div>
@@ -2377,23 +2608,22 @@ const Debts: React.FC = () => {
       {showMyDebtDetailModal && selectedMyDebt && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl w-full max-w-md overflow-hidden shadow-2xl max-h-[90vh] flex flex-col">
-            <div className={`p-6 flex justify-between items-center ${
-              selectedMyDebt.remainingAmount === 0 
-                ? 'bg-gradient-to-r from-emerald-500 to-green-600' 
-                : 'bg-gradient-to-r from-orange-500 to-amber-600'
-            }`}>
+            <div className={`p-6 flex justify-between items-center ${selectedMyDebt.remainingAmount === 0
+              ? 'bg-gradient-to-r from-emerald-500 to-green-600'
+              : 'bg-gradient-to-r from-orange-500 to-amber-600'
+              }`}>
               <div>
                 <h3 className="text-xl font-bold text-white">{selectedMyDebt.creditorName}</h3>
                 <p className="text-sm text-white/80">
-                  {selectedMyDebt.type === 'supplier' ? "Ta'minotchi" : 
-                   selectedMyDebt.type === 'person' ? 'Shaxs' : 'Boshqa'}
+                  {selectedMyDebt.type === 'supplier' ? "Ta'minotchi" :
+                    selectedMyDebt.type === 'person' ? 'Shaxs' : 'Boshqa'}
                 </p>
               </div>
               <button onClick={() => { setShowMyDebtDetailModal(false); setSelectedMyDebt(null); }} className="p-2 hover:bg-white/20 rounded-xl">
                 <X className="w-5 h-5 text-white" />
               </button>
             </div>
-            
+
             {/* Qarz ma'lumotlari */}
             <div className="p-6 border-b border-gray-100">
               <div className="grid grid-cols-2 gap-4">
@@ -2402,19 +2632,17 @@ const Debts: React.FC = () => {
                   <p className="text-xl font-bold text-gray-900">{formatMoney(selectedMyDebt.amount)}</p>
                   <p className="text-xs text-gray-500">{convertToLanguage("so'm", language)}</p>
                 </div>
-                <div className={`rounded-xl p-4 text-center ${
-                  selectedMyDebt.remainingAmount === 0 ? 'bg-emerald-50' : 'bg-red-50'
-                }`}>
-                  <p className="text-xs text-gray-500 mb-1">{convertToLanguage('Qoldiq', language)}</p>
-                  <p className={`text-xl font-bold ${
-                    selectedMyDebt.remainingAmount === 0 ? 'text-emerald-600' : 'text-red-600'
+                <div className={`rounded-xl p-4 text-center ${selectedMyDebt.remainingAmount === 0 ? 'bg-emerald-50' : 'bg-red-50'
                   }`}>
+                  <p className="text-xs text-gray-500 mb-1">{convertToLanguage('Qoldiq', language)}</p>
+                  <p className={`text-xl font-bold ${selectedMyDebt.remainingAmount === 0 ? 'text-emerald-600' : 'text-red-600'
+                    }`}>
                     {formatMoney(selectedMyDebt.remainingAmount)}
                   </p>
                   <p className="text-xs text-gray-500">{convertToLanguage("so'm", language)}</p>
                 </div>
               </div>
-              
+
               {/* Progress bar */}
               {selectedMyDebt.amount > 0 && (
                 <div className="mt-4">
@@ -2423,30 +2651,29 @@ const Debts: React.FC = () => {
                     <span>{Math.round((selectedMyDebt.paidAmount / selectedMyDebt.amount) * 100)}%</span>
                   </div>
                   <div className="h-3 bg-gray-200 rounded-full overflow-hidden">
-                    <div 
-                      className={`h-full rounded-full transition-all ${
-                        selectedMyDebt.remainingAmount === 0 ? 'bg-emerald-500' : 'bg-cyan-500'
-                      }`}
+                    <div
+                      className={`h-full rounded-full transition-all ${selectedMyDebt.remainingAmount === 0 ? 'bg-emerald-500' : 'bg-cyan-500'
+                        }`}
                       style={{ width: `${Math.min(100, (selectedMyDebt.paidAmount / selectedMyDebt.amount) * 100)}%` }}
                     />
                   </div>
                 </div>
               )}
-              
+
               {selectedMyDebt.dueDate && (
                 <div className="mt-4 flex items-center gap-2 text-sm text-gray-600">
                   <Calendar className="w-4 h-4" />
                   <span>To'lov muddati: {formatDate(selectedMyDebt.dueDate)}</span>
                 </div>
               )}
-              
+
               {selectedMyDebt.creditorPhone && (
                 <div className="mt-2 flex items-center gap-2 text-sm text-gray-600">
                   <Phone className="w-4 h-4" />
                   <span>{selectedMyDebt.creditorPhone}</span>
                 </div>
               )}
-              
+
               {selectedMyDebt.notes && (
                 <div className="mt-3 p-3 bg-gray-50 rounded-xl">
                   <p className="text-xs text-gray-500 mb-1">Izoh:</p>
@@ -2454,14 +2681,14 @@ const Debts: React.FC = () => {
                 </div>
               )}
             </div>
-            
+
             {/* To'lovlar tarixi */}
             <div className="flex-1 overflow-auto p-6">
               <h4 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
                 <History className="w-4 h-4" />
                 To'lovlar tarixi
               </h4>
-              
+
               {(!selectedMyDebt.payments || selectedMyDebt.payments.length === 0) ? (
                 <div className="text-center py-8">
                   <div className="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-3">
@@ -2472,19 +2699,16 @@ const Debts: React.FC = () => {
               ) : (
                 <div className="space-y-2">
                   {selectedMyDebt.payments.map((payment, index) => (
-                    <div key={payment._id} className={`flex items-center gap-3 p-3 rounded-xl border ${
-                      payment.type === 'partial' ? 'bg-orange-50 border-orange-200' : 'bg-emerald-50 border-emerald-200'
-                    }`}>
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold ${
-                        payment.type === 'partial' ? 'bg-orange-500' : 'bg-emerald-500'
+                    <div key={payment._id} className={`flex items-center gap-3 p-3 rounded-xl border ${payment.type === 'partial' ? 'bg-orange-50 border-orange-200' : 'bg-emerald-50 border-emerald-200'
                       }`}>
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold ${payment.type === 'partial' ? 'bg-orange-500' : 'bg-emerald-500'
+                        }`}>
                         {payment.type === 'partial' ? '↗' : index + 1}
                       </div>
                       <div className="flex-1">
                         <div className="flex items-center gap-2">
-                          <p className={`text-sm font-semibold ${
-                            payment.type === 'partial' ? 'text-orange-700' : 'text-emerald-700'
-                          }`}>
+                          <p className={`text-sm font-semibold ${payment.type === 'partial' ? 'text-orange-700' : 'text-emerald-700'
+                            }`}>
                             -{formatMoney(payment.amount)} {convertToLanguage("so'm", language)}
                           </p>
                           {payment.type === 'partial' && (
@@ -2516,30 +2740,30 @@ const Debts: React.FC = () => {
                 </div>
               )}
             </div>
-            
+
             {/* Footer */}
             <div className="p-6 bg-gray-50 flex gap-3">
-              <button 
-                onClick={() => { setShowMyDebtDetailModal(false); setSelectedMyDebt(null); }} 
+              <button
+                onClick={() => { setShowMyDebtDetailModal(false); setSelectedMyDebt(null); }}
                 className="flex-1 px-4 py-3 text-gray-700 bg-white rounded-xl font-semibold border border-gray-200"
               >
                 Yopish
               </button>
               {selectedMyDebt.remainingAmount > 0 && (
                 <>
-                  <button 
-                    onClick={() => { 
-                      setShowMyDebtDetailModal(false); 
-                      setPartialPayForm({ amount: '', recipientName: '', recipientPhone: '', notes: '' }); 
-                      setShowPartialPayModal(true); 
-                    }} 
+                  <button
+                    onClick={() => {
+                      setShowMyDebtDetailModal(false);
+                      setPartialPayForm({ amount: '', recipientName: '', recipientPhone: '', notes: '' });
+                      setShowPartialPayModal(true);
+                    }}
                     className="flex-1 px-4 py-3 bg-gradient-to-r from-orange-500 to-amber-600 text-white rounded-xl font-semibold flex items-center justify-center gap-2"
                   >
                     <ArrowUpRight className="w-4 h-4" />
                     {convertToLanguage(t('debts.partialPay'), language)}
                   </button>
-                  <button 
-                    onClick={() => { setShowMyDebtDetailModal(false); setPayAmount(''); setShowPayMyDebtModal(true); }} 
+                  <button
+                    onClick={() => { setShowMyDebtDetailModal(false); setPayAmount(''); setShowPayMyDebtModal(true); }}
                     className="flex-1 px-4 py-3 bg-gradient-to-r from-cyan-500 to-teal-600 text-white rounded-xl font-semibold flex items-center justify-center gap-2"
                   >
                     <DollarSign className="w-4 h-4" />
@@ -2587,7 +2811,7 @@ const Debts: React.FC = () => {
                         </p>
                       </div>
                       {item.notes && <p className="text-sm text-gray-500 mt-3 pt-3 border-t border-gray-200">{item.notes}</p>}
-                      
+
                       {/* Bo'lib to'lash ma'lumotlari */}
                       {item.isInstallment && item.installments && item.installments.length > 0 && (
                         <div className="mt-3 pt-3 border-t border-gray-200 bg-purple-50 -mx-4 px-4 py-3">
@@ -2598,9 +2822,8 @@ const Debts: React.FC = () => {
                             {item.installments.map((inst: any, idx: number) => (
                               <div key={idx} className="flex justify-between items-center text-xs py-1 border-b border-purple-100 last:border-0">
                                 <div className="flex items-center gap-2">
-                                  <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold ${
-                                    inst.isPaid ? 'bg-emerald-500 text-white' : 'bg-purple-200 text-purple-700'
-                                  }`}>
+                                  <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold ${inst.isPaid ? 'bg-emerald-500 text-white' : 'bg-purple-200 text-purple-700'
+                                    }`}>
                                     {inst.isPaid ? '✓' : idx + 1}
                                   </span>
                                   <span className="text-gray-600">{new Date(inst.dueDate).toLocaleDateString('uz-UZ')}</span>
@@ -2613,7 +2836,7 @@ const Debts: React.FC = () => {
                           </div>
                         </div>
                       )}
-                      
+
                       {/* Kafil ma'lumotlari */}
                       {item.guarantor && item.guarantor.fullName && (
                         <div className={`mt-3 pt-3 border-t border-gray-200 bg-amber-50 -mx-4 ${item.isInstallment ? '' : '-mb-4'} px-4 py-3 ${item.isInstallment ? '' : 'rounded-b-2xl'}`}>

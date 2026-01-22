@@ -4,6 +4,9 @@ export interface IMyDebtPayment {
     amount: number;
     paidAt: Date;
     notes?: string;
+    recipientName?: string;
+    recipientPhone?: string;
+    type?: 'full' | 'partial';
 }
 export interface IMyDebt extends Document {
     creditorName: string;

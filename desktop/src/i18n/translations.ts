@@ -57,6 +57,8 @@ export const translations = {
     amount: { cyr: 'Сумма', lat: 'Summa' },
     discount: { cyr: 'Чегирма', lat: 'Chegirma' },
     language: { cyr: 'Тил', lat: 'Til' },
+    quickSelect: { cyr: 'Тезкор танлаш', lat: 'Tezkor tanlash' },
+    clear: { cyr: 'Тозалаш', lat: 'Tozalash' },
   },
 
   // ==================== НАВИГАЦИЯ ====================
@@ -432,6 +434,7 @@ export const translations = {
     downPayment: { cyr: 'Олдиндан тўлов', lat: "Oldindan to'lov" },
     totalDebtAmount: { cyr: 'Жами қарз', lat: 'Jami qarz' },
     remainingDebt: { cyr: 'Қолдиқ қарз', lat: 'Qoldiq qarz' },
+    remaining: { cyr: 'Қолдиқ', lat: 'Qoldiq' },
     debtHistory: { cyr: 'Қарз тарихи', lat: 'Qarz tarixi' },
     totalDebt: { cyr: 'Жами қарз', lat: 'Jami qarz' },
     pending: { cyr: 'Кутилмоқда', lat: 'Kutilmoqda' },
@@ -452,6 +455,7 @@ export const translations = {
     debtPaid: { cyr: 'Қарз тўланди', lat: "Qarz to'landi" },
     debtDeleted: { cyr: 'Қарз ўчирилди', lat: "Qarz o'chirildi" },
     confirmDelete: { cyr: 'нинг қарзини ўчиришни тасдиқлайсизми?', lat: "ning qarzini o'chirishni tasdiqlaysizmi?" },
+    currentDebt: { cyr: 'Жорий қарз', lat: 'Joriy qarz' },
     currentDebt: { cyr: 'Жорий қарз', lat: 'Joriy qarz' },
     newTotalDebt: { cyr: 'Янги жами қарз', lat: 'Yangi jami qarz' },
     all: { cyr: 'Ҳаммаси', lat: 'Hammasi' },

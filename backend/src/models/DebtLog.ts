@@ -20,7 +20,7 @@ export interface IInstallment {
 export interface IDebtLog extends Document {
   customerId: mongoose.Types.ObjectId;
   cashierId?: mongoose.Types.ObjectId;
-  action: 'created' | 'edited' | 'deleted' | 'paid' | 'added';
+  action: 'created' | 'edited' | 'deleted' | 'paid' | 'added' | 'payment';
   previousAmount: number;
   newAmount: number;
   changeAmount: number;
@@ -63,7 +63,7 @@ const DebtLogSchema = new Schema<IDebtLog>(
   {
     customerId: { type: Schema.Types.ObjectId, ref: 'Customer', required: true },
     cashierId: { type: Schema.Types.ObjectId, ref: 'User' },
-    action: { type: String, enum: ['created', 'edited', 'deleted', 'paid', 'added'], required: true },
+    action: { type: String, enum: ['created', 'edited', 'deleted', 'paid', 'added', 'payment'], required: true },
     previousAmount: { type: Number, required: true },
     newAmount: { type: Number, required: true },
     changeAmount: { type: Number, required: true },

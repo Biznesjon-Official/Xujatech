@@ -18,24 +18,59 @@ router.get('/', authenticateToken, async (req, res) => {
 // Yangi qarz qo'shish
 router.post('/', authenticateToken, async (req, res) => {
   try {
-    const { creditorName, creditorPhone, amount, dueDate, notes, type } = req.body;
+    const { creditorName, creditorPhone, amount, dueDate, notes, type, initialPayment } = req.body;
+    
+    // Boshlang'ich to'lovni tekshirish
+    const initialPay = parseFloat(initialPayment) || 0;
+    const totalAmount = parseFloat(amount) || 0;
+    
+    if (initialPay > totalAmount) {
+      return res.status(400).json({ 
+        success: false, 
+        message: "Boshlang'ich to'lov jami summadan katta bo'lishi mumkin emas" 
+      });
+    }
+    
+    const remainingAmount = totalAmount - initialPay;
+    const payments = [];
+    
+    // Agar boshlang'ich to'lov bo'lsa, uni to'lov sifatida qo'shamiz
+    if (initialPay > 0) {
+      payments.push({
+        _id: `initial_payment_${Date.now()}`,
+        amount: initialPay,
+        paidAt: new Date(),
+        notes: `Boshlang'ich to'lov - qarz belgilanayotgan paytda to'landi`,
+        type: 'full',
+      });
+    }
     
     const debt = new MyDebt({
       creditorName,
       creditorPhone,
-      amount,
-      paidAmount: 0,
-      remainingAmount: amount,
+      amount: totalAmount,
+      paidAmount: initialPay,
+      remainingAmount: remainingAmount,
       dueDate,
       notes,
       type: type || 'supplier',
-      payments: [],
-      status: 'active',
+      payments: payments,
+      status: remainingAmount === 0 ? 'paid' : 'active',
       createdBy: (req as any).user?.id,
     });
     
     await debt.save();
-    res.json({ success: true, data: debt });
+    
+    let message = "Qarz qo'shildi";
+    if (initialPay > 0) {
+      if (remainingAmount === 0) {
+        message = `Qarz to'liq to'landi! Boshlang'ich to'lov: ${initialPay.toLocaleString()} so'm`;
+      } else {
+        message = `Qarz qo'shildi. Boshlang'ich to'lov: ${initialPay.toLocaleString()} so'm. Qoldiq: ${remainingAmount.toLocaleString()} so'm`;
+      }
+    }
+    
+    res.json({ success: true, data: debt, message });
   } catch (error) {
     console.error('Create my debt error:', error);
     res.status(500).json({ success: false, message: 'Server xatosi' });
