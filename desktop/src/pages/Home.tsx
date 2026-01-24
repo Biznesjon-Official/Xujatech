@@ -15,7 +15,6 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useLanguage, LanguageSwitcher } from '../i18n';
-import { ThemeToggle } from '../context/ThemeContext';
 import { convertToLanguage } from '../utils/transliterate';
 
 interface Cashier {
@@ -162,7 +161,6 @@ const Home: React.FC = () => {
 
             {/* Desktop Actions */}
             <div className="hidden sm:flex items-center gap-2">
-              <ThemeToggle />
               <LanguageSwitcher />
               <button
                 onClick={() => { setAdminUsername(''); setAdminPassword(''); setShowAdminLogin(true); }}

@@ -17,6 +17,7 @@ import {
   Check,
   Printer,
   QrCode,
+  ChevronRight,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Barcode from 'react-barcode';
@@ -52,6 +53,7 @@ const Products: React.FC = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
   // Modal states
   const [showAddModal, setShowAddModal] = useState(false);
@@ -59,6 +61,7 @@ const Products: React.FC = () => {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [showBarcodeScanner, setShowBarcodeScanner] = useState(false);
   const [scannerTarget, setScannerTarget] = useState<'add' | 'edit'>('add');
+  const [showAddCategoryModal, setShowAddCategoryModal] = useState(false);
 
   // Category management
   const [showAddCategoryInput, setShowAddCategoryInput] = useState(false);
@@ -518,40 +521,85 @@ const Products: React.FC = () => {
       (p.barcode && p.barcode.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
+  // Agar kategoriya tanlangan bo'lsa, faqat o'sha kategoriya mahsulotlarini ko'rsatish
+  const displayProducts = selectedCategory 
+    ? filteredProducts.filter(p => 
+        selectedCategory === 'no-category' 
+          ? !p.categoryId 
+          : p.categoryId?._id === selectedCategory
+      )
+    : filteredProducts;
+
+  // Mahsulotlarni kategoriyalar bo'yicha guruhlash (faqat kategoriyalar ko'rsatish uchun)
+  const groupedProducts = filteredProducts.reduce((groups, product) => {
+    const categoryName = product.categoryId?.name || 'Kategoriyasiz';
+    const categoryId = product.categoryId?._id || 'no-category';
+    
+    if (!groups[categoryId]) {
+      groups[categoryId] = {
+        categoryName,
+        categoryId,
+        products: []
+      };
+    }
+    
+    groups[categoryId].products.push(product);
+    return groups;
+  }, {} as Record<string, { categoryName: string; categoryId: string; products: Product[] }>);
+
+  const categoryGroups = Object.values(groupedProducts).sort((a, b) => {
+    // "Kategoriyasiz" ni oxirga qo'yish
+    if (a.categoryId === 'no-category') return 1;
+    if (b.categoryId === 'no-category') return -1;
+    return a.categoryName.localeCompare(b.categoryName);
+  });
+
   const lowStockCount = products.filter(p => p.currentStock <= 1).length;
   const totalValue = products.reduce((sum, p) => sum + (p.sellingPrice * p.currentStock), 0);
+  const totalStock = products.reduce((sum, p) => sum + p.currentStock, 0);
+  const totalValueUSD = totalValue / usdRate;
 
   return (
     <div className="h-full flex flex-col bg-gradient-to-br from-slate-50 via-gray-50 to-slate-100">
       {/* Modern Header */}
       <div className="bg-white/80 backdrop-blur-xl border-b border-gray-200/50 px-4 sm:px-6 py-4">
         <div className="flex items-center gap-3">
+          {selectedCategory && (
+            <button
+              onClick={() => setSelectedCategory(null)}
+              className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-xl transition-all duration-200"
+              title="Orqaga"
+            >
+              <ChevronRight className="w-5 h-5 rotate-180" />
+            </button>
+          )}
           <div className="flex-1 relative">
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder={t('products.title')}
+              placeholder={selectedCategory ? "Mahsulotlarni qidirish..." : t('products.title')}
               className="w-full pl-10 pr-4 py-2.5 bg-gray-100/80 border-0 rounded-xl text-sm focus:ring-2 focus:ring-emerald-500/50 focus:bg-white transition-all duration-200 placeholder:text-gray-400"
             />
           </div>
           <span className="hidden sm:flex items-center gap-1.5 px-3 py-2 bg-gray-100/80 rounded-xl text-xs font-semibold text-gray-600">
             <Package className="w-3.5 h-3.5" />
-            {products.length}
+            {selectedCategory ? displayProducts.length : products.length}
           </span>
           <button
-            onClick={() => { resetForm(); setShowAddModal(true); }}
+            onClick={() => setShowAddCategoryModal(true)}
             className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-xl text-sm font-semibold hover:from-emerald-600 hover:to-teal-700 transition-all duration-200 shadow-lg shadow-emerald-500/25 hover:shadow-xl hover:shadow-emerald-500/30 hover:-translate-y-0.5 active:scale-95"
           >
             <Plus className="w-4 h-4" />
+            <span className="hidden sm:inline">Kategoriya</span>
           </button>
         </div>
       </div>
 
       {/* Stats Cards - Responsive */}
       <div className="px-4 sm:px-6 py-4">
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 sm:gap-3">
           <div className="group relative overflow-hidden bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl sm:rounded-2xl p-3 sm:p-4 shadow-lg shadow-emerald-500/20 hover:shadow-xl hover:shadow-emerald-500/30 transition-all duration-300 hover:-translate-y-0.5">
             <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
             <div className="relative flex items-center gap-2 sm:gap-3">
@@ -578,6 +626,32 @@ const Products: React.FC = () => {
             </div>
           </div>
 
+          <div className="group relative overflow-hidden bg-gradient-to-br from-purple-500 to-violet-600 rounded-xl sm:rounded-2xl p-3 sm:p-4 shadow-lg shadow-purple-500/20 hover:shadow-xl hover:shadow-purple-500/30 transition-all duration-300 hover:-translate-y-0.5">
+            <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+            <div className="relative flex items-center gap-2 sm:gap-3">
+              <div className="p-1.5 sm:p-2 bg-white/20 rounded-lg sm:rounded-xl">
+                <DollarSign className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+              </div>
+              <div>
+                <p className="text-[10px] sm:text-xs text-purple-100 font-medium">USD</p>
+                <p className="text-lg sm:text-xl font-bold text-white tracking-tight">${totalValueUSD.toLocaleString('en-US', { maximumFractionDigits: 0 })}</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="group relative overflow-hidden bg-gradient-to-br from-cyan-500 to-blue-600 rounded-xl sm:rounded-2xl p-3 sm:p-4 shadow-lg shadow-cyan-500/20 hover:shadow-xl hover:shadow-cyan-500/30 transition-all duration-300 hover:-translate-y-0.5">
+            <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+            <div className="relative flex items-center gap-2 sm:gap-3">
+              <div className="p-1.5 sm:p-2 bg-white/20 rounded-lg sm:rounded-xl">
+                <Box className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+              </div>
+              <div>
+                <p className="text-[10px] sm:text-xs text-cyan-100 font-medium">Umumiy soni</p>
+                <p className="text-lg sm:text-xl font-bold text-white tracking-tight">{totalStock.toLocaleString()}</p>
+              </div>
+            </div>
+          </div>
+
           <div className="group relative overflow-hidden bg-gradient-to-br from-amber-500 to-orange-600 rounded-xl sm:rounded-2xl p-3 sm:p-4 shadow-lg shadow-amber-500/20 hover:shadow-xl hover:shadow-amber-500/30 transition-all duration-300 hover:-translate-y-0.5 col-span-2 sm:col-span-1">
             <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
             <div className="relative flex items-center gap-2 sm:gap-3">
@@ -600,161 +674,225 @@ const Products: React.FC = () => {
             <div className="w-12 h-12 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
             <p className="mt-4 text-gray-500 font-medium">{t('common.loading')}...</p>
           </div>
-        ) : filteredProducts.length === 0 ? (
+        ) : !selectedCategory ? (
+          // Kategoriyalar ko'rinishi
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {categoryGroups.map((group) => (
+                <button
+                  key={group.categoryId}
+                  onClick={() => setSelectedCategory(group.categoryId)}
+                  className="bg-white rounded-2xl border border-gray-200/60 p-6 shadow-sm hover:shadow-lg transition-all duration-300 group text-left hover:-translate-y-1 active:scale-95"
+                >
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="w-12 h-12 bg-gradient-to-br from-emerald-100 to-teal-100 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                      <Tag className="w-6 h-6 text-emerald-600" />
+                    </div>
+                    <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-emerald-600 transition-colors" />
+                  </div>
+                  
+                  <h3 className="text-lg font-bold text-gray-900 mb-2 group-hover:text-emerald-600 transition-colors">
+                    {convertToLanguage(group.categoryName, language)}
+                  </h3>
+                  
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-500">Mahsulotlar:</span>
+                      <span className="text-sm font-semibold text-gray-900">{group.products.length} ta</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-500">Umumiy qiymat:</span>
+                      <span className="text-sm font-bold text-emerald-600">
+                        {group.products.reduce((sum, p) => sum + (p.sellingPrice * p.currentStock), 0).toLocaleString()}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-500">USD:</span>
+                      <span className="text-sm font-semibold text-blue-600">
+                        ${(group.products.reduce((sum, p) => sum + (p.sellingPrice * p.currentStock), 0) / usdRate).toLocaleString('en-US', { maximumFractionDigits: 0 })}
+                      </span>
+                    </div>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        ) : displayProducts.length === 0 ? (
           <div className="bg-white rounded-2xl p-12 text-center border border-gray-200/60 shadow-sm">
             <div className="w-20 h-20 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
               <Package className="w-10 h-10 text-gray-300" />
             </div>
-            <p className="text-gray-500 font-medium">{t('products.noProducts')}</p>
+            <p className="text-gray-500 font-medium">Bu kategoriyada mahsulot yo'q</p>
           </div>
         ) : (
-          <>
-            {/* Mobile Card View */}
-            <div className="sm:hidden space-y-3">
-              {filteredProducts.map((product) => (
-                <div key={product._id} className="bg-white rounded-2xl border border-gray-200/60 p-4 shadow-sm hover:shadow-md transition-all duration-300 group">
-                  <div className="flex items-center gap-4">
-                    <div className="w-14 h-14 bg-gradient-to-br from-emerald-100 to-teal-100 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform duration-300">
-                      <Package className="w-7 h-7 text-emerald-600" />
+          // Tanlangan kategoriya mahsulotlari
+          <div className="space-y-4">
+            <div className="bg-gradient-to-r from-emerald-500 to-teal-600 rounded-2xl p-6 text-white">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3 mb-2">
+                  <Tag className="w-6 h-6" />
+                  <h2 className="text-xl font-bold">
+                    {convertToLanguage(
+                      categoryGroups.find(g => g.categoryId === selectedCategory)?.categoryName || 'Kategoriyasiz',
+                      language
+                    )}
+                  </h2>
+                </div>
+                <button
+                  onClick={() => { 
+                    resetForm(); 
+                    // Tanlangan kategoriyani formga o'rnatish
+                    if (selectedCategory !== 'no-category') {
+                      setForm(prev => ({ ...prev, category_id: selectedCategory }));
+                    }
+                    setShowAddModal(true); 
+                  }}
+                  className="flex items-center gap-2 px-4 py-2 bg-white/20 hover:bg-white/30 rounded-xl transition-all duration-200 text-sm font-semibold"
+                >
+                  <Plus className="w-4 h-4" />
+                  Mahsulot qo'shish
+                </button>
+              </div>
+              <p className="text-emerald-100">
+                {displayProducts.length} ta mahsulot • 
+                Jami: {displayProducts.reduce((sum, p) => sum + (p.sellingPrice * p.currentStock), 0).toLocaleString()} so'm
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {displayProducts.map((product) => (
+                <div key={product._id} className="bg-white rounded-xl p-4 border border-gray-200/60 shadow-sm hover:shadow-md transition-all duration-300 group">
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="w-12 h-12 bg-gradient-to-br from-emerald-100 to-teal-100 rounded-xl flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
+                      <Package className="w-6 h-6 text-emerald-600" />
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between gap-2">
-                        <p className="font-semibold text-gray-900 truncate">{convertToLanguage(product.name, language)}</p>
-                        <span className="flex-shrink-0 px-2 py-1 bg-emerald-100 rounded-lg text-emerald-700 text-xs font-bold">
-                          #{product.barcode || '-'}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-3 mt-1">
-                        <p className="text-sm text-orange-600">Tan: {product.purchasePrice.toLocaleString()}</p>
-                        <p className="text-lg font-bold text-gray-900">{product.sellingPrice.toLocaleString()} <span className="text-xs font-normal text-gray-500">{t('common.sum')}</span></p>
-                      </div>
-                      <div className="flex items-center justify-between mt-1">
-                        <span className={`px-2.5 py-1 rounded-lg text-xs font-semibold ${
-                          product.currentStock < 0
-                            ? 'bg-red-500 text-white'
-                            : product.currentStock <= 1
-                              ? 'bg-rose-100 text-rose-700'
-                              : 'bg-gray-100 text-gray-600'
-                          }`}>
-                          {product.currentStock < 0 ? `${product.currentStock} ⚠️` : product.currentStock} {product.unit}
-                        </span>
-                      </div>
+                    <span className="px-2 py-1 bg-emerald-100 rounded-lg text-emerald-700 text-xs font-bold">
+                      #{product.barcode || '-'}
+                    </span>
+                  </div>
+                  
+                  <div className="mb-3">
+                    <h4 className="font-semibold text-gray-900 text-sm mb-1 line-clamp-2">{convertToLanguage(product.name, language)}</h4>
+                    <p className="text-xs text-gray-500">{product.description || 'Tavsif yo\'q'}</p>
+                  </div>
+
+                  <div className="space-y-2 mb-4">
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs text-gray-500">Tan narxi:</span>
+                      <span className="text-sm font-semibold text-orange-600">{product.purchasePrice.toLocaleString()}</span>
                     </div>
-                    <div className="flex flex-col gap-2 flex-shrink-0">
-                      <button
-                        onClick={() => openEditModal(product)}
-                        className="p-2.5 text-blue-600 bg-blue-50 rounded-xl hover:bg-blue-100 transition-all duration-200 hover:scale-105"
-                      >
-                        <Edit className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => handleDeleteProduct(product)}
-                        className="p-2.5 text-rose-600 bg-rose-50 rounded-xl hover:bg-rose-100 transition-all duration-200 hover:scale-105"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs text-gray-500">Sotish narxi:</span>
+                      <span className="text-sm font-bold text-gray-900">{product.sellingPrice.toLocaleString()}</span>
                     </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs text-gray-500">USD:</span>
+                      <span className="text-sm font-semibold text-blue-600">${(product.sellingPrice / usdRate).toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs text-gray-500">Qoldiq:</span>
+                      <span className={`text-sm font-semibold ${
+                        product.currentStock < 0
+                          ? 'text-red-600'
+                          : product.currentStock <= 1
+                            ? 'text-rose-600'
+                            : 'text-emerald-600'
+                      }`}>
+                        {product.currentStock} {product.unit}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center pt-1 border-t border-gray-200">
+                      <span className="text-xs text-gray-500">Jami qiymat:</span>
+                      <span className="text-sm font-bold text-purple-600">
+                        {(product.sellingPrice * product.currentStock).toLocaleString()}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => {
+                        setSelectedProductForBarcode(product);
+                        setShowBarcodeModal(true);
+                      }}
+                      className="flex-1 p-2 text-purple-600 bg-purple-50 rounded-lg hover:bg-purple-100 transition-all duration-200 hover:scale-105 flex items-center justify-center"
+                      title="Shtrix kod chiqarish"
+                    >
+                      <Printer className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => openEditModal(product)}
+                      className="flex-1 p-2 text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-all duration-200 hover:scale-105 flex items-center justify-center"
+                      title={t('common.edit')}
+                    >
+                      <Edit className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => handleDeleteProduct(product)}
+                      className="flex-1 p-2 text-rose-600 bg-rose-50 rounded-lg hover:bg-rose-100 transition-all duration-200 hover:scale-105 flex items-center justify-center"
+                      title={t('common.delete')}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
                   </div>
                 </div>
               ))}
             </div>
-
-            {/* Desktop Table View */}
-            <div className="hidden sm:block bg-white rounded-2xl border border-gray-200/60 overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300">
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead className="bg-gradient-to-r from-gray-50 to-gray-100/50">
-                    <tr>
-                      <th className="px-4 py-4 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap">{t('products.barcode')}</th>
-                      <th className="px-5 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap">{t('products.title')}</th>
-                      <th className="px-5 py-4 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap">Tan narxi</th>
-                      <th className="px-5 py-4 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap">{t('common.price')}</th>
-                      <th className="px-5 py-4 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap">{t('products.currentStock')}</th>
-                      <th className="px-5 py-4 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap">{t('common.actions')}</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100">
-                    {filteredProducts.map((product) => (
-                      <tr key={product._id} className="hover:bg-gray-50/50 transition-colors group">
-                        <td className="px-4 py-4 text-center whitespace-nowrap">
-                          <span className="inline-flex items-center justify-center min-w-[40px] h-9 px-3 bg-gradient-to-r from-emerald-100 to-teal-100 rounded-xl font-bold text-emerald-700 text-sm">
-                            {product.barcode || '-'}
-                          </span>
-                        </td>
-                        <td className="px-5 py-4 whitespace-nowrap">
-                          <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 bg-gradient-to-br from-emerald-100 to-teal-100 rounded-xl flex items-center justify-center group-hover:scale-105 transition-transform duration-300 flex-shrink-0">
-                              <Package className="w-5 h-5 text-emerald-600" />
-                            </div>
-                            <div className="min-w-0">
-                              <p className="font-semibold text-gray-900 truncate max-w-[200px]">{convertToLanguage(product.name, language)}</p>
-                              <p className="text-xs text-gray-500 truncate max-w-[200px]">{product.categoryId?.name ? convertToLanguage(product.categoryId.name, language) : t('categories.noCategories')}</p>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-5 py-4 text-right whitespace-nowrap">
-                          <p className="font-semibold text-orange-600">{product.purchasePrice.toLocaleString()}</p>
-                          <p className="text-xs text-gray-400">{t('common.sum')}</p>
-                        </td>
-                        <td className="px-5 py-4 text-right whitespace-nowrap">
-                          <p className="font-bold text-gray-900 text-lg">{product.sellingPrice.toLocaleString()}</p>
-                          <p className="text-xs text-gray-500">{t('common.sum')}</p>
-                        </td>
-                        <td className="px-5 py-4 text-center whitespace-nowrap">
-                          <span className={`inline-flex px-3 py-1.5 rounded-xl text-sm font-semibold whitespace-nowrap ${
-                            product.currentStock < 0
-                              ? 'bg-red-500 text-white'
-                              : product.currentStock <= 1
-                                ? 'bg-rose-100 text-rose-700'
-                                : 'bg-emerald-100 text-emerald-700'
-                            }`}>
-                            {product.currentStock < 0 ? `${product.currentStock} ⚠️` : product.currentStock} {product.unit}
-                          </span>
-                        </td>
-                        <td className="px-5 py-4 whitespace-nowrap">
-                          <div className="flex items-center justify-center gap-1">
-                            <button
-                              onClick={() => {
-                                setSelectedProductForBarcode(product);
-                                setShowBarcodeModal(true);
-                              }}
-                              className="p-2.5 text-purple-600 hover:bg-purple-100 rounded-xl transition-all duration-200 hover:scale-105"
-                              title="Shtrix kod chiqarish"
-                            >
-                              <Printer className="w-4 h-4" />
-                            </button>
-                            <button
-                              onClick={() => openEditModal(product)}
-                              className="p-2.5 text-blue-600 hover:bg-blue-100 rounded-xl transition-all duration-200 hover:scale-105"
-                              title={t('common.edit')}
-                            >
-                              <Edit className="w-4 h-4" />
-                            </button>
-                            <button
-                              onClick={() => handleDeleteProduct(product)}
-                              className="p-2.5 text-rose-600 hover:bg-rose-100 rounded-xl transition-all duration-200 hover:scale-105"
-                              title={t('common.delete')}
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </>
+          </div>
         )}
       </div>
+
+      {/* Add Category Modal */}
+      {showAddCategoryModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setShowAddCategoryModal(false)}>
+          <div className="bg-white rounded-3xl w-full max-w-md overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-200" onClick={(e) => e.stopPropagation()}>
+            <div className="p-6 flex justify-between items-center bg-gradient-to-r from-emerald-500 to-teal-600">
+              <h3 className="text-xl font-bold text-white">Kategoriya qo'shish</h3>
+              <button onClick={() => setShowAddCategoryModal(false)} className="p-2 hover:bg-white/20 rounded-xl transition-colors">
+                <X className="w-5 h-5 text-white" />
+              </button>
+            </div>
+            <div className="p-6">
+              <div className="mb-4">
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Kategoriya nomi *</label>
+                <input
+                  type="text"
+                  value={newCategoryName}
+                  onChange={(e) => setNewCategoryName(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleAddCategory()}
+                  className="w-full px-4 py-3 bg-gray-50 border-0 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all"
+                  placeholder="Kategoriya nomini kiriting..."
+                  autoFocus
+                />
+              </div>
+            </div>
+            <div className="p-6 bg-gray-50 flex gap-3">
+              <button 
+                onClick={() => setShowAddCategoryModal(false)} 
+                className="flex-1 px-4 py-3 text-gray-700 bg-white rounded-xl hover:bg-gray-100 font-semibold transition-all border border-gray-200"
+              >
+                Bekor qilish
+              </button>
+              <button 
+                onClick={() => {
+                  handleAddCategory();
+                  setShowAddCategoryModal(false);
+                }} 
+                className="flex-1 px-4 py-3 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-xl font-semibold hover:from-emerald-600 hover:to-teal-700 transition-all shadow-lg shadow-emerald-500/25"
+              >
+                Qo'shish
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Add Modal */}
       {showAddModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setShowAddModal(false)}>
           <div className="bg-white rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-200" onClick={(e) => e.stopPropagation()}>
             <div className="p-6 flex justify-between items-center bg-gradient-to-r from-emerald-500 to-teal-600">
-              <h3 className="text-xl font-bold text-white">{t('products.addProduct')}</h3>
+              <h3 className="text-xl font-bold text-white">Mahsulot qo'shish</h3>
               <button onClick={() => setShowAddModal(false)} className="p-2 hover:bg-white/20 rounded-xl transition-colors">
                 <X className="w-5 h-5 text-white" />
               </button>

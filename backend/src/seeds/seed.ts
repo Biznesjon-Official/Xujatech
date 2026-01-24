@@ -28,22 +28,8 @@ async function seed() {
     console.log(`✅ Backup saqlandi: ${backupPath}`);
 
     // Foydalanuvchidan tasdiqlash so'rash
-    console.log('⚠️  DIQQAT: Barcha mavjud ma\'lumotlar o\'chiriladi!');
+    console.log('⚠️  DIQQAT: Yangi ma\'lumotlar qo\'shiladi!');
     console.log(`📁 Backup fayl: ${backupPath}`);
-    
-    // Clear existing data
-    await User.deleteMany({});
-    await Category.deleteMany({});
-    await Product.deleteMany({});
-    await Customer.deleteMany({});
-    await Setting.deleteMany({});
-
-    // Drop indexes to avoid conflicts
-    try {
-      await mongoose.connection.collection('products').dropIndexes();
-    } catch (e) {
-      // Ignore if collection doesn't exist
-    }
 
     // Create admin user
     await User.create({
