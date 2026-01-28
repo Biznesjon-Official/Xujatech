@@ -6,6 +6,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { X, AlertTriangle, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { useLanguage } from '../../i18n';
 import { startCameraScanner, stopCameraScanner } from '../../utils/scanner';
 
 interface BarcodeScannerProps {
@@ -43,6 +44,7 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({
   onClose,
   onScan,
 }) => {
+  const { t } = useLanguage();
   const videoRef = useRef<HTMLVideoElement>(null);
   const [error, setError] = useState<string | null>(null);
   const [scanning, setScanning] = useState(false);
@@ -79,7 +81,7 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({
           
           // Моментальная реакция
           playBeep();
-          toast.success(`Kod o'qildi: ${code.substring(0, 20)}...`, { duration: 1500 });
+          toast.success(t('pos.codeScanned') + `: ${code.substring(0, 20)}...`, { duration: 1500 });
           
           // Останавливаем и передаём
           stopCameraScanner();
@@ -92,11 +94,11 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({
         console.error('❌ Kamera xatosi:', err);
         setScanning(false);
         if (err.name === 'NotAllowedError') {
-          setError('Kameraga ruxsat berilmadi');
+          setError(t('scanner.permissionDenied'));
         } else if (err.name === 'NotFoundError') {
-          setError('Kamera topilmadi');
+          setError(t('scanner.cameraNotFound'));
         } else {
-          setError('Kamerani ishga tushirib bo\'lmadi');
+          setError(t('scanner.cameraError'));
         }
       }
     };
@@ -124,11 +126,11 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({
       {/* Header */}
       <div className="flex items-center justify-between p-4 bg-black/80">
         <div className="flex items-center gap-3">
-          <h2 className="text-white font-semibold text-lg">Сканировать товар</h2>
+          <h2 className="text-white font-semibold text-lg">{t('pos.scanProduct')}</h2>
           {scanning && (
             <div className="flex items-center gap-2 px-3 py-1 bg-cyan-500/20 rounded-full">
               <Loader2 className="w-4 h-4 text-cyan-400 animate-spin" />
-              <span className="text-cyan-400 text-sm">Сканирую...</span>
+              <span className="text-cyan-400 text-sm">{t('pos.scanning')}...</span>
             </div>
           )}
         </div>
@@ -149,13 +151,13 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({
             </div>
             <p className="text-red-400 mb-2">{error}</p>
             <p className="text-white/60 text-sm mb-4">
-              Используйте физический сканер
+              {t('scanner.usePhysicalScanner')}
             </p>
             <button
               onClick={handleClose}
               className="px-4 py-2 bg-white/10 rounded-lg text-white hover:bg-white/20"
             >
-              Закрыть
+              {t('common.close')}
             </button>
           </div>
         ) : (
@@ -184,7 +186,7 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({
             {/* Подсказка внизу */}
             <div className="absolute bottom-20 left-0 right-0 text-center">
               <p className="text-white/80 text-sm bg-black/50 inline-block px-4 py-2 rounded-full">
-                Наведите на штрих-код
+                {t('pos.pointCameraToBarcode')}
               </p>
             </div>
           </>

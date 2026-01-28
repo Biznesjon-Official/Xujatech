@@ -6,6 +6,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Bell, FileText, X, Check, Printer, Eye } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { useLanguage } from '../../i18n';
+import { convertToLanguage } from '../../utils/transliterate';
 import ReceiptModal from './ReceiptModal';
 
 interface ReceiptItem {
@@ -34,6 +36,7 @@ const PendingReceiptsMonitor: React.FC<Props> = ({
   onReceiptClick,
   pollingInterval = 3000 // 3 soniya
 }) => {
+  const { t, language } = useLanguage();
   const [pendingReceipts, setPendingReceipts] = useState<PendingReceipt[]>([]);
   const [showNotifications, setShowNotifications] = useState(true);
   const [lastCheckTime, setLastCheckTime] = useState<Date>(new Date());
@@ -87,7 +90,7 @@ const PendingReceiptsMonitor: React.FC<Props> = ({
 
     // Toast notification
     toast.success(
-      `${count} ta yangi chek keldi!\n${receipt.cashierName} - ${receipt.total.toLocaleString()} so'm`,
+      `${count} ${t('receipts.newReceiptsArrived')}!\n${convertToLanguage(receipt.cashierName, language)} - ${receipt.total.toLocaleString()} ${t('common.sum')}`,
       {
         duration: 5000,
         icon: '🔔',
@@ -96,8 +99,8 @@ const PendingReceiptsMonitor: React.FC<Props> = ({
 
     // Browser notification (agar ruxsat berilgan bo'lsa)
     if ('Notification' in window && Notification.permission === 'granted') {
-      new Notification('Yangi chek keldi!', {
-        body: `${receipt.cashierName} - ${receipt.total.toLocaleString()} so'm`,
+      new Notification(t('receipts.newReceiptArrived'), {
+        body: `${convertToLanguage(receipt.cashierName, language)} - ${receipt.total.toLocaleString()} ${t('common.sum')}`,
         icon: '/icons/icon-192x192.svg',
         tag: receipt._id,
         requireInteraction: true,
@@ -152,7 +155,7 @@ const PendingReceiptsMonitor: React.FC<Props> = ({
         <div className="flex items-center gap-2">
           <Bell className="w-5 h-5 animate-bounce" />
           <span className="font-semibold">
-            Yangi cheklar ({pendingReceipts.length})
+            {t('receipts.newReceipts')} ({pendingReceipts.length})
           </span>
         </div>
         <button
@@ -175,7 +178,7 @@ const PendingReceiptsMonitor: React.FC<Props> = ({
                 <div className="flex items-center gap-2 mb-1">
                   <FileText className="w-4 h-4 text-amber-600" />
                   <span className="font-semibold text-gray-900">
-                    {receipt.cashierName}
+                    {convertToLanguage(receipt.cashierName, language)}
                   </span>
                 </div>
                 <p className="text-sm text-gray-500">
@@ -189,19 +192,19 @@ const PendingReceiptsMonitor: React.FC<Props> = ({
                 <p className="text-lg font-bold text-emerald-600">
                   {receipt.total.toLocaleString()}
                 </p>
-                <p className="text-xs text-gray-500">so'm</p>
+                <p className="text-xs text-gray-500">{t('common.sum')}</p>
               </div>
             </div>
 
             {/* Items preview */}
             <div className="mb-3">
               <p className="text-xs text-gray-500 mb-1">
-                {receipt.items.length} ta mahsulot
+                {receipt.items.length} {t('common.pcs')} {t('nav.products')}
               </p>
               <div className="text-xs text-gray-600 line-clamp-2">
                 {receipt.items.slice(0, 2).map((item, idx) => (
                   <span key={idx}>
-                    {item.name} ({item.quantity})
+                    {convertToLanguage(item.name, language)} ({item.quantity})
                     {idx < Math.min(receipt.items.length, 2) - 1 && ', '}
                   </span>
                 ))}
@@ -216,7 +219,7 @@ const PendingReceiptsMonitor: React.FC<Props> = ({
                 className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-emerald-500 text-white rounded-xl hover:bg-emerald-600 transition-colors text-sm font-medium"
               >
                 <Eye className="w-4 h-4" />
-                Ochish
+                {t('common.open')}
               </button>
             </div>
           </div>
@@ -225,7 +228,7 @@ const PendingReceiptsMonitor: React.FC<Props> = ({
 
       {/* Last check time */}
       <div className="bg-gray-50 px-4 py-2 text-xs text-gray-500 text-center rounded-b-2xl">
-        Oxirgi tekshiruv: {lastCheckTime.toLocaleTimeString('uz-UZ')}
+        {t('receipts.lastCheck')}: {lastCheckTime.toLocaleTimeString('uz-UZ')}
       </div>
     </div>
 

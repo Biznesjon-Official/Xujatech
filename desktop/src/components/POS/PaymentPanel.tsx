@@ -4,6 +4,8 @@ import { RootState } from '../../store/store';
 import { clearCart, setSaleLoading, setSaleSuccess, setSaleError } from '../../store/slices/posSlice';
 import { CreditCard, Banknote, Smartphone, UserCheck, Printer } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { useLanguage } from '../../i18n';
+import { convertToLanguage } from '../../utils/transliterate';
 
 type PaymentMethod = 'cash' | 'card' | 'click' | 'payme' | 'debt';
 
@@ -17,6 +19,7 @@ const PaymentPanel: React.FC = () => {
   const dispatch = useDispatch();
   const { cart, customer, totalAmount, loading } = useSelector((state: RootState) => state.pos);
   const { user } = useSelector((state: RootState) => state.auth);
+  const { t, language } = useLanguage();
   
   const [payments, setPayments] = useState<Payment[]>([]);
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethod>('cash');
@@ -24,11 +27,11 @@ const PaymentPanel: React.FC = () => {
   const [reference, setReference] = useState('');
 
   const paymentMethods = [
-    { id: 'cash' as PaymentMethod, label: 'Cash', icon: Banknote, color: 'green' },
-    { id: 'card' as PaymentMethod, label: 'Card', icon: CreditCard, color: 'blue' },
+    { id: 'cash' as PaymentMethod, label: t('pos.cash'), icon: Banknote, color: 'green' },
+    { id: 'card' as PaymentMethod, label: t('pos.card'), icon: CreditCard, color: 'blue' },
     { id: 'click' as PaymentMethod, label: 'Click', icon: Smartphone, color: 'purple' },
     { id: 'payme' as PaymentMethod, label: 'Payme', icon: Smartphone, color: 'indigo' },
-    { id: 'debt' as PaymentMethod, label: 'Debt', icon: UserCheck, color: 'orange' },
+    { id: 'debt' as PaymentMethod, label: t('pos.debt'), icon: UserCheck, color: 'orange' },
   ];
 
   const totalPaid = payments.reduce((sum, p) => sum + p.amount, 0);
@@ -38,12 +41,12 @@ const PaymentPanel: React.FC = () => {
   const addPayment = () => {
     const amount = parseFloat(paymentAmount);
     if (!amount || amount <= 0) {
-      toast.error('Please enter a valid amount');
+      toast.error(t('common.error'));
       return;
     }
 
     if (selectedMethod === 'debt' && !customer) {
-      toast.error('Please select a customer for debt payment');
+      toast.error(t('pos.selectCustomer'));
       return;
     }
 
@@ -64,12 +67,12 @@ const PaymentPanel: React.FC = () => {
 
   const completeSale = async () => {
     if (cart.length === 0) {
-      toast.error('Cart is empty');
+      toast.error(t('pos.emptyCart'));
       return;
     }
 
     if (remainingAmount > 0.01) {
-      toast.error('Payment incomplete');
+      toast.error(t('pos.paymentIncomplete'));
       return;
     }
 
@@ -152,10 +155,10 @@ const PaymentPanel: React.FC = () => {
         const receiptData = {
           saleNumber,
           date: new Date().toLocaleString(),
-          cashier: user?.fullName || 'Unknown',
-          customer: customer?.fullName,
+          cashier: convertToLanguage(user?.fullName || 'Unknown', language),
+          customer: customer?.fullName ? convertToLanguage(customer.fullName, language) : undefined,
           items: cart.map(item => ({
-            name: item.name,
+            name: convertToLanguage(item.name, language),
             quantity: item.quantity,
             price: item.unitPrice,
             total: item.totalPrice
@@ -175,12 +178,12 @@ const PaymentPanel: React.FC = () => {
         dispatch(setSaleSuccess({ saleId, saleNumber, totalAmount }));
         dispatch(clearCart());
         setPayments([]);
-        toast.success(`Sale completed! Receipt printed.`);
+        toast.success(t('pos.saleCompleted'));
       }
     } catch (error: any) {
       console.error('Sale error:', error);
       dispatch(setSaleError(error.message));
-      toast.error('Failed to complete sale');
+      toast.error(t('common.error'));
     }
   };
 
@@ -193,7 +196,7 @@ const PaymentPanel: React.FC = () => {
     return (
       <div className="text-center py-8 text-gray-500">
         <CreditCard className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-        <p>Add items to cart to proceed with payment</p>
+        <p>{t('pos.addItemsToCart')}</p>
       </div>
     );
   }
@@ -229,20 +232,20 @@ const PaymentPanel: React.FC = () => {
         <div className="flex space-x-2">
           <input
             type="number"
-            placeholder="Amount"
+            placeholder={t('common.amount')}
             className="form-input flex-1"
             value={paymentAmount}
             onChange={(e) => setPaymentAmount(e.target.value)}
           />
           <button onClick={addPayment} className="btn-primary">
-            Add
+            {t('common.add')}
           </button>
         </div>
 
         {(selectedMethod === 'card' || selectedMethod === 'click' || selectedMethod === 'payme') && (
           <input
             type="text"
-            placeholder="Reference number"
+            placeholder={t('pos.referenceNumber')}
             className="form-input"
             value={reference}
             onChange={(e) => setReference(e.target.value)}
@@ -257,13 +260,13 @@ const PaymentPanel: React.FC = () => {
             onClick={() => quickPayment(remainingAmount)}
             className="btn-secondary text-sm"
           >
-            Exact
+            {t('pos.exact')}
           </button>
           <button
             onClick={() => quickPayment(Math.ceil(remainingAmount / 1000) * 1000)}
             className="btn-secondary text-sm"
           >
-            Round
+            {t('pos.round')}
           </button>
           <button
             onClick={() => quickPayment(remainingAmount + 10000)}
@@ -277,18 +280,18 @@ const PaymentPanel: React.FC = () => {
       {/* Payment Summary */}
       {payments.length > 0 && (
         <div className="border rounded-md p-3 bg-gray-50">
-          <h4 className="font-medium mb-2">Payments:</h4>
+          <h4 className="font-medium mb-2">{t('pos.payments')}:</h4>
           {payments.map((payment, index) => (
             <div key={index} className="flex justify-between items-center text-sm mb-1">
               <span className="capitalize">
-                {payment.method}: {payment.amount.toLocaleString()} UZS
+                {payment.method}: {payment.amount.toLocaleString()} {t('common.sum')}
                 {payment.reference && ` (${payment.reference})`}
               </span>
               <button
                 onClick={() => removePayment(index)}
                 className="text-red-500 hover:text-red-700 text-xs"
               >
-                Remove
+                {t('common.delete')}
               </button>
             </div>
           ))}
@@ -298,23 +301,23 @@ const PaymentPanel: React.FC = () => {
       {/* Payment Status */}
       <div className="space-y-2 text-sm">
         <div className="flex justify-between">
-          <span>Total Amount:</span>
-          <span className="font-medium">{totalAmount.toLocaleString()} UZS</span>
+          <span>{t('common.total')}:</span>
+          <span className="font-medium">{totalAmount.toLocaleString()} {t('common.sum')}</span>
         </div>
         <div className="flex justify-between">
-          <span>Total Paid:</span>
-          <span className="font-medium">{totalPaid.toLocaleString()} UZS</span>
+          <span>{t('pos.totalPaid')}:</span>
+          <span className="font-medium">{totalPaid.toLocaleString()} {t('common.sum')}</span>
         </div>
         <div className="flex justify-between">
-          <span>Remaining:</span>
+          <span>{t('pos.remaining')}:</span>
           <span className={`font-medium ${remainingAmount > 0 ? 'text-red-600' : 'text-green-600'}`}>
-            {remainingAmount.toLocaleString()} UZS
+            {remainingAmount.toLocaleString()} {t('common.sum')}
           </span>
         </div>
         {change > 0 && (
           <div className="flex justify-between">
-            <span>Change:</span>
-            <span className="font-medium text-blue-600">{change.toLocaleString()} UZS</span>
+            <span>{t('pos.change')}:</span>
+            <span className="font-medium text-blue-600">{change.toLocaleString()} {t('common.sum')}</span>
           </div>
         )}
       </div>
@@ -332,12 +335,12 @@ const PaymentPanel: React.FC = () => {
         {loading ? (
           <div className="flex items-center justify-center">
             <div className="spinner mr-2"></div>
-            Processing...
+            {t('pos.processing')}...
           </div>
         ) : (
           <div className="flex items-center justify-center">
             <Printer className="w-4 h-4 mr-2" />
-            Complete Sale & Print
+            {t('pos.completeSale')}
           </div>
         )}
       </button>

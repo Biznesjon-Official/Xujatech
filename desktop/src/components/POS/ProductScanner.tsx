@@ -9,6 +9,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { X, AlertTriangle, Loader2, Package, CheckCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { useLanguage } from '../../i18n';
 import { startCameraScanner, stopCameraScanner, parseGS1Code, type GS1ParseResult } from '../../utils/scanner';
 
 interface ProductScannerProps {
@@ -38,6 +39,7 @@ const ProductScanner: React.FC<ProductScannerProps> = ({
   onClose,
   onScanComplete,
 }) => {
+  const { t } = useLanguage();
   const videoRef = useRef<HTMLVideoElement>(null);
   const [error, setError] = useState<string | null>(null);
   const [scanning, setScanning] = useState(false);
@@ -73,22 +75,22 @@ const ProductScanner: React.FC<ProductScannerProps> = ({
           setScanning(false);
           stopCameraScanner();
           
-          toast.success('Kod o\'qildi', { duration: 2000 });
+          toast.success(t('pos.codeScanned'), { duration: 2000 });
         });
       } catch (err: any) {
         console.error('Kamera xatoligi:', err);
         setScanning(false);
         
         if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
-          setError('Kameraga ruxsat berilmagan. Brauzer sozlamalaridan ruxsat bering.');
+          setError(t('scanner.permissionDenied'));
         } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
-          setError('Kamera topilmadi');
+          setError(t('scanner.cameraNotFound'));
         } else if (err.name === 'NotReadableError' || err.name === 'TrackStartError') {
-          setError('Kamera band yoki ishlamayapti');
+          setError(t('scanner.cameraBusy'));
         } else if (err.name === 'OverconstrainedError') {
-          setError('Kamera sozlamalari qo\'llab-quvvatlanmaydi');
+          setError(t('scanner.cameraNotSupported'));
         } else {
-          setError('Kamerani ishga tushirib bo\'lmadi: ' + (err.message || 'Noma\'lum xatolik'));
+          setError(t('scanner.cameraError') + ': ' + (err.message || t('common.unknownError')));
         }
       }
     };
@@ -128,11 +130,11 @@ const ProductScanner: React.FC<ProductScannerProps> = ({
           setScannedData(parsed);
           setScanning(false);
           stopCameraScanner();
-          toast.success('Kod o\'qildi', { duration: 2000 });
+          toast.success(t('pos.codeScanned'), { duration: 2000 });
         });
       } catch (err: any) {
         setScanning(false);
-        setError('Kamerani qayta ishga tushirib bo\'lmadi');
+        setError(t('scanner.cameraRestartError'));
       }
     }
   };
@@ -152,8 +154,8 @@ const ProductScanner: React.FC<ProductScannerProps> = ({
         <div className="flex items-center gap-3">
           <Package className="w-6 h-6 text-white" />
           <div>
-            <h2 className="text-white font-semibold">Mahsulotni skanerlash</h2>
-            <p className="text-white/70 text-xs">Yangi mahsulot qo'shish</p>
+            <h2 className="text-white font-semibold">{t('pos.scanProduct')}</h2>
+            <p className="text-white/70 text-xs">{t('products.addProduct')}</p>
           </div>
         </div>
         <button
@@ -172,9 +174,9 @@ const ProductScanner: React.FC<ProductScannerProps> = ({
               <AlertTriangle className="w-8 h-8 text-red-400" />
             </div>
             <p className="text-red-400 mb-2">{error}</p>
-            <p className="text-white/60 text-sm mb-4">Skaner-pistoletdan foydalaning</p>
+            <p className="text-white/60 text-sm mb-4">{t('scanner.usePhysicalScanner')}</p>
             <button onClick={handleClose} className="px-4 py-2 bg-white/10 rounded-lg text-white">
-              Yopish
+              {t('common.close')}
             </button>
           </div>
         ) : scannedData ? (
@@ -184,8 +186,8 @@ const ProductScanner: React.FC<ProductScannerProps> = ({
               <div className="flex items-center gap-3">
                 <CheckCircle className="w-6 h-6 text-emerald-400" />
                 <div>
-                  <p className="text-emerald-400 font-semibold">Kod o'qildi</p>
-                  <p className="text-emerald-400/60 text-xs">Ma'lumotlar formaga tayyor</p>
+                  <p className="text-emerald-400 font-semibold">{t('pos.codeScanned')}</p>
+                  <p className="text-emerald-400/60 text-xs">{t('pos.dataReadyForForm')}</p>
                 </div>
               </div>
             </div>
@@ -193,7 +195,7 @@ const ProductScanner: React.FC<ProductScannerProps> = ({
             <div className="p-4 space-y-3">
               {/* Raw kod - asl o'qilgan ma'lumot */}
               <div className="flex justify-between items-center py-2 border-b border-gray-700">
-                <span className="text-gray-400 text-sm">O'qilgan kod</span>
+                <span className="text-gray-400 text-sm">{t('pos.scannedCode')}</span>
                 <span className="text-white font-mono text-sm break-all max-w-[200px] text-right">
                   {scannedData.raw}
                 </span>
@@ -212,7 +214,7 @@ const ProductScanner: React.FC<ProductScannerProps> = ({
               {/* Shtrix-kod (agar GTIN dan farq qilsa) */}
               {scannedData.barcode && scannedData.barcode !== scannedData.raw && scannedData.barcode !== scannedData.gtin && (
                 <div className="flex justify-between items-center py-2 border-b border-gray-700">
-                  <span className="text-gray-400 text-sm">Shtrix-kod</span>
+                  <span className="text-gray-400 text-sm">{t('products.barcode')}</span>
                   <span className="text-white font-mono text-sm">
                     {scannedData.barcode}
                   </span>
@@ -222,7 +224,7 @@ const ProductScanner: React.FC<ProductScannerProps> = ({
               {/* Serial */}
               {scannedData.serial && (
                 <div className="flex justify-between items-center py-2 border-b border-gray-700">
-                  <span className="text-gray-400 text-sm">Seriya raqami</span>
+                  <span className="text-gray-400 text-sm">{t('pos.serialNumber')}</span>
                   <span className="text-white font-mono text-sm">{scannedData.serial}</span>
                 </div>
               )}
@@ -230,7 +232,7 @@ const ProductScanner: React.FC<ProductScannerProps> = ({
               {/* Batch */}
               {scannedData.batch && (
                 <div className="flex justify-between items-center py-2 border-b border-gray-700">
-                  <span className="text-gray-400 text-sm">Partiya</span>
+                  <span className="text-gray-400 text-sm">{t('pos.batch')}</span>
                   <span className="text-white font-mono text-sm">{scannedData.batch}</span>
                 </div>
               )}
@@ -238,7 +240,7 @@ const ProductScanner: React.FC<ProductScannerProps> = ({
               {/* Expiry */}
               {scannedData.expiryFormatted && (
                 <div className="flex justify-between items-center py-2 border-b border-gray-700">
-                  <span className="text-gray-400 text-sm">Yaroqlilik muddati</span>
+                  <span className="text-gray-400 text-sm">{t('pos.expiryDate')}</span>
                   <span className="text-white font-mono text-sm">{scannedData.expiryFormatted}</span>
                 </div>
               )}
@@ -249,13 +251,13 @@ const ProductScanner: React.FC<ProductScannerProps> = ({
                 onClick={handleRescan}
                 className="flex-1 py-3 bg-gray-700 text-white rounded-xl font-medium hover:bg-gray-600"
               >
-                Qayta skanerlash
+                {t('pos.rescan')}
               </button>
               <button
                 onClick={handleConfirm}
                 className="flex-1 py-3 bg-emerald-500 text-white rounded-xl font-medium hover:bg-emerald-600"
               >
-                Formaga qo'shish
+                {t('pos.addToForm')}
               </button>
             </div>
           </div>
@@ -285,7 +287,7 @@ const ProductScanner: React.FC<ProductScannerProps> = ({
               <div className="absolute bottom-24 left-0 right-0 flex justify-center">
                 <div className="flex items-center gap-2 px-4 py-2 bg-black/70 rounded-full">
                   <Loader2 className="w-4 h-4 text-emerald-400 animate-spin" />
-                  <span className="text-white text-sm">Skanerlanyapti...</span>
+                  <span className="text-white text-sm">{t('pos.scanning')}...</span>
                 </div>
               </div>
             )}
@@ -297,7 +299,7 @@ const ProductScanner: React.FC<ProductScannerProps> = ({
       {!scannedData && !error && (
         <div className="p-4 bg-black/80">
           <p className="text-center text-white/60 text-sm">
-            Kamerani shtrix-kodga yo'naltiring
+            {t('pos.pointCameraToBarcode')}
           </p>
           <p className="text-center text-white/40 text-xs mt-1">
             GS1 DataMatrix • EAN • QR • Code128

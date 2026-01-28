@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Search, RotateCcw, X, Check, AlertTriangle } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { useLanguage } from '../../i18n';
+import { convertToLanguage } from '../../utils/transliterate';
 
 // Sotuv interfeysi
 interface Sale {
@@ -32,6 +34,7 @@ interface ReturnItem {
 }
 
 const CustomerReturn: React.FC = () => {
+  const { t, language } = useLanguage();
   // State'lar
   const [saleNumber, setSaleNumber] = useState('');
   const [sale, setSale] = useState<Sale | null>(null);
@@ -44,7 +47,7 @@ const CustomerReturn: React.FC = () => {
   // Sotuvni qidirish
   const searchSale = async () => {
     if (!saleNumber.trim()) {
-      toast.error('Sotuv raqamini kiriting');
+      toast.error(t('returns.enterSaleNumber'));
       return;
     }
 
@@ -63,14 +66,14 @@ const CustomerReturn: React.FC = () => {
       if (data.success && data.data) {
         setSale(data.data);
         setReturnItems([]);
-        toast.success('Sotuv topildi');
+        toast.success(t('returns.saleFound'));
       } else {
-        toast.error('Sotuv topilmadi');
+        toast.error(t('returns.saleNotFound'));
         setSale(null);
       }
     } catch (error) {
       console.error('Search error:', error);
-      toast.error('Qidirishda xatolik');
+      toast.error(t('returns.searchError'));
     } finally {
       setSearching(false);
     }
@@ -80,7 +83,7 @@ const CustomerReturn: React.FC = () => {
   const addToReturn = (item: SaleItem) => {
     const existing = returnItems.find(ri => ri.saleItemId === item.id);
     if (existing) {
-      toast.error('Bu mahsulot allaqachon qo\'shilgan');
+      toast.error(t('returns.productAlreadyAdded'));
       return;
     }
 
@@ -88,7 +91,7 @@ const CustomerReturn: React.FC = () => {
       ...returnItems,
       {
         saleItemId: item.id,
-        productName: item.product_name,
+        productName: convertToLanguage(item.product_name, language),
         maxQuantity: item.quantity,
         quantity: 1,
         reason: '',
@@ -132,13 +135,13 @@ const CustomerReturn: React.FC = () => {
   const processReturn = async () => {
     // Validatsiya
     if (returnItems.length === 0) {
-      toast.error('Qaytarish uchun mahsulot tanlang');
+      toast.error(t('returns.selectProducts'));
       return;
     }
 
     const invalidItems = returnItems.filter(item => !item.reason.trim());
     if (invalidItems.length > 0) {
-      toast.error('Barcha mahsulotlar uchun sabab kiriting');
+      toast.error(t('returns.enterReasonForAll'));
       return;
     }
 
@@ -165,18 +168,18 @@ const CustomerReturn: React.FC = () => {
       const data = await response.json();
 
       if (data.success) {
-        toast.success(`Qaytarish muvaffaqiyatli: ${data.data.returnNumber}`);
+        toast.success(`${t('returns.returnProcessed')}: ${data.data.returnNumber}`);
         // Reset form
         setSale(null);
         setSaleNumber('');
         setReturnItems([]);
         setNotes('');
       } else {
-        toast.error(data.message || 'Xatolik yuz berdi');
+        toast.error(data.message || t('common.error'));
       }
     } catch (error) {
       console.error('Return error:', error);
-      toast.error('Qaytarishda xatolik');
+      toast.error(t('returns.returnError'));
     } finally {
       setLoading(false);
     }
@@ -186,13 +189,13 @@ const CustomerReturn: React.FC = () => {
     <div className="p-6 max-w-4xl mx-auto">
       <h1 className="text-2xl font-bold mb-6 flex items-center gap-2">
         <RotateCcw className="w-6 h-6" />
-        Mijoz Qaytarishi
+        {t('returns.customerReturn')}
       </h1>
 
       {/* Sotuv qidirish */}
       <div className="bg-white rounded-lg shadow p-4 mb-6">
         <label className="block text-sm font-medium text-gray-700 mb-2">
-          Sotuv Raqami
+          {t('returns.saleNumber')}
         </label>
         <div className="flex gap-2">
           <input
@@ -213,7 +216,7 @@ const CustomerReturn: React.FC = () => {
             ) : (
               <Search className="w-4 h-4" />
             )}
-            Qidirish
+            {t('common.search')}
           </button>
         </div>
       </div>
@@ -224,21 +227,21 @@ const CustomerReturn: React.FC = () => {
           <div className="p-4 border-b bg-gray-50">
             <div className="flex justify-between items-center">
               <div>
-                <h2 className="font-semibold">Sotuv #{sale.sale_number}</h2>
+                <h2 className="font-semibold">{t('returns.sale')} #{sale.sale_number}</h2>
                 <p className="text-sm text-gray-500">
-                  {sale.customer_name || 'Walk-in'} • {new Date(sale.sale_date).toLocaleString()}
+                  {convertToLanguage(sale.customer_name || 'Walk-in', language)} • {new Date(sale.sale_date).toLocaleString()}
                 </p>
               </div>
               <div className="text-right">
-                <p className="text-sm text-gray-500">Jami summa</p>
-                <p className="font-bold text-lg">{sale.total_amount.toLocaleString()} UZS</p>
+                <p className="text-sm text-gray-500">{t('common.total')}</p>
+                <p className="font-bold text-lg">{sale.total_amount.toLocaleString()} {t('common.sum')}</p>
               </div>
             </div>
           </div>
 
           {/* Sotuv elementlari */}
           <div className="p-4">
-            <h3 className="font-medium mb-3">Sotilgan Mahsulotlar</h3>
+            <h3 className="font-medium mb-3">{t('returns.soldProducts')}</h3>
             <div className="space-y-2">
               {sale.items.map((item) => (
                 <div
@@ -246,19 +249,19 @@ const CustomerReturn: React.FC = () => {
                   className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
                 >
                   <div>
-                    <p className="font-medium">{item.product_name}</p>
+                    <p className="font-medium">{convertToLanguage(item.product_name, language)}</p>
                     <p className="text-sm text-gray-500">
-                      {item.quantity} x {item.unit_price.toLocaleString()} UZS
+                      {item.quantity} x {item.unit_price.toLocaleString()} {t('common.sum')}
                     </p>
                   </div>
                   <div className="flex items-center gap-4">
-                    <p className="font-medium">{item.total_amount.toLocaleString()} UZS</p>
+                    <p className="font-medium">{item.total_amount.toLocaleString()} {t('common.sum')}</p>
                     <button
                       onClick={() => addToReturn(item)}
                       className="btn-secondary text-sm"
                       disabled={returnItems.some(ri => ri.saleItemId === item.id)}
                     >
-                      Qaytarish
+                      {t('returns.return')}
                     </button>
                   </div>
                 </div>

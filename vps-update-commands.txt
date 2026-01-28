@@ -1,0 +1,35 @@
+# VPS da yangi transliteratsiya tizimini deploy qilish
+
+# 1. Loyiha papkasiga o'tish
+cd /var/www/xujatech-pos
+
+# 2. Yangi kodlarni olish
+git pull origin main
+
+# 3. Dependencies yangilash (agar kerak bo'lsa)
+npm install
+cd backend && npm install
+cd ../desktop && npm install
+cd ..
+
+# 4. Backend build qilish
+cd backend
+npm run build
+
+# 5. Frontend build qilish  
+cd ../desktop
+npm run build
+
+# 6. PM2 jarayonlarini qayta ishga tushirish
+cd ..
+pm2 restart xujatech-backend
+
+# 7. PM2 holatini tekshirish
+pm2 status
+
+# 8. Loglarni tekshirish (agar kerak bo'lsa)
+pm2 logs xujatech-backend --lines 20
+
+echo "✅ Transliteratsiya tizimi VPS ga muvaffaqiyatli deploy qilindi!"
+echo "🌐 Sayt: https://xujatech.biznesjon.uz"
+echo "🔄 Yangi xususiyat: Lotin ↔ Kirill avtomatik o'tkazish"

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Download, X, Smartphone, Monitor, Share } from 'lucide-react';
+import { useLanguage } from '../../i18n';
 import { usePWA } from '../../hooks/usePWA';
 
 interface InstallPromptProps {
@@ -8,6 +9,7 @@ interface InstallPromptProps {
 
 export const InstallPrompt: React.FC<InstallPromptProps> = ({ onDismiss }) => {
   const { isInstallable, isInstalled, install } = usePWA();
+  const { t } = useLanguage();
   const [show, setShow] = useState(false);
   const [isIOS, setIsIOS] = useState(false);
 
@@ -63,8 +65,8 @@ export const InstallPrompt: React.FC<InstallPromptProps> = ({ onDismiss }) => {
               </svg>
             </div>
             <div>
-              <h2 className="text-xl font-bold">XUJATECH POS</h2>
-              <p className="text-white/80 text-sm">Ilovani o'rnating</p>
+              <h2 className="text-xl font-bold">{t('common.appName')}</h2>
+              <p className="text-white/80 text-sm">{t('pwa.installApp')}</p>
             </div>
           </div>
         </div>
@@ -72,7 +74,7 @@ export const InstallPrompt: React.FC<InstallPromptProps> = ({ onDismiss }) => {
         {/* Content */}
         <div className="p-6">
           <p className="text-gray-600 mb-6">
-            Ilovani qurilmangizga o'rnatib, tezroq kirish va offline rejimda ishlash imkoniyatiga ega bo'ling.
+            {t('pwa.installDescription')}
           </p>
 
           {/* Features */}
@@ -81,26 +83,26 @@ export const InstallPrompt: React.FC<InstallPromptProps> = ({ onDismiss }) => {
               <div className="w-8 h-8 bg-cyan-100 rounded-lg flex items-center justify-center">
                 <Smartphone className="w-4 h-4 text-cyan-600" />
               </div>
-              <span>Bosh ekrandan tez kirish</span>
+              <span>{t('pwa.quickAccess')}</span>
             </div>
             <div className="flex items-center gap-3 text-sm text-gray-700">
               <div className="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center">
                 <Monitor className="w-4 h-4 text-emerald-600" />
               </div>
-              <span>To'liq ekran rejimi</span>
+              <span>{t('pwa.fullScreen')}</span>
             </div>
             <div className="flex items-center gap-3 text-sm text-gray-700">
               <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
                 <Download className="w-4 h-4 text-purple-600" />
               </div>
-              <span>Offline rejimda ishlash</span>
+              <span>{t('pwa.offlineMode')}</span>
             </div>
           </div>
 
           {/* iOS Instructions */}
           {isIOS && (
             <div className="bg-gray-50 rounded-xl p-4 mb-6">
-              <p className="text-sm font-medium text-gray-700 mb-3">iOS da o'rnatish:</p>
+              <p className="text-sm font-medium text-gray-700 mb-3">{t('pwa.iosInstall')}:</p>
               <div className="space-y-2 text-sm text-gray-600">
                 <div className="flex items-center gap-2">
                   <span className="w-5 h-5 bg-cyan-500 text-white rounded-full flex items-center justify-center text-xs font-bold">1</span>
@@ -124,7 +126,7 @@ export const InstallPrompt: React.FC<InstallPromptProps> = ({ onDismiss }) => {
               onClick={handleDismiss}
               className="flex-1 px-4 py-3 text-gray-700 bg-gray-100 rounded-xl font-semibold hover:bg-gray-200 transition-colors"
             >
-              Keyinroq
+              {t('common.later')}
             </button>
             {!isIOS && (
               <button
@@ -132,7 +134,7 @@ export const InstallPrompt: React.FC<InstallPromptProps> = ({ onDismiss }) => {
                 className="flex-1 px-4 py-3 bg-gradient-to-r from-cyan-500 to-teal-600 text-white rounded-xl font-semibold hover:shadow-lg hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2"
               >
                 <Download className="w-4 h-4" />
-                O'rnatish
+                {t('pwa.install')}
               </button>
             )}
           </div>

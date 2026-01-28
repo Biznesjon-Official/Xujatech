@@ -20,7 +20,9 @@ export const translations = {
   'common.edit': 'Tahrirlash',
   'common.add': "Qo'shish",
   'common.search': 'Qidirish',
-  'common.close': 'Yopish',
+  'common.unknownError': "Noma'lum xatolik",
+  'common.later': 'Keyinroq',
+  'common.open': 'Ochish',
   'common.confirm': 'Tasdiqlash',
   'common.yes': 'Ha',
   'common.no': "Yo'q",
@@ -128,14 +130,16 @@ export const translations = {
   'dashboard.thisMonth': 'Bu oy',
   'dashboard.thisYear': 'Bu yil',
 
-  // ==================== КАССА (POS) ====================
+  // ==================== POS (KASSA) ====================
   'pos.title': 'Kassa',
   'pos.newSale': 'Yangi sotuv',
   'pos.searchProduct': 'Mahsulot qidirish...',
   'pos.scanBarcode': 'Shtrih-kod skanerlash',
+  'pos.scanProduct': 'Mahsulotni skanerlash',
   'pos.cart': 'Savati',
   'pos.emptyCart': "Savat bo'sh",
   'pos.addToCart': "Savatga qo'shish",
+  'pos.addItemsToCart': "Savatga mahsulot qo'shing",
   'pos.removeFromCart': 'Savatdan olib tashlash',
   'pos.clearCart': 'Savatni tozalash',
   'pos.clear': 'Tozalash',
@@ -144,6 +148,7 @@ export const translations = {
   'pos.tax': 'Soliq',
   'pos.grandTotal': 'Umumiy jami',
   'pos.payment': "To'lov",
+  'pos.payments': "To'lovlar",
   'pos.cash': 'Naqd',
   'pos.card': 'Karta',
   'pos.transfer': "O'tkazma",
@@ -167,6 +172,23 @@ export const translations = {
   'pos.applyDiscount': "Chegirma qo'llash",
   'pos.discountPercent': 'Foiz chegirma',
   'pos.discountAmount': 'Summa chegirma',
+  'pos.totalPaid': "Jami to'langan",
+  'pos.remaining': 'Qoldiq',
+  'pos.exact': 'Aniq',
+  'pos.round': 'Yaxlitlash',
+  'pos.processing': 'Jarayonda',
+  'pos.paymentIncomplete': "To'lov to'liq emas",
+  'pos.referenceNumber': 'Ma\'lumotnoma raqami',
+  'pos.codeScanned': "Kod o'qildi",
+  'pos.dataReadyForForm': "Ma'lumotlar formaga tayyor",
+  'pos.scannedCode': "O'qilgan kod",
+  'pos.serialNumber': 'Seriya raqami',
+  'pos.batch': 'Partiya',
+  'pos.expiryDate': 'Yaroqlilik muddati',
+  'pos.rescan': 'Qayta skanerlash',
+  'pos.addToForm': "Formaga qo'shish",
+  'pos.scanning': 'Skanerlanyapti',
+  'pos.pointCameraToBarcode': "Kamerani shtrix-kodga yo'naltiring",
 
   // ==================== МАҲСУЛОТЛАР ====================
   'products.title': 'Mahsulotlar',
@@ -480,6 +502,24 @@ export const translations = {
   'deliveries.deliveryDeleted': "Yetkazib berish o'chirildi",
   'deliveries.confirmDelete': "Yetkazib berishni o'chirishni tasdiqlaysizmi?",
 
+  // ==================== SKANER ====================
+  'scanner.permissionDenied': 'Kameraga ruxsat berilmagan',
+  'scanner.cameraNotFound': 'Kamera topilmadi',
+  'scanner.cameraBusy': 'Kamera band yoki ishlamayapti',
+  'scanner.cameraNotSupported': "Kamera sozlamalari qo'llab-quvvatlanmaydi",
+  'scanner.cameraError': "Kamerani ishga tushirib bo'lmadi",
+  'scanner.cameraRestartError': "Kamerani qayta ishga tushirib bo'lmadi",
+  'scanner.usePhysicalScanner': 'Skaner-pistoletdan foydalaning',
+
+  // ==================== PWA ====================
+  'pwa.installApp': "Ilovani o'rnating",
+  'pwa.installDescription': "Ilovani qurilmangizga o'rnatib, tezroq kirish va offline rejimda ishlash imkoniyatiga ega bo'ling.",
+  'pwa.quickAccess': 'Bosh ekrandan tez kirish',
+  'pwa.fullScreen': "To'liq ekran rejimi",
+  'pwa.offlineMode': 'Offline rejimda ishlash',
+  'pwa.iosInstall': "iOS da o'rnatish",
+  'pwa.install': "O'rnatish",
+
   // ==================== CHEKLAR ====================
   'receipts.title': 'Cheklar',
   'receipts.receiptNumber': 'Chek raqami',
@@ -493,6 +533,26 @@ export const translations = {
   'receipts.printReceipt': 'Chekni chop etish',
   'receipts.viewReceipt': 'Chekni ko\'rish',
   'receipts.receiptDetails': 'Chek tafsilotlari',
+  'receipts.newReceipts': 'Yangi cheklar',
+  'receipts.newReceiptsArrived': 'ta yangi chek keldi',
+  'receipts.newReceiptArrived': 'Yangi chek keldi!',
+  'receipts.lastCheck': 'Oxirgi tekshiruv',
+
+  // ==================== QAYTARISH ====================
+  'returns.customerReturn': 'Mijoz Qaytarishi',
+  'returns.saleNumber': 'Sotuv Raqami',
+  'returns.sale': 'Sotuv',
+  'returns.soldProducts': 'Sotilgan Mahsulotlar',
+  'returns.return': 'Qaytarish',
+  'returns.enterSaleNumber': 'Sotuv raqamini kiriting',
+  'returns.saleFound': 'Sotuv topildi',
+  'returns.saleNotFound': 'Sotuv topilmadi',
+  'returns.searchError': 'Qidirishda xatolik',
+  'returns.productAlreadyAdded': "Bu mahsulot allaqachon qo'shilgan",
+  'returns.selectProducts': 'Qaytarish uchun mahsulot tanlang',
+  'returns.enterReasonForAll': 'Barcha mahsulotlar uchun sabab kiriting',
+  'returns.returnProcessed': 'Qaytarish muvaffaqiyatli',
+  'returns.returnError': 'Qaytarishda xatolik',
 };
 
 // Eski t() funksiyasi - backward compatibility uchun
