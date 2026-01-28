@@ -109,7 +109,7 @@ const MobilePOS: React.FC<MobilePOSProps> = ({ cashierId, cashierName }) => {
       toast.success(t('pos.productAdded'));
     } else {
       // Mahsulot topilmadi
-      toast.error(result.message);
+      toast.error('Mahsulot topilmadi');
     }
   };
 

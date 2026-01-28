@@ -23,6 +23,7 @@ import {
   Warehouse,
   RotateCcw,
   History,
+  FileText,
 } from 'lucide-react';
 
 const Layout: React.FC = () => {

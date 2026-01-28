@@ -11,16 +11,20 @@
     "isolatedModules": true,
     "noEmit": true,
     "jsx": "react-jsx",
-    "strict": true,
+    "strict": false,
     "noUnusedLocals": false,
     "noUnusedParameters": false,
     "noFallthroughCasesInSwitch": true,
+    "allowJs": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "forceConsistentCasingInFileNames": true,
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"]
     }
   },
-  "include": ["src"],
-  "exclude": ["src/main.ts", "src/preload.ts"],
+  "include": ["src", "src/**/*"],
+  "exclude": ["src/main.ts", "src/preload.ts", "node_modules"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

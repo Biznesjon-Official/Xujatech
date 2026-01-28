@@ -318,7 +318,7 @@ const POS: React.FC = () => {
       addProductToCart(product);
     } else {
       // Товар не найден
-      toast.error(result.message);
+      toast.error('Mahsulot topilmadi');
     }
   };
 
