@@ -32,12 +32,12 @@ const latToCyr: Record<string, string> = {
   'e': 'е', 'f': 'ф', 'h': 'ҳ', 'i': 'и', 'j': 'ж',
   'k': 'к', 'l': 'л', 'm': 'м', 'n': 'н', 'o': 'о',
   'p': 'п', 'q': 'қ', 'r': 'р', 's': 'с', 't': 'т',
-  'u': 'у', 'x': 'х', 'y': 'й', 'z': 'з',
+  'u': 'у', 'x': 'х', 'y': 'й', 'z': 'з', 'c': 'ц',
   'A': 'А', 'B': 'Б', 'V': 'В', 'G': 'Г', 'D': 'Д',
   'E': 'Е', 'F': 'Ф', 'H': 'Ҳ', 'I': 'И', 'J': 'Ж',
   'K': 'К', 'L': 'Л', 'M': 'М', 'N': 'Н', 'O': 'О',
   'P': 'П', 'Q': 'Қ', 'R': 'Р', 'S': 'С', 'T': 'Т',
-  'U': 'У', 'X': 'Х', 'Y': 'Й', 'Z': 'З',
+  'U': 'У', 'X': 'Х', 'Y': 'Й', 'Z': 'З', 'C': 'Ц',
 };
 
 /**
@@ -53,24 +53,57 @@ export function cyrillicToLatin(text: string): string {
 }
 
 /**
- * Lotin → Kirill
+ * Lotin -> Kirill transliteratsiya (Yangilangan versiya)
+ * Istisnolar:
+ *  - "g'" => "ғ" (G' => Ғ)
+ *  - "sh" => "ш"
+ *  - "ch" => "ч"
+ *  - "ng" hech qachon bitta harfga (masalan "ң") o'tmaydi, "н"+"г" bo'lib qoladi
  */
-export function latinToCyrillic(text: string): string {
-  if (!text) return text;
-  let result = text;
-  
-  // Avval 2 harfli kombinatsiyalarni almashtirish
-  const twoCharCombos = ["o'", "O'", "g'", "G'", 'sh', 'Sh', 'ch', 'Ch', 'yo', 'Yo', 'yu', 'Yu', 'ya', 'Ya', 'ts', 'Ts'];
-  for (const combo of twoCharCombos) {
-    result = result.split(combo).join(latToCyr[combo] || combo);
+export function latinToCyrillic(input: string): string {
+  if (typeof input !== "string") return "";
+
+  // 1) Avval digraflar va apostrofli harflar: o', g', sh, ch (case-insensitive), lekin case'ni saqlashga harakat qilamiz
+  const applyCase = (pattern: string, lower: string, upper: string, title: string) => (m: string) => {
+    if (m === m.toUpperCase()) return upper;                // "SH", "G'", "O'"
+    if (m[0] === m[0].toUpperCase() && m[1] === m[1].toLowerCase()) return title; // "Sh", "G'", "O'"
+    return lower;                                           // "sh", "g'", "o'"
+  };
+
+  let s = input
+    .replace(/o'/gi, applyCase("o'", "ў", "Ў", "Ў"))
+    .replace(/g'/gi, applyCase("g'", "ғ", "Ғ", "Ғ"))
+    .replace(/sh/gi, applyCase("sh", "ш", "Ш", "Ш"))
+    .replace(/ch/gi, applyCase("ch", "ч", "Ч", "Ч"));
+
+  // 2) "ng" ni maxsus o'tkazmaymiz (ya'ni "ң" qilmaymiz) — shunchaki keyingi xaritada "n"+"g" bo'lib ketadi.
+
+  // 3) Qolgan harflar xaritasi
+  const map = new Map([
+    ["a", "а"], ["b", "б"], ["d", "д"], ["e", "е"], ["f", "ф"],
+    ["g", "г"], ["h", "ҳ"], ["i", "и"], ["j", "ж"], ["k", "к"],
+    ["l", "л"], ["m", "м"], ["n", "н"], ["o", "о"], ["p", "п"],
+    ["q", "қ"], ["r", "р"], ["s", "с"], ["t", "т"], ["u", "у"],
+    ["v", "в"], ["x", "х"], ["y", "й"], ["z", "з"], ["c", "ц"],
+    // Katta harflar
+    ["A", "А"], ["B", "Б"], ["D", "Д"], ["E", "Е"], ["F", "Ф"],
+    ["G", "Г"], ["H", "Ҳ"], ["I", "И"], ["J", "Ж"], ["K", "К"],
+    ["L", "Л"], ["M", "М"], ["N", "Н"], ["O", "О"], ["P", "П"],
+    ["Q", "Қ"], ["R", "Р"], ["S", "С"], ["T", "Т"], ["U", "У"],
+    ["V", "В"], ["X", "Х"], ["Y", "Й"], ["Z", "З"], ["C", "Ц"],
+    // Apostroflar va maxsus belgilar
+    ["'", "'"], ['"', '"'], [" ", " "], [".", "."], [",", ","],
+    ["!", "!"], ["?", "?"], [":", ":"], [";", ";"], ["-", "-"],
+    ["(", "("], [")", ")"], ["[", "["], ["]", "]"], ["{", "{"], ["}", "}"],
+    ["0", "0"], ["1", "1"], ["2", "2"], ["3", "3"], ["4", "4"],
+    ["5", "5"], ["6", "6"], ["7", "7"], ["8", "8"], ["9", "9"]
+  ]);
+
+  let out = "";
+  for (const ch of s) {
+    out += map.get(ch) ?? ch;
   }
-  
-  // Keyin 1 harfli
-  let finalResult = '';
-  for (const char of result) {
-    finalResult += latToCyr[char] || char;
-  }
-  return finalResult;
+  return out;
 }
 
 /**
@@ -82,20 +115,14 @@ export function isCyrillic(text: string): boolean {
 }
 
 /**
- * Tanlangan tilga qarab konvertatsiya
+ * Tanlangan tilga qarab konvertatsiya (Soddalashtirilgan)
  */
 export function convertToLanguage(text: string, targetLang: 'cyr' | 'lat'): string {
   if (!text) return text;
   
-  const textIsCyrillic = isCyrillic(text);
-  
-  if (targetLang === 'lat' && textIsCyrillic) {
-    return cyrillicToLatin(text);
+  if (targetLang === 'lat') {
+    return text; // Lotin matni o'zgartirilmaydi
+  } else {
+    return latinToCyrillic(text); // Avtomatik kirill ga o'tkazish
   }
-  
-  if (targetLang === 'cyr' && !textIsCyrillic) {
-    return latinToCyrillic(text);
-  }
-  
-  return text;
 }

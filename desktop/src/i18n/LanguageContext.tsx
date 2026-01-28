@@ -1,124 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { Language, t as translate, getLanguageName, getAvailableLanguages } from './translations';
-
-// Kirill -> Lotin transliteratsiya jadvali
-const cyrToLatMap: Record<string, string> = {
-  'А': 'A', 'а': 'a',
-  'Б': 'B', 'б': 'b',
-  'В': 'V', 'в': 'v',
-  'Г': 'G', 'г': 'g',
-  'Д': 'D', 'д': 'd',
-  'Е': 'E', 'е': 'e',
-  'Ё': 'Yo', 'ё': 'yo',
-  'Ж': 'J', 'ж': 'j',
-  'З': 'Z', 'з': 'z',
-  'И': 'I', 'и': 'i',
-  'Й': 'Y', 'й': 'y',
-  'К': 'K', 'к': 'k',
-  'Л': 'L', 'л': 'l',
-  'М': 'M', 'м': 'm',
-  'Н': 'N', 'н': 'n',
-  'О': 'O', 'о': 'o',
-  'П': 'P', 'п': 'p',
-  'Р': 'R', 'р': 'r',
-  'С': 'S', 'с': 's',
-  'Т': 'T', 'т': 't',
-  'У': 'U', 'у': 'u',
-  'Ф': 'F', 'ф': 'f',
-  'Х': 'X', 'х': 'x',
-  'Ц': 'Ts', 'ц': 'ts',
-  'Ч': 'Ch', 'ч': 'ch',
-  'Ш': 'Sh', 'ш': 'sh',
-  'Щ': 'Sh', 'щ': 'sh',
-  'Ъ': "'", 'ъ': "'",
-  'Ы': 'I', 'ы': 'i',
-  'Ь': '', 'ь': '',
-  'Э': 'E', 'э': 'e',
-  'Ю': 'Yu', 'ю': 'yu',
-  'Я': 'Ya', 'я': 'ya',
-  'Ў': "O'", 'ў': "o'",
-  'Қ': 'Q', 'қ': 'q',
-  'Ғ': "G'", 'ғ': "g'",
-  'Ҳ': 'H', 'ҳ': 'h',
-};
-
-// Lotin -> Kirill transliteratsiya jadvali
-const latToCyrMap: Record<string, string> = {
-  "O'": 'Ў', "o'": 'ў',
-  "G'": 'Ғ', "g'": 'ғ',
-  'Sh': 'Ш', 'sh': 'ш',
-  'Ch': 'Ч', 'ch': 'ч',
-  'Yo': 'Ё', 'yo': 'ё',
-  'Yu': 'Ю', 'yu': 'ю',
-  'Ya': 'Я', 'ya': 'я',
-  'Ts': 'Ц', 'ts': 'ц',
-  'A': 'А', 'a': 'а',
-  'B': 'Б', 'b': 'б',
-  'V': 'В', 'v': 'в',
-  'G': 'Г', 'g': 'г',
-  'D': 'Д', 'd': 'д',
-  'E': 'Е', 'e': 'е',
-  'J': 'Ж', 'j': 'ж',
-  'Z': 'З', 'z': 'з',
-  'I': 'И', 'i': 'и',
-  'Y': 'Й', 'y': 'й',
-  'K': 'К', 'k': 'к',
-  'L': 'Л', 'l': 'л',
-  'M': 'М', 'm': 'м',
-  'N': 'Н', 'n': 'н',
-  'O': 'О', 'o': 'о',
-  'P': 'П', 'p': 'п',
-  'R': 'Р', 'r': 'р',
-  'S': 'С', 's': 'с',
-  'T': 'Т', 't': 'т',
-  'U': 'У', 'u': 'у',
-  'F': 'Ф', 'f': 'ф',
-  'X': 'Х', 'x': 'х',
-  'Q': 'Қ', 'q': 'қ',
-  'H': 'Ҳ', 'h': 'ҳ',
-};
-
-// Kirill -> Lotin transliteratsiya
-function cyrillicToLatin(text: string): string {
-  let result = '';
-  for (const char of text) {
-    result += cyrToLatMap[char] ?? char;
-  }
-  return result;
-}
-
-// Lotin -> Kirill transliteratsiya
-function latinToCyrillic(text: string): string {
-  let result = text;
-  // Avval ikki harfli kombinatsiyalarni almashtirish
-  const twoCharPatterns = ["O'", "o'", "G'", "g'", 'Sh', 'sh', 'Ch', 'ch', 'Yo', 'yo', 'Yu', 'yu', 'Ya', 'ya', 'Ts', 'ts'];
-  for (const pattern of twoCharPatterns) {
-    result = result.split(pattern).join(latToCyrMap[pattern] || pattern);
-  }
-  // Keyin bir harfli
-  let finalResult = '';
-  for (const char of result) {
-    finalResult += latToCyrMap[char] ?? char;
-  }
-  return finalResult;
-}
-
-// Matnni joriy tilga transliteratsiya qilish
-export function transliterate(text: string, targetLang: Language): string {
-  if (!text) return text;
-  
-  // Matn qaysi alifboda ekanligini aniqlash
-  const hasCyrillic = /[а-яёўқғҳА-ЯЁЎҚҒҲ]/.test(text);
-  const hasLatin = /[a-zA-Z]/.test(text);
-  
-  if (targetLang === 'lat' && hasCyrillic) {
-    return cyrillicToLatin(text);
-  } else if (targetLang === 'cyr' && hasLatin && !hasCyrillic) {
-    return latinToCyrillic(text);
-  }
-  
-  return text;
-}
+import { convertToLanguage } from '../utils/transliterate';
 
 interface LanguageContextType {
   language: Language;
@@ -138,10 +20,10 @@ interface LanguageProviderProps {
 }
 
 export function LanguageProvider({ children }: LanguageProviderProps) {
-  // Asosiy til - Kirill
+  // Asosiy til - Lotin (chunki barcha matnlar lotin da yozilgan)
   const [language, setLanguageState] = useState<Language>(() => {
     const saved = localStorage.getItem(LANGUAGE_STORAGE_KEY);
-    return (saved === 'lat' ? 'lat' : 'cyr') as Language;
+    return (saved === 'cyr' ? 'cyr' : 'lat') as Language;
   });
 
   useEffect(() => {
@@ -155,12 +37,13 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
   };
 
   const t = (key: string): string => {
-    return translate(key, language);
+    const latinText = translate(key, 'lat'); // Har doim lotin matnni olish
+    return convertToLanguage(latinText, language); // Kerakli tilga o'tkazish
   };
 
   // Transliteratsiya funksiyasi - ismlar va boshqa dinamik matnlar uchun
   const tr = (text: string): string => {
-    return transliterate(text, language);
+    return convertToLanguage(text, language);
   };
 
   const value: LanguageContextType = {
