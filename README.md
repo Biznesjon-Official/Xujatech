@@ -2,21 +2,121 @@
 
 A comprehensive sales and warehouse management system for home appliance stores.
 
-# XUJATECh - POS + Inventory + CRM System
+## 🚀 Quick Start
 
-A comprehensive sales and warehouse management system for home appliance stores.
+### Development Environment
 
-## 🚀 Tezkor Boshlash / Quick Start
-
-**Yangi foydalanuvchilar uchun / For New Users:**
-1. 📖 [QUICK-START.md](QUICK-START.md) - 5 daqiqada ishga tushiring / Start in 5 minutes
-2. 📋 [SETUP-GUIDE.md](SETUP-GUIDE.md) - To'liq o'rnatish qo'llanmasi / Complete setup guide
-
-**Tayyor loyiha / Ready Project:** 
+1. **Clone the repository:**
 ```bash
-npm install    # Dependencies o'rnatish
-npm run dev    # Ishga tushirish
+git clone https://github.com/Biznesjon-Official/Xujatech.git
+cd Xujatech
 ```
+
+2. **Setup environment files:**
+```bash
+# Backend
+cp backend/.env.example backend/.env
+# Edit backend/.env with your development settings
+
+# Frontend  
+cp desktop/.env.example desktop/.env
+# Edit desktop/.env with your development settings
+```
+
+3. **Start development servers:**
+
+**Windows:**
+```bash
+dev-start.bat
+```
+
+**Linux/Mac:**
+```bash
+# Install dependencies
+npm install
+cd backend && npm install
+cd ../desktop && npm install
+
+# Start backend (Terminal 1)
+cd backend && npm run dev
+
+# Start frontend (Terminal 2) 
+cd desktop && npm run dev
+```
+
+4. **Access the application:**
+- Frontend: http://localhost:3000
+- Backend API: http://localhost:3005
+
+### Production Deployment
+
+1. **Setup environment files on server:**
+```bash
+cp backend/.env.example backend/.env
+cp desktop/.env.example desktop/.env
+# Edit with production settings
+```
+
+2. **Run deployment script:**
+```bash
+chmod +x deploy-production.sh
+./deploy-production.sh
+```
+
+## 📁 Project Structure
+
+```
+├── backend/          # Node.js API server
+├── desktop/          # React frontend
+├── docs/            # Documentation
+├── ssl/             # SSL certificates
+└── deploy-production.sh  # Production deployment script
+```
+
+## 🛠 Development vs Production
+
+| Environment | Backend Port | Frontend Port | Database | API URL |
+|-------------|-------------|---------------|----------|---------|
+| Development | 3005 | 3000 | xujatech_pos_dev | http://localhost:3005 |
+| Production | 3000 | 443 (HTTPS) | xujatech_pos | https://xujatech.biznesjon.uz/api |
+
+## 📋 Features
+
+- 🛒 Point of Sale interface
+- 📦 Inventory management
+- 👥 Customer management
+- 📊 Sales reporting
+- 🔄 Offline sync capability
+- 📱 Mobile responsive
+- 🔐 User authentication
+- 📈 Dashboard analytics
+
+## 🔧 Tech Stack
+
+- **Frontend:** React, TypeScript, Tailwind CSS, Redux Toolkit
+- **Backend:** Node.js, Express, TypeScript
+- **Database:** MongoDB
+- **Authentication:** JWT
+- **Deployment:** PM2, Nginx
+
+## 📚 Documentation
+
+See the `docs/` folder for detailed documentation:
+- [API Endpoints](docs/api-endpoints.md)
+- [Database Schema](docs/database-schema.md)
+- [System Architecture](docs/system-architecture.md)
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create your feature branch
+3. Commit your changes
+4. Push to the branch
+5. Create a Pull Request
+
+## 📄 License
+
+This project is proprietary software.
 
 ## 🔧 Prerequisites
 - Node.js 18+ and npm
