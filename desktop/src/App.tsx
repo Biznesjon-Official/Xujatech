@@ -17,6 +17,7 @@ import Deliveries from './pages/Deliveries';
 import Warehouses from './pages/Warehouses';
 import Returns from './pages/Returns';
 import History from './pages/History';
+import ReceiptsHistory from './pages/ReceiptsHistory';
 import Settings from './pages/Settings';
 import { OfflineIndicator } from './components/PWA';
 import './App.css';
@@ -51,6 +52,7 @@ function App() {
               <Route path="returns" element={<Returns />} />
               <Route path="debts" element={<Debts />} />
               <Route path="history" element={<History />} />
+              <Route path="receipts" element={<ReceiptsHistory />} />
               <Route path="customers" element={<Customers />} />
               <Route path="settings" element={<Settings />} />
             </Route>

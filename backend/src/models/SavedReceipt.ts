@@ -19,10 +19,13 @@ export interface ISavedReceipt extends Document {
   cashierName?: string;
   items: ISavedReceiptItem[];
   total: number;
-  status: 'saved' | 'completed' | 'cancelled';
+  status: 'saved' | 'processing' | 'completed' | 'cancelled';
   source: 'mobile' | 'desktop';
   customerId?: mongoose.Types.ObjectId;
   customerName?: string;
+  assignedTo?: string; // Qaysi noutbuk oldi (noutbuk ID)
+  processedAt?: Date; // Qachon to'lov qilindi
+  printedAt?: Date; // Qachon chop etildi
   createdAt: Date;
   updatedAt: Date;
 }
@@ -43,7 +46,7 @@ const SavedReceiptSchema = new Schema<ISavedReceipt>({
   total: { type: Number, required: true },
   status: { 
     type: String, 
-    enum: ['saved', 'completed', 'cancelled'], 
+    enum: ['saved', 'processing', 'completed', 'cancelled'], 
     default: 'saved' 
   },
   source: { 
@@ -53,6 +56,9 @@ const SavedReceiptSchema = new Schema<ISavedReceipt>({
   },
   customerId: { type: Schema.Types.ObjectId, ref: 'Customer' },
   customerName: { type: String },
+  assignedTo: { type: String }, // Noutbuk ID
+  processedAt: { type: Date },
+  printedAt: { type: Date },
 }, {
   timestamps: true
 });

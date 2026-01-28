@@ -45,7 +45,7 @@ class ApiService {
   // Server bilan aloqani tekshirish
   async checkConnection(): Promise<boolean> {
     try {
-      const response = await fetch(`/health`, { method: 'GET' });
+      const response = await fetch(`${API_URL}/health`, { method: 'GET' });
       const online = response.ok;
       this.setOnline(online);
       return online;
@@ -233,6 +233,13 @@ class ApiService {
   async syncPendingData(): Promise<void> {
     if (this.syncInProgress || !this.isOnline) return;
 
+    // Agar token yo'q bo'lsa, sync qilmaydi
+    const token = localStorage.getItem('accessToken');
+    if (!token) {
+      console.log('No auth token, skipping sync');
+      return;
+    }
+
     this.syncInProgress = true;
     console.log('Starting sync...');
 
@@ -281,6 +288,13 @@ class ApiService {
   async refreshData(): Promise<void> {
     if (!this.isOnline) return;
 
+    // Agar token yo'q bo'lsa, refresh qilmaydi
+    const token = localStorage.getItem('accessToken');
+    if (!token) {
+      console.log('No auth token, skipping data refresh');
+      return;
+    }
+
     try {
       // Mahsulotlarni yangilash
       const productsRes = await fetch(`${API_URL}/products`, { headers: this.getHeaders() });
@@ -310,7 +324,12 @@ class ApiService {
 
       console.log('Data refreshed from server');
     } catch (error) {
-      console.error('Refresh error:', error);
+      // Token noto'g'ri yoki muddati o'tgan bo'lishi mumkin
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        console.log('Network error during refresh, will retry later');
+      } else {
+        console.error('Refresh error:', error || 'Unknown error');
+      }
     }
   }
 

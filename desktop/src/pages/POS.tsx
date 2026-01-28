@@ -305,7 +305,7 @@ const POS: React.FC = () => {
    */
   const searchByBarcode = async (rawCode: string) => {
     const result = await handleScanResult(rawCode);
-    
+
     if (result.found) {
       // Товар найден — добавляем в корзину
       const product = {
@@ -742,11 +742,22 @@ const POS: React.FC = () => {
   // Mobile sidebar state
   const [showMobileSidebar, setShowMobileSidebar] = useState(false);
 
+  // Mobile versiya (kassir panelida)
+  if (isMobile) {
+    return (
+      <MobilePOS
+        cashierId={cashierId || selectedCashier?._id}
+        cashierName={selectedCashier?.fullName}
+      />
+    );
+  }
+
+  // Desktop versiya
   return (
     <div className="h-screen bg-gray-100 flex">
       {/* Mobile Sidebar Overlay */}
       {showMobileSidebar && (
-        <div 
+        <div
           className="fixed inset-0 bg-black/50 z-40 lg:hidden"
           onClick={() => setShowMobileSidebar(false)}
         />
@@ -768,7 +779,7 @@ const POS: React.FC = () => {
             <span className="font-bold text-xl text-gray-800">{t('common.appName')}</span>
           </div>
           {/* Close button for mobile */}
-          <button 
+          <button
             onClick={() => setShowMobileSidebar(false)}
             className="lg:hidden p-2 hover:bg-gray-100 rounded-lg"
           >
@@ -862,7 +873,7 @@ const POS: React.FC = () => {
         <div className="bg-white px-4 py-3 flex items-center justify-between border-b border-gray-200">
           <div className="flex items-center gap-3">
             {/* Hamburger menu for mobile */}
-            <button 
+            <button
               onClick={() => setShowMobileSidebar(true)}
               className="lg:hidden p-2 hover:bg-gray-100 rounded-lg"
             >
@@ -903,17 +914,95 @@ const POS: React.FC = () => {
 
         {/* POS Tab Content */}
         {activeTab === 'pos' && (
-          <div className="flex-1 flex overflow-hidden">
-            {/* Left - Cart Table */}
+          <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
+            {/* Cart Section */}
             <div className="flex-1 flex flex-col bg-white">
-              {/* Table Header Info */}
-              <div className="px-4 py-2 bg-gray-50 border-b border-gray-200">
+              {/* Header Info */}
+              <div className="px-4 py-2 bg-gray-50 border-b border-gray-200 flex items-center justify-between">
                 <span className="text-sm text-gray-600">{t('common.total')}: {cart.length} {t('common.pcs')}</span>
+                <span className="text-sm font-semibold text-emerald-600 lg:hidden">
+                  {totalAmount.toLocaleString()} {t('common.sum')}
+                </span>
               </div>
 
-              {/* Table */}
+              {/* Cart Items - Mobile Card Layout / Desktop Table */}
               <div className="flex-1 overflow-auto">
-                <table className="w-full">
+                {/* Mobile Card Layout */}
+                <div className="lg:hidden p-3 space-y-3">
+                  {cart.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center py-20 text-gray-400">
+                      <Package className="w-16 h-16 mb-4 opacity-50" />
+                      <p className="text-lg font-medium">{t('pos.emptyCart')}</p>
+                    </div>
+                  ) : (
+                    cart.map((item) => (
+                      <div key={item.id} className="bg-gray-50 rounded-xl p-3">
+                        <div className="flex justify-between items-start mb-2">
+                          <div className="flex-1 pr-2">
+                            <h3 className="font-medium text-gray-900 line-clamp-2 text-sm">
+                              {convertToLanguage(item.name, language)}
+                            </h3>
+                            {item.barcode && (
+                              <p className="text-xs text-gray-400 font-mono mt-0.5">{item.barcode}</p>
+                            )}
+                          </div>
+                          <button
+                            onClick={() => handleRemoveItem(item.id)}
+                            className="p-2 text-red-500 hover:bg-red-50 rounded-lg"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+
+                        <div className="flex items-center justify-between mt-3">
+                          {/* Quantity Controls */}
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => {
+                                const newQty = item.quantity - 1;
+                                if (newQty > 0) {
+                                  dispatch(updateCartItemQuantity({ id: item.id, quantity: newQty }));
+                                } else {
+                                  handleRemoveItem(item.id);
+                                }
+                              }}
+                              className="w-8 h-8 bg-white rounded-lg flex items-center justify-center hover:bg-gray-100 active:scale-95 border border-gray-200"
+                            >
+                              <Minus className="w-4 h-4" />
+                            </button>
+                            <span className="w-10 text-center font-semibold">{item.quantity}</span>
+                            <button
+                              onClick={() => {
+                                const newQty = item.quantity + 1;
+                                if (item.maxStock && newQty > item.maxStock) {
+                                  toast.error(`${t('pos.insufficientStock')} (max: ${item.maxStock})`);
+                                } else {
+                                  dispatch(updateCartItemQuantity({ id: item.id, quantity: newQty }));
+                                }
+                              }}
+                              className="w-8 h-8 bg-white rounded-lg flex items-center justify-center hover:bg-gray-100 active:scale-95 border border-gray-200"
+                            >
+                              <Plus className="w-4 h-4" />
+                            </button>
+                          </div>
+
+                          {/* Price */}
+                          <div className="text-right">
+                            <p className="font-bold text-gray-900">
+                              {(item.totalPrice ?? 0).toLocaleString()} {t('common.sum')}
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              {(item.unitPrice ?? 0).toLocaleString()} × {item.quantity}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+
+                {/* Desktop Table Layout */}
+                <table className="w-full hidden lg:table">
                   <thead className="bg-gray-50 sticky top-0">
                     <tr className="text-xs text-gray-500 uppercase">
                       <th className="px-4 py-3 text-left font-semibold">{t('products.barcode')}</th>
@@ -1001,40 +1090,76 @@ const POS: React.FC = () => {
               </div>
 
               {/* Bottom Actions */}
-              <div className="px-4 py-3 bg-gray-50 border-t border-gray-200 flex items-center gap-2">
-                <button
-                  onClick={() => setShowSearch(true)}
-                  className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-full text-gray-700 hover:bg-gray-50"
-                >
-                  <Search className="w-4 h-4" />
-                  {t('common.search')}
-                </button>
-                <button
-                  onClick={() => dispatch(clearCart())}
-                  className="flex items-center gap-2 px-4 py-2 bg-white border border-orange-200 rounded-full text-orange-500 hover:bg-orange-50"
-                >
-                  <RotateCcw className="w-4 h-4" />
-                  {t('pos.clearCart')}
-                </button>
-                <button
-                  onClick={handleSaveReceipt}
-                  className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-full text-gray-700 hover:bg-gray-50"
-                >
-                  <Save className="w-4 h-4" />
-                  {t('common.save')}
-                </button>
-                <button
-                  onClick={handlePayment}
-                  className="flex items-center gap-2 px-6 py-2 bg-emerald-500 rounded-full text-white font-medium hover:bg-emerald-600"
-                >
-                  <CreditCard className="w-4 h-4" />
-                  {t('pos.payment')}
-                </button>
+              <div className="px-3 py-3 bg-gray-50 border-t border-gray-200">
+                {/* Mobile Layout - 2x2 Grid */}
+                <div className="grid grid-cols-2 gap-2 lg:hidden">
+                  <button
+                    onClick={() => setShowSearch(true)}
+                    className="flex items-center justify-center gap-2 px-3 py-2.5 bg-white border border-gray-200 rounded-xl text-gray-700 hover:bg-gray-50 text-sm font-medium"
+                  >
+                    <Search className="w-4 h-4" />
+                    {t('common.search')}
+                  </button>
+                  <button
+                    onClick={() => dispatch(clearCart())}
+                    className="flex items-center justify-center gap-2 px-3 py-2.5 bg-white border border-orange-200 rounded-xl text-orange-500 hover:bg-orange-50 text-sm font-medium"
+                  >
+                    <RotateCcw className="w-4 h-4" />
+                    {t('pos.clearCart')}
+                  </button>
+                  <button
+                    onClick={handleSaveReceipt}
+                    className="flex items-center justify-center gap-2 px-3 py-2.5 bg-white border border-gray-200 rounded-xl text-gray-700 hover:bg-gray-50 text-sm font-medium"
+                  >
+                    <Save className="w-4 h-4" />
+                    {t('common.save')}
+                  </button>
+                  <button
+                    onClick={handlePayment}
+                    disabled={cart.length === 0}
+                    className="flex items-center justify-center gap-2 px-3 py-2.5 bg-emerald-500 rounded-xl text-white font-semibold hover:bg-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                  >
+                    <CreditCard className="w-4 h-4" />
+                    {t('pos.payment')}
+                  </button>
+                </div>
+
+                {/* Desktop Layout - Horizontal */}
+                <div className="hidden lg:flex items-center gap-2">
+                  <button
+                    onClick={() => setShowSearch(true)}
+                    className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-full text-gray-700 hover:bg-gray-50"
+                  >
+                    <Search className="w-4 h-4" />
+                    {t('common.search')}
+                  </button>
+                  <button
+                    onClick={() => dispatch(clearCart())}
+                    className="flex items-center gap-2 px-4 py-2 bg-white border border-orange-200 rounded-full text-orange-500 hover:bg-orange-50"
+                  >
+                    <RotateCcw className="w-4 h-4" />
+                    {t('pos.clearCart')}
+                  </button>
+                  <button
+                    onClick={handleSaveReceipt}
+                    className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-full text-gray-700 hover:bg-gray-50"
+                  >
+                    <Save className="w-4 h-4" />
+                    {t('common.save')}
+                  </button>
+                  <button
+                    onClick={handlePayment}
+                    className="flex items-center gap-2 px-6 py-2 bg-emerald-500 rounded-full text-white font-medium hover:bg-emerald-600"
+                  >
+                    <CreditCard className="w-4 h-4" />
+                    {t('pos.payment')}
+                  </button>
+                </div>
               </div>
             </div>
 
-            {/* Right - Numpad Panel */}
-            <div className="w-64 bg-white border-l border-gray-200 flex flex-col">
+            {/* Right - Numpad Panel (Desktop only) */}
+            <div className="hidden lg:flex w-64 bg-white border-l border-gray-200 flex-col">
               {/* Total */}
               <div className="p-4 text-right border-b border-gray-100">
                 <p className="text-3xl font-bold text-gray-800">
@@ -3225,7 +3350,7 @@ const ProductsTab: React.FC<ProductsTabProps> = ({ t }) => {
                     toast.error('Barkod topilmadi');
                     return;
                   }
-                  
+
                   const svgElement = barcodeEl.querySelector('svg');
                   if (!svgElement) {
                     toast.error('SVG topilmadi');
@@ -3242,7 +3367,7 @@ const ProductsTab: React.FC<ProductsTabProps> = ({ t }) => {
                   const svgClone = svgElement.cloneNode(true) as SVGElement;
                   const productName = selectedProductForBarcode.name || '';
                   const productPrice = Number(selectedProductForBarcode.selling_price || 0).toLocaleString('uz-UZ');
-                  
+
                   // 58mm x 29mm yorliq
                   printWindow.document.write(`
                     <!DOCTYPE html>
@@ -3314,9 +3439,9 @@ const ProductsTab: React.FC<ProductsTabProps> = ({ t }) => {
                     </body>
                     </html>
                   `);
-                  
+
                   printWindow.document.close();
-                  
+
                   setTimeout(() => {
                     printWindow.print();
                     setTimeout(() => printWindow.close(), 1000);

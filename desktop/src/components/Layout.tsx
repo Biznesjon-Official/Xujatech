@@ -5,6 +5,7 @@ import { RootState } from '../store/store';
 import { logout } from '../store/slices/authSlice';
 import { useLanguage } from '../i18n';
 import { convertToLanguage } from '../utils/transliterate';
+import PendingReceiptsMonitor from './Receipts/PendingReceiptsMonitor';
 import {
   LayoutDashboard,
   ShoppingCart,
@@ -69,6 +70,7 @@ const Layout: React.FC = () => {
     { path: '/admin/deliveries', icon: Truck, labelKey: 'deliveries.title', roles: ['admin', 'manager'] },
     { path: '/admin/returns', icon: RotateCcw, labelKey: 'returns.title', roles: ['admin', 'manager'] },
     { path: '/admin/debts', icon: CreditCard, labelKey: 'debts.title', roles: ['admin', 'manager'] },
+    { path: '/admin/receipts', icon: FileText, labelKey: 'Cheklar', roles: ['admin', 'manager'] },
     { path: '/admin/history', icon: History, labelKey: 'history.title', roles: ['admin', 'manager'] },
     { path: '/admin/customers', icon: Users, labelKey: 'nav.customers', roles: ['admin', 'manager', 'cashier'] },
     { path: '/admin/settings', icon: Settings, labelKey: 'nav.settings', roles: ['admin'] },
@@ -314,6 +316,9 @@ const Layout: React.FC = () => {
           <Outlet />
         </div>
       </div>
+
+      {/* Pending Receipts Monitor */}
+      <PendingReceiptsMonitor />
     </div>
   );
 };

@@ -96,15 +96,19 @@ async function cacheFirst(request) {
 async function networkFirst(request) {
   try {
     const response = await fetch(request);
-    if (response.ok) {
+    // Faqat GET so'rovlarini keshlash (POST, PUT, DELETE keshlanmaydi)
+    if (response.ok && request.method === 'GET') {
       const cache = await caches.open(CACHE_NAME);
       cache.put(request, response.clone());
     }
     return response;
   } catch (error) {
-    const cached = await caches.match(request);
-    if (cached) {
-      return cached;
+    // Faqat GET so'rovlari uchun keshdan qaytarish
+    if (request.method === 'GET') {
+      const cached = await caches.match(request);
+      if (cached) {
+        return cached;
+      }
     }
     return new Response(JSON.stringify({ error: 'Offline' }), {
       status: 503,

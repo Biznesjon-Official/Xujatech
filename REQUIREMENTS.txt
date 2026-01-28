@@ -1,0 +1,26 @@
+LOYIHANI ISHLATISH UCHUN KERAKLI DASTURLAR:
+
+1. Node.js 18+ versiyasi
+   - Yuklab olish: https://nodejs.org
+   - Tekshirish: node --version
+
+2. MongoDB 6.0+
+   - Yuklab olish: https://www.mongodb.com/try/download/community
+   - Yoki MongoDB Atlas (bulut): https://atlas.mongodb.com
+
+3. Git (ixtiyoriy)
+   - Yuklab olish: https://git-scm.com
+
+QADAMLAR:
+1. ZIP faylni ochib, papkaga kiring
+2. QUICK-START.md faylini o'qing
+3. npm install buyrug'ini ishga tushiring
+4. npm run dev buyrug'i bilan loyihani ishga tushiring
+
+LOGIN:
+- Username: admin
+- Password: admin123
+
+PORTLAR:
+- Frontend: http://localhost:3001
+- Backend API: http://localhost:3000

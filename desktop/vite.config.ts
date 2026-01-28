@@ -14,6 +14,7 @@ export default defineConfig({
     host: true,
     hmr: {
       port: 3001,
+      host: 'localhost',
     },
     proxy: {
       '/api': {
@@ -40,6 +41,6 @@ export default defineConfig({
   // PWA uchun public papkadagi fayllarni to'g'ri serve qilish
   publicDir: 'public',
   define: {
-    'import.meta.env.VITE_API_URL': JSON.stringify(process.env.VITE_API_URL || 'http://localhost:3000'),
+    'import.meta.env.VITE_API_URL': JSON.stringify(process.env.VITE_API_URL || 'http://localhost:3005'),
   },
 });

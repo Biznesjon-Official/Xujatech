@@ -2,9 +2,23 @@
 
 A comprehensive sales and warehouse management system for home appliance stores.
 
-## 🚀 Quick Start
+# XUJATECh - POS + Inventory + CRM System
 
-### Prerequisites
+A comprehensive sales and warehouse management system for home appliance stores.
+
+## 🚀 Tezkor Boshlash / Quick Start
+
+**Yangi foydalanuvchilar uchun / For New Users:**
+1. 📖 [QUICK-START.md](QUICK-START.md) - 5 daqiqada ishga tushiring / Start in 5 minutes
+2. 📋 [SETUP-GUIDE.md](SETUP-GUIDE.md) - To'liq o'rnatish qo'llanmasi / Complete setup guide
+
+**Tayyor loyiha / Ready Project:** 
+```bash
+npm install    # Dependencies o'rnatish
+npm run dev    # Ishga tushirish
+```
+
+## 🔧 Prerequisites
 - Node.js 18+ and npm
 - PostgreSQL 12+
 - Windows 10+ (for desktop app)

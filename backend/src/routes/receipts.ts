@@ -9,6 +9,35 @@ import { authenticateToken, AuthRequest } from '../middleware/auth';
 
 const router = Router();
 
+// Kutayotgan cheklar (noutbuk uchun)
+router.get('/pending', authenticateToken, async (req: AuthRequest, res: Response) => {
+  try {
+    const { branchId, limit = 50 } = req.query;
+    
+    const filter: any = {
+      status: 'saved', // Faqat saqlangan (hali to'lanmagan) cheklar
+      source: 'mobile', // Faqat telefondan kelgan
+    };
+    
+    if (branchId) {
+      filter.branchId = branchId;
+    }
+
+    const receipts = await SavedReceipt.find(filter)
+      .sort({ createdAt: -1 }) // Eng yangilari birinchi
+      .limit(Number(limit));
+
+    res.json({ 
+      success: true, 
+      data: receipts,
+      count: receipts.length 
+    });
+  } catch (error) {
+    console.error('Kutayotgan cheklar xatosi:', error);
+    res.status(500).json({ success: false, message: 'Server xatosi' });
+  }
+});
+
 // Barcha saqlangan cheklar ro'yxatini olish
 router.get('/saved', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
@@ -107,15 +136,28 @@ router.post('/saved', authenticateToken, async (req: AuthRequest, res: Response)
 // Chek statusini yangilash
 router.patch('/saved/:id/status', authenticateToken, async (req: Request, res: Response) => {
   try {
-    const { status } = req.body;
+    const { status, printedAt } = req.body;
     
-    if (!['saved', 'completed', 'cancelled'].includes(status)) {
-      return res.status(400).json({ success: false, message: 'Noto\'g\'ri status' });
+    const updateData: any = {};
+    
+    if (status) {
+      if (!['saved', 'processing', 'completed', 'cancelled'].includes(status)) {
+        return res.status(400).json({ success: false, message: 'Noto\'g\'ri status' });
+      }
+      updateData.status = status;
+      
+      if (status === 'completed') {
+        updateData.processedAt = new Date();
+      }
+    }
+    
+    if (printedAt) {
+      updateData.printedAt = new Date(printedAt);
     }
 
     const receipt = await SavedReceipt.findByIdAndUpdate(
       req.params.id,
-      { status },
+      updateData,
       { new: true }
     );
 
@@ -126,6 +168,37 @@ router.patch('/saved/:id/status', authenticateToken, async (req: Request, res: R
     res.json({ success: true, data: receipt });
   } catch (error) {
     console.error('Chek statusini yangilash xatosi:', error);
+    res.status(500).json({ success: false, message: 'Server xatosi' });
+  }
+});
+
+// Chekni "claim" qilish (noutbuk oladi)
+router.post('/saved/:id/claim', authenticateToken, async (req: AuthRequest, res: Response) => {
+  try {
+    const { noutbukId } = req.body;
+    
+    const receipt = await SavedReceipt.findById(req.params.id);
+
+    if (!receipt) {
+      return res.status(404).json({ success: false, message: 'Chek topilmadi' });
+    }
+
+    // Agar allaqachon boshqa noutbuk olgan bo'lsa
+    if (receipt.assignedTo && receipt.assignedTo !== noutbukId) {
+      return res.status(409).json({ 
+        success: false, 
+        message: 'Chek boshqa noutbuk tomonidan olingan' 
+      });
+    }
+
+    // Chekni noutbukka biriktirish
+    receipt.assignedTo = noutbukId;
+    receipt.status = 'processing';
+    await receipt.save();
+
+    res.json({ success: true, data: receipt });
+  } catch (error) {
+    console.error('Chekni claim qilish xatosi:', error);
     res.status(500).json({ success: false, message: 'Server xatosi' });
   }
 });

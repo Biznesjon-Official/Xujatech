@@ -1,0 +1,34 @@
+/* Force minimum width for better desktop experience */
+body {
+  min-width: 100vw;
+  overflow-x: hidden;
+}
+
+/* Ensure proper scaling */
+html {
+  font-size: 16px;
+}
+
+@media (max-width: 768px) {
+  html {
+    font-size: 15px;
+  }
+  
+  /* Mobile safe area support */
+  body {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  
+  /* Prevent horizontal scroll on mobile */
+  body, html {
+    overflow-x: hidden;
+    max-width: 100vw;
+  }
+}
+
+/* Mobile touch improvements */
+@media (hover: none) and (pointer: coarse) {
+  button, a {
+    -webkit-tap-highlight-color: transparent;
+  }
+}

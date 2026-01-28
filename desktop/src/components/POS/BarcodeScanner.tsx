@@ -47,10 +47,19 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [scanning, setScanning] = useState(false);
   const scannedRef = useRef(false);
+  const onScanRef = useRef(onScan);
+  const onCloseRef = useRef(onClose);
+
+  // Ref larni yangilash
+  useEffect(() => {
+    onScanRef.current = onScan;
+    onCloseRef.current = onClose;
+  }, [onScan, onClose]);
 
   useEffect(() => {
     if (!isOpen || !videoRef.current) return;
 
+    console.log('🎥 Scanner ochilmoqda...');
     let active = true;
     scannedRef.current = false;
     setScanning(true);
@@ -58,29 +67,36 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({
 
     const start = async () => {
       try {
+        console.log('📹 Kamera ishga tushirilmoqda...');
         await startCameraScanner(videoRef.current!, (code) => {
-          if (!active || scannedRef.current) return;
+          if (!active || scannedRef.current) {
+            console.log('⚠️ Kod o\'qildi lekin ignore qilindi (active:', active, 'scanned:', scannedRef.current, ')');
+            return;
+          }
           scannedRef.current = true;
+          
+          console.log('✅ Kod muvaffaqiyatli o\'qildi:', code);
           
           // Моментальная реакция
           playBeep();
-          toast.success(`Код считан: ${code.substring(0, 20)}...`, { duration: 1500 });
+          toast.success(`Kod o'qildi: ${code.substring(0, 20)}...`, { duration: 1500 });
           
           // Останавливаем и передаём
           stopCameraScanner();
           setScanning(false);
-          onScan(code);
-          onClose();
+          onScanRef.current(code);
+          onCloseRef.current();
         });
+        console.log('✅ Kamera muvaffaqiyatli ishga tushdi');
       } catch (err: any) {
-        console.error('Camera error:', err);
+        console.error('❌ Kamera xatosi:', err);
         setScanning(false);
         if (err.name === 'NotAllowedError') {
-          setError('Доступ к камере запрещён');
+          setError('Kameraga ruxsat berilmadi');
         } else if (err.name === 'NotFoundError') {
-          setError('Камера не найдена');
+          setError('Kamera topilmadi');
         } else {
-          setError('Не удалось запустить камеру');
+          setError('Kamerani ishga tushirib bo\'lmadi');
         }
       }
     };
@@ -88,11 +104,12 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({
     start();
 
     return () => {
+      console.log('🛑 Scanner yopilmoqda (cleanup)');
       active = false;
       stopCameraScanner();
       setScanning(false);
     };
-  }, [isOpen, onScan, onClose]);
+  }, [isOpen]); // onScan va onClose ni dependency dan olib tashladik
 
   const handleClose = () => {
     stopCameraScanner();

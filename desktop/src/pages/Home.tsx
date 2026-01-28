@@ -136,7 +136,7 @@ const Home: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen min-h-[100dvh] bg-gradient-to-br from-emerald-600 via-emerald-500 to-teal-500 relative overflow-x-hidden overflow-y-auto">
+    <div className="min-h-screen min-h-[100dvh] bg-gradient-to-br from-emerald-600 via-emerald-500 to-teal-500 relative overflow-x-hidden overflow-y-auto" style={{ minWidth: '100vw' }}>
       {/* Background decoration */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-32 -right-32 w-64 h-64 bg-white/10 rounded-full blur-3xl" />
