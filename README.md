@@ -15,24 +15,16 @@ cd Xujatech
 2. **Setup environment files:**
 ```bash
 # Backend
-cp backend/.env.example backend/.env
+copy backend\.env.example backend\.env
 # Edit backend/.env with your development settings
 
 # Frontend  
-cp desktop/.env.example desktop/.env
+copy desktop\.env.example desktop\.env
 # Edit desktop/.env with your development settings
 ```
 
-3. **Start development servers:**
-
-**Windows:**
+3. **Install dependencies and start:**
 ```bash
-dev-start.bat
-```
-
-**Linux/Mac:**
-```bash
-# Install dependencies
 npm install
 cd backend && npm install
 cd ../desktop && npm install
@@ -47,21 +39,6 @@ cd desktop && npm run dev
 4. **Access the application:**
 - Frontend: http://localhost:3000
 - Backend API: http://localhost:3005
-
-### Production Deployment
-
-1. **Setup environment files on server:**
-```bash
-cp backend/.env.example backend/.env
-cp desktop/.env.example desktop/.env
-# Edit with production settings
-```
-
-2. **Run deployment script:**
-```bash
-chmod +x deploy-production.sh
-./deploy-production.sh
-```
 
 ## 📁 Project Structure
 
