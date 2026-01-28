@@ -358,14 +358,14 @@ const POS: React.FC = () => {
     }
   };
 
-  // Qidiruv modali ochilganda mahsulotlarni yuklash
+  // Barcha mahsulotlarni yuklash
   const loadAllProducts = async () => {
     setLoading(true);
     try {
-      const products = await apiService.getProducts('');
+      const products = await apiService.getProducts();
       setSearchResults(products);
-    } catch {
-      console.error('Products load error');
+    } catch (error) {
+      console.error('Load products error:', error);
     } finally {
       setLoading(false);
     }
@@ -378,13 +378,32 @@ const POS: React.FC = () => {
     }
   }, [showSearch]);
 
+  // Debounced search
+  useEffect(() => {
+    if (!showSearch) return;
+    
+    const timer = setTimeout(() => {
+      if (searchQuery.trim()) {
+        handleSearch();
+      }
+    }, 300); // 300ms kutish
+
+    return () => clearTimeout(timer);
+  }, [searchQuery, showSearch]);
+
   const handleSearch = async () => {
+    if (!searchQuery.trim()) {
+      loadAllProducts();
+      return;
+    }
+    
     setLoading(true);
     try {
-      const products = await apiService.getProducts(searchQuery);
+      const products = await apiService.getProducts(searchQuery.trim());
       setSearchResults(products);
-    } catch {
-      console.error('Search error');
+    } catch (error) {
+      console.error('Search error:', error);
+      toast.error(t('errors.somethingWentWrong'));
     } finally {
       setLoading(false);
     }
@@ -669,15 +688,7 @@ const POS: React.FC = () => {
                   <input
                     type="text"
                     value={searchQuery}
-                    onChange={(e) => {
-                      setSearchQuery(e.target.value);
-                      // Har bir o'zgarishda qidirish
-                      if (e.target.value.trim()) {
-                        handleSearch();
-                      } else {
-                        loadAllProducts();
-                      }
-                    }}
+                    onChange={(e) => setSearchQuery(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                     placeholder={t('pos.searchProduct')}
                     className="input flex-1"

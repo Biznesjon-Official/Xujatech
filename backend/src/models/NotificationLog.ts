@@ -1,7 +1,7 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
 export interface INotificationLog extends Document {
-  type: 'debt' | 'low_stock';
+  type: 'debt' | 'low_stock' | 'admin_debt' | 'admin_overdue';
   referenceId: mongoose.Types.ObjectId;
   message: string;
   sentAt: Date;
@@ -9,7 +9,7 @@ export interface INotificationLog extends Document {
 }
 
 const NotificationLogSchema = new Schema<INotificationLog>({
-  type: { type: String, enum: ['debt', 'low_stock'], required: true },
+  type: { type: String, enum: ['debt', 'low_stock', 'admin_debt', 'admin_overdue'], required: true },
   referenceId: { type: Schema.Types.ObjectId, required: true },
   message: { type: String, required: true },
   sentAt: { type: Date, default: Date.now },

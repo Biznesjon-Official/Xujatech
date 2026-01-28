@@ -68,31 +68,46 @@ class ApiService {
   async getProducts(search?: string): Promise<Product[]> {
     if (this.isOnline) {
       try {
-        const url = search ? `${API_URL}/products?search=${search}` : `${API_URL}/products`;
+        const url = search ? `${API_URL}/products?search=${encodeURIComponent(search)}` : `${API_URL}/products`;
+        console.log('🔍 Fetching products from:', url);
+        
         const response = await fetch(url, { headers: this.getHeaders() });
+        console.log('📡 Response status:', response.status);
+        
+        if (!response.ok) {
+          console.error('❌ HTTP error! status:', response.status);
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
         const data = await response.json();
+        console.log('📦 Response data:', data);
 
-        if (data.success) {
+        if (data.success && Array.isArray(data.data)) {
+          console.log('✅ Products count:', data.data.length);
           // Backend'dan kelgan ma'lumotlarni frontend formatiga o'zgartirish
           const products = data.data.map((p: any) => ({
-            id: p._id,
+            id: p._id || p.id,
             barcode: p.barcode || '',
-            name: p.name,
-            selling_price: p.sellingPrice,
-            current_stock: p.currentStock,
-            purchase_price: p.purchasePrice,
-            unit: p.unit,
+            name: p.name || '',
+            selling_price: p.sellingPrice || p.selling_price || 0,
+            current_stock: p.currentStock ?? p.current_stock ?? 0,
+            purchase_price: p.purchasePrice || p.purchase_price || 0,
+            unit: p.unit || 'dona',
           }));
           // Offline uchun saqlash
           await offlineStorage.saveProducts(products);
           return products;
+        } else {
+          console.warn('⚠️ Invalid data format from API:', data);
+          throw new Error('Invalid data format');
         }
       } catch (error) {
-        console.error('API error, falling back to offline:', error);
+        console.error('❌ API error, falling back to offline:', error);
       }
     }
 
     // Offline rejim
+    console.log('💾 Loading from offline storage, search:', search);
     if (search) {
       return offlineStorage.searchProducts(search);
     }
@@ -327,8 +342,10 @@ class ApiService {
       // Token noto'g'ri yoki muddati o'tgan bo'lishi mumkin
       if (error instanceof TypeError && error.message.includes('fetch')) {
         console.log('Network error during refresh, will retry later');
+      } else if (error instanceof Error) {
+        console.error('Refresh error:', error.message, error);
       } else {
-        console.error('Refresh error:', error || 'Unknown error');
+        console.error('Refresh error: Unknown error', error);
       }
     }
   }

@@ -152,7 +152,7 @@ const MobilePOS: React.FC<MobilePOSProps> = ({ cashierId, cashierName }) => {
       
       if (isOnline) {
         // Internet bor - MongoDB dan olish
-        allProducts = await apiService.getProducts('');
+        allProducts = await apiService.getProducts();
         // getProducts ichida allaqachon IndexedDB ga saqlanadi
       } else {
         // Offline - IndexedDB dan olish
@@ -182,7 +182,23 @@ const MobilePOS: React.FC<MobilePOSProps> = ({ cashierId, cashierName }) => {
       console.error('Qidirish xatosi:', error);
       // Fallback to IndexedDB
       const offlineProducts = await offlineStorage.getProducts();
-      setSearchResults(offlineProducts);
+      const mapped = offlineProducts.map(p => ({
+        id: p.id,
+        barcode: p.barcode,
+        name: p.name,
+        selling_price: p.selling_price,
+        current_stock: p.current_stock,
+      }));
+      
+      if (query && query.trim()) {
+        const q = query.trim().toLowerCase();
+        setSearchResults(mapped.filter(p => 
+          p.barcode?.toLowerCase().includes(q) ||
+          p.name?.toLowerCase().includes(q)
+        ));
+      } else {
+        setSearchResults(mapped);
+      }
     } finally {
       setLoading(false);
     }
@@ -191,7 +207,7 @@ const MobilePOS: React.FC<MobilePOSProps> = ({ cashierId, cashierName }) => {
   // Qidiruv ochilganda mahsulotlarni yuklash
   useEffect(() => {
     if (showSearch) {
-      handleSearch();
+      handleSearch('');
     }
   }, [showSearch]);
 
@@ -466,11 +482,11 @@ const MobilePOS: React.FC<MobilePOSProps> = ({ cashierId, cashierName }) => {
       {/* Qidiruv modali */}
       {showSearch && (
         <div 
-          className="fixed inset-0 bg-black/50 z-50 flex items-end"
+          className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
           onClick={() => setShowSearch(false)}
         >
           <div 
-            className="bg-white rounded-t-3xl w-full max-h-[80vh] overflow-hidden animate-slideUp"
+            className="bg-white rounded-3xl w-full max-w-lg max-h-[80vh] overflow-hidden animate-slideUp"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="p-4 border-b border-gray-100">
@@ -506,7 +522,7 @@ const MobilePOS: React.FC<MobilePOSProps> = ({ cashierId, cashierName }) => {
                 </div>
               ) : searchResults.length === 0 ? (
                 <div className="text-center py-8 text-gray-400">
-                  {searchQuery ? t('common.notFound') : t('products.noProducts')}
+                  {searchQuery ? t('pos.noProductsFound') : t('products.noProducts')}
                 </div>
               ) : (
                 <div className="space-y-2">

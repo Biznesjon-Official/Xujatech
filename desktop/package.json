@@ -7,7 +7,8 @@
         "dev": "vite",
         "build": "tsc && vite build",
         "preview": "vite preview",
-        "lint": "eslint . --ext ts,tsx"
+        "lint": "eslint . --ext ts,tsx",
+        "clear-cache": "echo Brauzerda http://localhost:3001/clear-cache.html sahifasini oching"
     },
     "dependencies": {
         "@reduxjs/toolkit": "^2.0.1",

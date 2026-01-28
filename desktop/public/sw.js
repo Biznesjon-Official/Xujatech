@@ -1,5 +1,5 @@
 // XUJATECH POS Service Worker
-const CACHE_NAME = 'xujatech-pos-v1';
+const CACHE_NAME = 'xujatech-pos-v2'; // Versiya yangilandi
 const OFFLINE_URL = '/offline.html';
 
 // Keshlanadigan statik resurslar
@@ -45,6 +45,17 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
+
+  // Development rejimida keshni bypass qilish
+  if (url.hostname === 'localhost' || url.hostname === '127.0.0.1') {
+    // Faqat offline.html va manifest.json ni keshlash
+    if (url.pathname === '/offline.html' || url.pathname === '/manifest.json') {
+      event.respondWith(cacheFirst(request));
+      return;
+    }
+    // Boshqa barcha so'rovlar - to'g'ridan-to'g'ri network
+    return;
+  }
 
   // API so'rovlari - Network First
   if (url.pathname.startsWith('/api/')) {

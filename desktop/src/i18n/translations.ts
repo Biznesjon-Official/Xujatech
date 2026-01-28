@@ -189,6 +189,14 @@ export const translations = {
   'pos.addToForm': "Formaga qo'shish",
   'pos.scanning': 'Skanerlanyapti',
   'pos.pointCameraToBarcode': "Kamerani shtrix-kodga yo'naltiring",
+  'pos.productNotFound': 'Mahsulot topilmadi',
+  'pos.noProductsFound': 'Mahsulotlar topilmadi',
+  'pos.sendReceipt': 'Chekni yuborish',
+  'pos.receiptSaved': 'Chek saqlandi',
+  'pos.mobilePOS': 'Mobil kassa',
+  'pos.savedReceipts': 'Saqlangan cheklar',
+  'pos.productAdded': "Mahsulot qo'shildi",
+  'pos.scanQRBarcode': 'QR/Shtrix-kod skanerlang',
 
   // ==================== МАҲСУЛОТЛАР ====================
   'products.title': 'Mahsulotlar',
