@@ -197,6 +197,9 @@ export const translations = {
   'pos.savedReceipts': 'Saqlangan cheklar',
   'pos.productAdded': "Mahsulot qo'shildi",
   'pos.scanQRBarcode': 'QR/Shtrix-kod skanerlang',
+  'pos.noSavedReceipts': 'Saqlangan cheklar yo\'q',
+  'pos.openFromDesktop': 'Noutbukdan ochish uchun chekni yuboring',
+  'pos.openReceipt': 'Chekni ochish',
 
   // ==================== МАҲСУЛОТЛАР ====================
   'products.title': 'Mahsulotlar',
@@ -303,7 +306,9 @@ export const translations = {
   'statistics.totalSales': 'Jami sotuvlar',
   'statistics.totalAmount': 'Umumiy summa',
   'statistics.totalDebt': 'Jami qarz',
-  'statistics.givenDebt': 'Berilgan qarz',
+  'statistics.givenDebt': 'Qarzga berilgan',
+  'statistics.givenDebts': 'Qarzga berilgan',
+  'statistics.paidDebts': "To'langan qarzlar",
   'statistics.searchCashier': 'Kassir qidirish...',
   'statistics.noCashiers': 'Kassirlar topilmadi',
   'statistics.soldProducts': 'Sotilgan mahsulotlar',

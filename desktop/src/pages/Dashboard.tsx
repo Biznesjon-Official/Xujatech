@@ -541,7 +541,7 @@ const Dashboard: React.FC = () => {
       {/* Clean Header */}
       <div className="bg-white border-b border-gray-100 sticky top-0 z-10">
         <div className="px-6 py-5">
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center justify-between">
             <div>
               <h1 className="text-2xl font-semibold text-gray-900">{t('statistics.title')}</h1>
               <p className="text-sm text-gray-500 mt-1">{t('statistics.subtitle')}</p>
@@ -570,11 +570,14 @@ const Dashboard: React.FC = () => {
               </button>
             </div>
           </div>
+        </div>
+      </div>
 
-          {/* KPI Cards Grid - SaaS Style */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            {/* Total Sales */}
-            <div className="bg-white border border-gray-200 rounded-2xl p-5 hover:shadow-md hover:border-gray-300 transition-all group">
+      {/* KPI Cards Grid - SaaS Style */}
+      <div className="px-6 pt-6">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          {/* Total Sales */}
+          <div className="bg-white border border-gray-200 rounded-2xl p-5 hover:shadow-md hover:border-gray-300 transition-all group">
               <div className="flex items-center justify-between mb-4">
                 <div className="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
                   <ShoppingCart className="w-6 h-6 text-emerald-600" />
@@ -584,12 +587,12 @@ const Dashboard: React.FC = () => {
                   <span className="text-xs font-medium">{getPeriodLabel()}</span>
                 </div>
               </div>
-              <p className="text-3xl font-bold text-gray-900 mb-1">{totals.totalSales}</p>
-              <p className="text-sm text-gray-500">{t('statistics.totalSales')}</p>
-            </div>
+            <p className="text-3xl font-bold text-gray-900 mb-1">{formatCurrency(totals.totalSales)}</p>
+            <p className="text-sm text-gray-500">{t('statistics.totalSales')}</p>
+          </div>
 
-            {/* Total Revenue */}
-            <div className="bg-white border border-gray-200 rounded-2xl p-5 hover:shadow-md hover:border-gray-300 transition-all group">
+          {/* Total Revenue */}
+          <div className="bg-white border border-gray-200 rounded-2xl p-5 hover:shadow-md hover:border-gray-300 transition-all group">
               <div className="flex items-center justify-between mb-4">
                 <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
                   <DollarSign className="w-6 h-6 text-blue-600" />
@@ -599,12 +602,12 @@ const Dashboard: React.FC = () => {
                   <span className="text-xs font-medium">{t('common.sum')}</span>
                 </div>
               </div>
-              <p className="text-3xl font-bold text-gray-900 mb-1">{formatCurrency(totals.totalAmount)}</p>
-              <p className="text-sm text-gray-500">{t('statistics.totalAmount')}</p>
-            </div>
+            <p className="text-3xl font-bold text-gray-900 mb-1">{formatCurrency(totals.totalAmount)}</p>
+            <p className="text-sm text-gray-500">{t('statistics.totalAmount')}</p>
+          </div>
 
-            {/* Total Debt Given */}
-            <div className="bg-white border border-gray-200 rounded-2xl p-5 hover:shadow-md hover:border-gray-300 transition-all group">
+          {/* Total Debt Given */}
+          <div className="bg-white border border-gray-200 rounded-2xl p-5 hover:shadow-md hover:border-gray-300 transition-all group">
               <div className="flex items-center justify-between mb-4">
                 <div className="w-12 h-12 bg-rose-50 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
                   <CreditCard className="w-6 h-6 text-rose-600" />
@@ -614,12 +617,12 @@ const Dashboard: React.FC = () => {
                   <span className="text-xs font-medium">{t('statistics.givenDebt')}</span>
                 </div>
               </div>
-              <p className="text-3xl font-bold text-gray-900 mb-1">{formatCurrency(totals.totalDebt)}</p>
-              <p className="text-sm text-gray-500">{t('statistics.givenDebts')}</p>
-            </div>
+            <p className="text-3xl font-bold text-gray-900 mb-1">{formatCurrency(totals.totalDebt)}</p>
+            <p className="text-sm text-gray-500">{t('statistics.givenDebts')}</p>
+          </div>
 
-            {/* Total Debt Paid */}
-            <div className="bg-white border border-gray-200 rounded-2xl p-5 hover:shadow-md hover:border-gray-300 transition-all group">
+          {/* Total Debt Paid */}
+          <div className="bg-white border border-gray-200 rounded-2xl p-5 hover:shadow-md hover:border-gray-300 transition-all group">
               <div className="flex items-center justify-between mb-4">
                 <div className="w-12 h-12 bg-green-50 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
                   <CheckCircle className="w-6 h-6 text-green-600" />
@@ -629,15 +632,14 @@ const Dashboard: React.FC = () => {
                   <span className="text-xs font-medium">{t('debts.paid')}</span>
                 </div>
               </div>
-              <p className="text-3xl font-bold text-gray-900 mb-1">{formatCurrency(totals.totalDebtPaid || 0)}</p>
-              <p className="text-sm text-gray-500">{t('statistics.paidDebts')}</p>
-            </div>
+            <p className="text-3xl font-bold text-gray-900 mb-1">{formatCurrency(totals.totalDebtPaid || 0)}</p>
+            <p className="text-sm text-gray-500">{t('statistics.paidDebts')}</p>
           </div>
         </div>
       </div>
 
       {/* Cashiers List */}
-      <div className="p-6">
+      <div className="px-6 pb-6">
         {/* Search */}
         <div className="mb-6">
           <div className="relative max-w-md">

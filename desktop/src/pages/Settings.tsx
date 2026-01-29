@@ -10,12 +10,11 @@ import {
   Download,
   Wifi,
   WifiOff,
-  Trash2,
-  HardDrive,
   Cloud
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useLanguage, LanguageSwitcher } from '../i18n';
+import { convertToLanguage } from '../utils/transliterate';
 import { usePWA, useOfflineStorage } from '../hooks/usePWA';
 
 // Sozlamalar interfeysi
@@ -44,13 +43,12 @@ const Settings: React.FC = () => {
   const [activeTab, setActiveTab] = useState<SettingsTab>('general');
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   
   // PWA hooks
-  const { isInstalled, isInstallable, isOnline, isUpdateAvailable, install, update, clearCache } = usePWA();
+  const { isInstalled, isInstallable, isOnline, isUpdateAvailable, install, update } = usePWA();
   const { syncOfflineData, isReady: offlineReady } = useOfflineStorage();
   const [syncing, setSyncing] = useState(false);
-  const [cacheSize, setCacheSize] = useState<string>('Hisoblanmoqda...');
 
   // General settings
   const [generalSettings, setGeneralSettings] = useState<GeneralSettings>({
@@ -180,19 +178,6 @@ const Settings: React.FC = () => {
     { id: 'pwa', label: 'PWA', icon: Smartphone }
   ];
 
-  // Kesh hajmini hisoblash
-  useEffect(() => {
-    const calculateCacheSize = async () => {
-      if ('storage' in navigator && 'estimate' in navigator.storage) {
-        const estimate = await navigator.storage.estimate();
-        const usedMB = ((estimate.usage || 0) / (1024 * 1024)).toFixed(2);
-        const quotaMB = ((estimate.quota || 0) / (1024 * 1024)).toFixed(0);
-        setCacheSize(`${usedMB} MB / ${quotaMB} MB`);
-      }
-    };
-    calculateCacheSize();
-  }, []);
-
   // Offline ma'lumotlarni sinxronlash
   const handleSync = async () => {
     setSyncing(true);
@@ -207,19 +192,6 @@ const Settings: React.FC = () => {
       toast.error('Sinxronlash xatosi');
     } finally {
       setSyncing(false);
-    }
-  };
-
-  // Keshni tozalash
-  const handleClearCache = async () => {
-    if (!window.confirm('Barcha keshlangan ma\'lumotlar o\'chiriladi. Davom etasizmi?')) return;
-    
-    try {
-      await clearCache();
-      toast.success('Kesh tozalandi');
-      setCacheSize('0 MB');
-    } catch (error) {
-      toast.error('Keshni tozalashda xatolik');
     }
   };
 
@@ -251,21 +223,21 @@ const Settings: React.FC = () => {
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className="px-4 sm:px-6 py-4">
-        <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+      {/* Tabs - Responsive */}
+      <div className="px-4 sm:px-6 py-4 overflow-x-auto">
+        <div className="flex gap-2 min-w-max sm:min-w-0">
           {tabs.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as SettingsTab)}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl transition-all whitespace-nowrap font-medium ${
+              className={`flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl transition-all whitespace-nowrap font-medium text-sm ${
                 activeTab === tab.id
                   ? 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-lg shadow-emerald-500/25'
                   : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'
               }`}
             >
-              <tab.icon className="w-4 h-4" />
-              {tab.label}
+              <tab.icon className="w-4 h-4 flex-shrink-0" />
+              <span className="hidden sm:inline">{tab.label}</span>
             </button>
           ))}
         </div>
@@ -284,11 +256,11 @@ const Settings: React.FC = () => {
               </h2>
             </div>
             
-            <div className="p-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="p-4 sm:p-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Valyuta
+                    {convertToLanguage('Valyuta', language)}
                   </label>
                   <select
                     value={generalSettings.currency}
@@ -302,7 +274,7 @@ const Settings: React.FC = () => {
 
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Soliq stavkasi (%)
+                    {convertToLanguage('Soliq stavkasi (%)', language)}
                   </label>
                   <input
                     type="number"
@@ -316,7 +288,7 @@ const Settings: React.FC = () => {
 
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Kam qolgan mahsulot chegarasi
+                    {convertToLanguage('Kam qolgan mahsulot chegarasi', language)}
                   </label>
                   <input
                     type="number"
@@ -329,7 +301,7 @@ const Settings: React.FC = () => {
 
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Avtomatik sinxronizatsiya (soniya)
+                    {convertToLanguage('Avtomatik sinxronizatsiya (soniya)', language)}
                   </label>
                   <input
                     type="number"
@@ -345,7 +317,7 @@ const Settings: React.FC = () => {
                 <button
                   onClick={saveGeneralSettings}
                   disabled={saving}
-                  className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-xl font-semibold hover:from-emerald-600 hover:to-teal-700 transition-all shadow-lg shadow-emerald-500/25 disabled:opacity-50"
+                  className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-xl font-semibold hover:from-emerald-600 hover:to-teal-700 transition-all shadow-lg shadow-emerald-500/25 disabled:opacity-50"
                 >
                   {saving ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div> : <Save className="w-4 h-4" />}
                   {t('common.save')}
@@ -369,10 +341,10 @@ const Settings: React.FC = () => {
                 </h2>
               </div>
 
-              <div className="p-6 space-y-5">
+              <div className="p-4 sm:p-6 space-y-4 sm:space-y-5">
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Do'kon nomi
+                    {convertToLanguage("Do'kon nomi", language)}
                   </label>
                   <input
                     type="text"
@@ -384,7 +356,7 @@ const Settings: React.FC = () => {
 
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Manzil
+                    {convertToLanguage('Manzil', language)}
                   </label>
                   <input
                     type="text"
@@ -396,7 +368,7 @@ const Settings: React.FC = () => {
 
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Telefon
+                    {convertToLanguage('Telefon', language)}
                   </label>
                   <input
                     type="text"
@@ -408,7 +380,7 @@ const Settings: React.FC = () => {
 
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Sarlavha matni
+                    {convertToLanguage('Sarlavha matni', language)}
                   </label>
                   <input
                     type="text"
@@ -420,7 +392,7 @@ const Settings: React.FC = () => {
 
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Pastki matn
+                    {convertToLanguage('Pastki matn', language)}
                   </label>
                   <input
                     type="text"
@@ -432,7 +404,7 @@ const Settings: React.FC = () => {
 
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Qog'oz kengligi
+                    {convertToLanguage("Qog'oz kengligi", language)}
                   </label>
                   <select
                     value={receiptSettings.paperWidth}
@@ -452,7 +424,7 @@ const Settings: React.FC = () => {
                       onChange={(e) => setReceiptSettings({ ...receiptSettings, showLogo: e.target.checked })}
                       className="w-5 h-5 text-blue-600 rounded-lg border-gray-300 focus:ring-blue-500"
                     />
-                    <span className="text-sm font-medium text-gray-700">Logoni ko'rsatish</span>
+                    <span className="text-sm font-medium text-gray-700">{convertToLanguage("Logoni ko'rsatish", language)}</span>
                   </label>
 
                   <label className="flex items-center gap-3 p-4 bg-gray-50 rounded-xl cursor-pointer hover:bg-gray-100 transition-colors">
@@ -462,16 +434,16 @@ const Settings: React.FC = () => {
                       onChange={(e) => setReceiptSettings({ ...receiptSettings, showBarcode: e.target.checked })}
                       className="w-5 h-5 text-blue-600 rounded-lg border-gray-300 focus:ring-blue-500"
                     />
-                    <span className="text-sm font-medium text-gray-700">Shtrix-kodni ko'rsatish</span>
+                    <span className="text-sm font-medium text-gray-700">{convertToLanguage("Shtrix-kodni ko'rsatish", language)}</span>
                   </label>
                 </div>
               </div>
 
-              <div className="p-6 border-t border-gray-100 flex justify-end">
+              <div className="p-4 sm:p-6 border-t border-gray-100 flex justify-end">
                 <button
                   onClick={saveReceiptSettings}
                   disabled={saving}
-                  className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-xl font-semibold hover:from-blue-600 hover:to-indigo-700 transition-all shadow-lg shadow-blue-500/25 disabled:opacity-50"
+                  className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-xl font-semibold hover:from-blue-600 hover:to-indigo-700 transition-all shadow-lg shadow-blue-500/25 disabled:opacity-50"
                 >
                   {saving ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div> : <Save className="w-4 h-4" />}
                   {t('common.save')}
@@ -479,8 +451,8 @@ const Settings: React.FC = () => {
             </div>
           </div>
 
-          {/* Receipt Preview */}
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+          {/* Receipt Preview - Hidden on mobile */}
+          <div className="hidden lg:block bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
             <h2 className="text-lg font-semibold mb-4">{t('settings.receipt')}</h2>
             <div 
               className="bg-gray-100 p-4 rounded-lg overflow-auto"
@@ -505,12 +477,12 @@ const Settings: React.FC = () => {
                 </div>
                 <div className="border-t border-dashed my-2"></div>
                 <div className="text-xs">
-                  <div>Chek: #SAMPLE001</div>
-                  <div>Sana: {new Date().toLocaleDateString()}</div>
+                  <div>{convertToLanguage('Chek', language)}: #SAMPLE001</div>
+                  <div>{convertToLanguage('Sana', language)}: {new Date().toLocaleDateString()}</div>
                 </div>
                 <div className="border-t border-dashed my-2"></div>
                 <div className="text-xs">
-                  <div>Namuna mahsulot</div>
+                  <div>{convertToLanguage('Namuna mahsulot', language)}</div>
                   <div className="flex justify-between">
                     <span>1 x 1,000,000</span>
                     <span>1,000,000</span>
@@ -582,8 +554,8 @@ const Settings: React.FC = () => {
               </h2>
             </div>
             
-            <div className="p-6">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="p-4 sm:p-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                 {/* O'rnatilganlik */}
                 <div className={`p-4 rounded-xl border-2 ${isInstalled ? 'bg-emerald-50 border-emerald-200' : 'bg-gray-50 border-gray-200'}`}>
                   <div className="flex items-center gap-3">
@@ -614,19 +586,6 @@ const Settings: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Kesh hajmi */}
-                <div className="p-4 rounded-xl border-2 bg-blue-50 border-blue-200">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-lg bg-blue-500">
-                      <HardDrive className="w-5 h-5 text-white" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-gray-600">Kesh hajmi</p>
-                      <p className="text-lg font-bold text-blue-600">{cacheSize}</p>
-                    </div>
-                  </div>
-                </div>
-
                 {/* Offline storage */}
                 <div className={`p-4 rounded-xl border-2 ${offlineReady ? 'bg-purple-50 border-purple-200' : 'bg-gray-50 border-gray-200'}`}>
                   <div className="flex items-center gap-3">
@@ -651,7 +610,7 @@ const Settings: React.FC = () => {
               <h2 className="text-lg font-semibold">Amallar</h2>
             </div>
             
-            <div className="p-6 space-y-4">
+            <div className="p-4 sm:p-6 space-y-3 sm:space-y-4">
               {/* O'rnatish */}
               {!isInstalled && isInstallable && (
                 <div className="flex items-center justify-between p-4 bg-cyan-50 rounded-xl border border-cyan-200">
@@ -706,23 +665,6 @@ const Settings: React.FC = () => {
                 >
                   {syncing && <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
                   Sinxronlash
-                </button>
-              </div>
-
-              {/* Keshni tozalash */}
-              <div className="flex items-center justify-between p-4 bg-red-50 rounded-xl border border-red-200">
-                <div className="flex items-center gap-3">
-                  <Trash2 className="w-6 h-6 text-red-600" />
-                  <div>
-                    <p className="font-semibold text-gray-900">Keshni tozalash</p>
-                    <p className="text-sm text-gray-600">Barcha keshlangan ma'lumotlarni o'chirish</p>
-                  </div>
-                </div>
-                <button
-                  onClick={handleClearCache}
-                  className="px-4 py-2 bg-red-500 text-white rounded-xl font-semibold hover:bg-red-600 transition-colors"
-                >
-                  Tozalash
                 </button>
               </div>
             </div>

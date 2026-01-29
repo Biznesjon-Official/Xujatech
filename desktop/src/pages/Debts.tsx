@@ -272,7 +272,7 @@ const Debts: React.FC = () => {
             }}
             onBlur={updateDate}
             className="w-full px-3 py-3 bg-gray-50 border-0 rounded-xl focus:ring-2 focus:ring-cyan-500 text-center"
-            placeholder="Kun"
+            placeholder={convertToLanguage("Kun", language)}
             maxLength={2}
           />
         </div>
@@ -288,7 +288,7 @@ const Debts: React.FC = () => {
             }}
             onBlur={updateDate}
             className="w-full px-3 py-3 bg-gray-50 border-0 rounded-xl focus:ring-2 focus:ring-cyan-500 text-center"
-            placeholder="Oy"
+            placeholder={convertToLanguage("Oy", language)}
             maxLength={2}
           />
         </div>
@@ -302,7 +302,7 @@ const Debts: React.FC = () => {
             }}
             onBlur={updateDate}
             className="w-full px-3 py-3 bg-gray-50 border-0 rounded-xl focus:ring-2 focus:ring-cyan-500 text-center"
-            placeholder="Yil"
+            placeholder={convertToLanguage("Yil", language)}
             maxLength={4}
           />
         </div>
@@ -1170,9 +1170,11 @@ const Debts: React.FC = () => {
         </div>
       </div>
 
-      {/* Stats Cards */}
-      <div className="px-4 sm:px-6 py-4">
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 sm:gap-3">
+      {/* Content with Stats */}
+      <div className="flex-1 overflow-auto">
+        {/* Stats Cards */}
+        <div className="px-4 sm:px-6 py-4">
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 sm:gap-3">
           <div className="bg-white rounded-xl p-3 border border-gray-200/60">
             <div className="flex items-center gap-2">
               <div className="p-1.5 bg-blue-100 rounded-lg">
@@ -1231,9 +1233,9 @@ const Debts: React.FC = () => {
         </div>
       </div>
 
-      {/* Content */}
-      <div className="flex-1 px-4 sm:px-6 pb-6 overflow-auto">
-        <div className="bg-white rounded-2xl border border-gray-200/60 overflow-hidden shadow-sm">
+        {/* Debts List */}
+        <div className="px-4 sm:px-6 pb-6">
+          <div className="bg-white rounded-2xl border border-gray-200/60 overflow-hidden shadow-sm">
           {/* MENGA QARZDOR TAB */}
           {activeTab === 'receivable' && (
             <>
@@ -1257,12 +1259,13 @@ const Debts: React.FC = () => {
                     return (
                       <div
                         key={customer._id}
-                        className={`p-4 hover:bg-gray-50 cursor-pointer transition-all ${isOverdue
-                          ? 'bg-gradient-to-r from-red-50 to-red-100/50 border-l-4 border-l-red-500'
-                          : status === 'today'
+                        className={`p-3 sm:p-4 hover:bg-gray-50 cursor-pointer transition-all ${
+                          isOverdue
+                            ? 'bg-gradient-to-r from-red-50 to-red-100/50 border-l-4 border-l-red-500'
+                            : status === 'today'
                             ? 'bg-gradient-to-r from-amber-50 to-amber-100/50 border-l-4 border-l-amber-500'
                             : ''
-                          }`}
+                        }`}
                         onClick={(e) => {
                           if ((e.target as HTMLElement).closest('button')) return;
                           setSelectedCustomer(customer);
@@ -1270,12 +1273,130 @@ const Debts: React.FC = () => {
                           setShowCustomerDetailModal(true);
                         }}
                       >
-                        <div className="flex items-center gap-3">
-                          <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${isOverdue ? 'bg-gradient-to-br from-red-500 to-red-600 shadow-lg shadow-red-500/30' :
-                            status === 'today' ? 'bg-gradient-to-br from-amber-400 to-orange-500 shadow-lg shadow-amber-500/30' :
-                              'bg-gradient-to-br from-cyan-400 to-teal-500'
-                            }`}>
-                            {isOverdue ? <AlertCircle className="w-5 h-5 text-white" /> : <User className="w-5 h-5 text-white" />}
+                        {/* Mobile Layout */}
+                        <div className="flex sm:hidden flex-col gap-3">
+                          {/* Top Row: Avatar + Name + Amount */}
+                          <div className="flex items-start gap-3">
+                            <div
+                              className={`w-10 h-10 flex-shrink-0 rounded-xl flex items-center justify-center ${
+                                isOverdue
+                                  ? 'bg-gradient-to-br from-red-500 to-red-600 shadow-lg shadow-red-500/30'
+                                  : status === 'today'
+                                  ? 'bg-gradient-to-br from-amber-400 to-orange-500 shadow-lg shadow-amber-500/30'
+                                  : 'bg-gradient-to-br from-cyan-400 to-teal-500'
+                              }`}
+                            >
+                              {isOverdue ? (
+                                <AlertCircle className="w-5 h-5 text-white" />
+                              ) : (
+                                <User className="w-5 h-5 text-white" />
+                              )}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className={`font-semibold text-sm ${isOverdue ? 'text-red-700' : 'text-gray-900'}`}>
+                                {convertToLanguage(customer.fullName, language)}
+                              </p>
+                              {customer.phone && (
+                                <p className="text-xs text-gray-500 flex items-center gap-1 mt-0.5">
+                                  <Phone className="w-3 h-3" />
+                                  {customer.phone}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Debt Amount Card */}
+                          <div
+                            className={`p-3 rounded-xl border ${
+                              isOverdue
+                                ? 'bg-red-50 border-red-200'
+                                : status === 'today'
+                                ? 'bg-amber-50 border-amber-200'
+                                : 'bg-blue-50 border-blue-200'
+                            }`}
+                          >
+                            <p
+                              className={`text-xs font-medium mb-1 ${
+                                isOverdue
+                                  ? 'text-red-600'
+                                  : status === 'today'
+                                  ? 'text-amber-600'
+                                  : 'text-blue-600'
+                              }`}
+                            >
+                              {convertToLanguage('Joriy qarz', language)}
+                            </p>
+                            <p
+                              className={`text-xl font-bold ${
+                                isOverdue
+                                  ? 'text-red-700'
+                                  : status === 'today'
+                                  ? 'text-amber-700'
+                                  : 'text-blue-700'
+                              }`}
+                            >
+                              {formatMoney(customer.currentDebt)}
+                            </p>
+                            <p className="text-xs text-gray-500 mt-0.5">{convertToLanguage("so'm", language)}</p>
+                          </div>
+
+                          {/* Status Badge */}
+                          <div className="flex items-center justify-between">
+                            <div>{getStatusBadge(customer)}</div>
+                            <div className="flex items-center gap-1">
+                              <button
+                                onClick={() => loadDebtHistory(customer)}
+                                className="p-2 text-gray-500 hover:bg-gray-100 rounded-lg"
+                              >
+                                <History className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={() => openPayModal(customer)}
+                                className={`p-2 rounded-lg ${
+                                  isOverdue ? 'text-red-600 hover:bg-red-100' : 'text-cyan-600 hover:bg-cyan-100'
+                                }`}
+                              >
+                                <DollarSign className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={() => handleDeleteDebt(customer)}
+                                className="p-2 text-red-600 hover:bg-red-100 rounded-lg"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </div>
+
+                          {/* Overdue Warning */}
+                          {isOverdue && (
+                            <div className="flex items-center gap-2 text-xs text-red-600 font-medium bg-red-100 p-2 rounded-lg">
+                              <AlertCircle className="w-3 h-3 flex-shrink-0" />
+                              <span>
+                                {convertToLanguage(
+                                  `Muddati ${Math.abs(getDaysRemaining(customer.debtDueDate) || 0)} kun oldin o'tgan!`,
+                                  language
+                                )}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Desktop Layout */}
+                        <div className="hidden sm:flex items-center gap-3">
+                          <div
+                            className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                              isOverdue
+                                ? 'bg-gradient-to-br from-red-500 to-red-600 shadow-lg shadow-red-500/30'
+                                : status === 'today'
+                                ? 'bg-gradient-to-br from-amber-400 to-orange-500 shadow-lg shadow-amber-500/30'
+                                : 'bg-gradient-to-br from-cyan-400 to-teal-500'
+                            }`}
+                          >
+                            {isOverdue ? (
+                              <AlertCircle className="w-5 h-5 text-white" />
+                            ) : (
+                              <User className="w-5 h-5 text-white" />
+                            )}
                           </div>
                           <div className="flex-1 min-w-0">
                             <p className={`font-semibold ${isOverdue ? 'text-red-700' : 'text-gray-900'}`}>
@@ -1283,54 +1404,80 @@ const Debts: React.FC = () => {
                             </p>
                             {customer.phone && (
                               <p className="text-xs text-gray-500 flex items-center gap-1">
-                                <Phone className="w-3 h-3" />{customer.phone}
+                                <Phone className="w-3 h-3" />
+                                {customer.phone}
                               </p>
                             )}
                           </div>
                           <div className="text-right min-w-0">
                             <div className="space-y-2">
-                              {/* Faqat joriy qarz ko'rsatamiz, chunki boshqa ma'lumotlar yo'q */}
-                              <div className={`text-center p-3 rounded-lg border ${
-                                isOverdue ? 'bg-red-50 border-red-200' : 
-                                status === 'today' ? 'bg-amber-50 border-amber-200' : 
-                                'bg-blue-50 border-blue-200'
-                              }`}>
-                                <p className={`text-xs font-medium ${
-                                  isOverdue ? 'text-red-600' : 
-                                  status === 'today' ? 'text-amber-600' : 
-                                  'text-blue-600'
-                                }`}>{convertToLanguage('Joriy qarz', language)}</p>
-                                <p className={`text-lg font-bold ${
-                                  isOverdue ? 'text-red-700' : 
-                                  status === 'today' ? 'text-amber-700' : 
-                                  'text-blue-700'
-                                }`}>
+                              <div
+                                className={`text-center p-3 rounded-lg border ${
+                                  isOverdue
+                                    ? 'bg-red-50 border-red-200'
+                                    : status === 'today'
+                                    ? 'bg-amber-50 border-amber-200'
+                                    : 'bg-blue-50 border-blue-200'
+                                }`}
+                              >
+                                <p
+                                  className={`text-xs font-medium ${
+                                    isOverdue
+                                      ? 'text-red-600'
+                                      : status === 'today'
+                                      ? 'text-amber-600'
+                                      : 'text-blue-600'
+                                  }`}
+                                >
+                                  {convertToLanguage('Joriy qarz', language)}
+                                </p>
+                                <p
+                                  className={`text-lg font-bold ${
+                                    isOverdue
+                                      ? 'text-red-700'
+                                      : status === 'today'
+                                      ? 'text-amber-700'
+                                      : 'text-blue-700'
+                                  }`}
+                                >
                                   {formatMoney(customer.currentDebt)} {convertToLanguage("so'm", language)}
                                 </p>
                               </div>
-
-                              {/* Status badge */}
-                              <div className="mt-2">
-                                {getStatusBadge(customer)}
-                              </div>
+                              <div className="mt-2">{getStatusBadge(customer)}</div>
                             </div>
                           </div>
                           <div className="flex items-center gap-1">
-                            <button onClick={() => loadDebtHistory(customer)} className="p-2 text-gray-500 hover:bg-gray-100 rounded-lg">
+                            <button
+                              onClick={() => loadDebtHistory(customer)}
+                              className="p-2 text-gray-500 hover:bg-gray-100 rounded-lg"
+                            >
                               <History className="w-4 h-4" />
                             </button>
-                            <button onClick={() => openPayModal(customer)} className={`p-2 rounded-lg ${isOverdue ? 'text-red-600 hover:bg-red-100' : 'text-cyan-600 hover:bg-cyan-100'}`}>
+                            <button
+                              onClick={() => openPayModal(customer)}
+                              className={`p-2 rounded-lg ${
+                                isOverdue ? 'text-red-600 hover:bg-red-100' : 'text-cyan-600 hover:bg-cyan-100'
+                              }`}
+                            >
                               <DollarSign className="w-4 h-4" />
                             </button>
-                            <button onClick={() => handleDeleteDebt(customer)} className="p-2 text-red-600 hover:bg-red-100 rounded-lg">
+                            <button
+                              onClick={() => handleDeleteDebt(customer)}
+                              className="p-2 text-red-600 hover:bg-red-100 rounded-lg"
+                            >
                               <Trash2 className="w-4 h-4" />
                             </button>
                           </div>
                         </div>
                         {isOverdue && (
-                          <div className="mt-2 flex items-center gap-2 text-xs text-red-600 font-medium">
+                          <div className="hidden sm:flex mt-2 items-center gap-2 text-xs text-red-600 font-medium">
                             <AlertCircle className="w-3 h-3" />
-                            <span>Muddati {Math.abs(getDaysRemaining(customer.debtDueDate) || 0)} kun oldin o'tgan!</span>
+                            <span>
+                              {convertToLanguage(
+                                `Muddati ${Math.abs(getDaysRemaining(customer.debtDueDate) || 0)} kun oldin o'tgan!`,
+                                language
+                              )}
+                            </span>
                           </div>
                         )}
                       </div>
@@ -1554,7 +1701,7 @@ const Debts: React.FC = () => {
                       : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                       }`}
                   >
-                    {newCustomerMode ? 'Mavjud mijoz' : '+ Yangi mijoz'}
+                    {newCustomerMode ? convertToLanguage('Mavjud mijoz', language) : convertToLanguage('+ Yangi mijoz', language)}
                   </button>
                 </div>
 
@@ -1592,7 +1739,7 @@ const Debts: React.FC = () => {
                         value={customerSearch}
                         onChange={(e) => setCustomerSearch(e.target.value)}
                         className="w-full pl-10 pr-4 py-3 bg-gray-50 border-0 rounded-xl focus:ring-2 focus:ring-cyan-500"
-                        placeholder="Ism yoki telefon raqam bilan qidiring..."
+                        placeholder={convertToLanguage("Ism yoki telefon raqam bilan qidiring...", language)}
                       />
                     </div>
                     {/* Filterlangan mijozlar ro'yxati */}
@@ -1660,7 +1807,7 @@ const Debts: React.FC = () => {
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Qarz summasi *</label>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">{convertToLanguage('Qarz summasi', language)} *</label>
                 <div className="grid grid-cols-2 gap-3">
                   <div className="relative">
                     <input type="number" value={form.amountUsd} onChange={(e) => handleAmountUsdChange(e.target.value, 'receivable')} className="w-full px-4 py-3 bg-gray-50 border-0 rounded-xl focus:ring-2 focus:ring-cyan-500 pr-14" placeholder="0" />
@@ -1739,7 +1886,7 @@ const Debts: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">To'lov muddati</label>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">{convertToLanguage("To'lov muddati", language)}</label>
                 <SimpleDateInput 
                   value={form.dueDate} 
                   onChange={(value) => setForm({ ...form, dueDate: value })} 
@@ -1747,7 +1894,7 @@ const Debts: React.FC = () => {
                 />
               </div>
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Izoh</label>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">{convertToLanguage("Izoh", language)}</label>
                 <textarea value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} className="w-full px-4 py-3 bg-gray-50 border-0 rounded-xl focus:ring-2 focus:ring-cyan-500 resize-none" rows={2} />
               </div>
 
@@ -1764,11 +1911,11 @@ const Debts: React.FC = () => {
                   <div className="flex items-center gap-2">
                     <User className={`w-4 h-4 ${showGuarantorSection ? 'text-amber-600' : 'text-gray-500'}`} />
                     <span className={`text-sm font-semibold ${showGuarantorSection ? 'text-amber-700' : 'text-gray-600'}`}>
-                      Kafil qo'shish
+                      {convertToLanguage("Kafil qo'shish", language)}
                     </span>
                   </div>
                   <span className={`text-xs ${showGuarantorSection ? 'text-amber-600' : 'text-gray-400'}`}>
-                    {showGuarantorSection ? 'Yopish' : 'Ixtiyoriy'}
+                    {showGuarantorSection ? convertToLanguage('Yopish', language) : convertToLanguage('Ixtiyoriy', language)}
                   </span>
                 </button>
 
@@ -1842,9 +1989,9 @@ const Debts: React.FC = () => {
                 >
                   <div className="flex items-center gap-2">
                     <Calendar className={`w-4 h-4 ${isInstallment ? 'text-purple-600' : 'text-gray-500'}`} />
-                    <span className={`text-sm font-semibold ${isInstallment ? 'text-purple-700' : 'text-gray-600'}`}>Bo'lib to'lash</span>
+                    <span className={`text-sm font-semibold ${isInstallment ? 'text-purple-700' : 'text-gray-600'}`}>{convertToLanguage("Bo'lib to'lash", language)}</span>
                   </div>
-                  <span className={`text-xs ${isInstallment ? 'text-purple-600' : 'text-gray-400'}`}>{isInstallment ? 'Yopish' : 'Ixtiyoriy'}</span>
+                  <span className={`text-xs ${isInstallment ? 'text-purple-600' : 'text-gray-400'}`}>{isInstallment ? convertToLanguage('Yopish', language) : convertToLanguage('Ixtiyoriy', language)}</span>
                 </button>
 
                 {isInstallment && (
@@ -2867,6 +3014,7 @@ const Debts: React.FC = () => {
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 };

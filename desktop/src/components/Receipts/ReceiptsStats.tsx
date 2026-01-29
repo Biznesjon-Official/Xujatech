@@ -5,6 +5,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { FileText, TrendingUp, Clock, CheckCircle } from 'lucide-react';
+import { useLanguage } from '../../i18n';
+import { convertToLanguage } from '../../utils/transliterate';
 
 interface Stats {
   today: number;
@@ -14,6 +16,7 @@ interface Stats {
 }
 
 const ReceiptsStats: React.FC = () => {
+  const { language } = useLanguage();
   const [stats, setStats] = useState<Stats>({
     today: 0,
     week: 0,
@@ -102,7 +105,7 @@ const ReceiptsStats: React.FC = () => {
           <Clock className="w-5 h-5" />
         </div>
         <p className="text-2xl font-bold">{stats.today}</p>
-        <p className="text-sm text-white/80">Bugungi cheklar</p>
+        <p className="text-sm text-white/80">{convertToLanguage('Bugungi cheklar', language)}</p>
       </div>
 
       {/* Haftalik */}
@@ -111,7 +114,7 @@ const ReceiptsStats: React.FC = () => {
           <TrendingUp className="w-5 h-5 text-purple-600" />
         </div>
         <p className="text-2xl font-bold text-gray-900">{stats.week}</p>
-        <p className="text-sm text-gray-500">Haftalik</p>
+        <p className="text-sm text-gray-500">{convertToLanguage('Haftalik', language)}</p>
       </div>
 
       {/* Oylik */}
@@ -120,7 +123,7 @@ const ReceiptsStats: React.FC = () => {
           <FileText className="w-5 h-5 text-amber-600" />
         </div>
         <p className="text-2xl font-bold text-gray-900">{stats.month}</p>
-        <p className="text-sm text-gray-500">Oylik</p>
+        <p className="text-sm text-gray-500">{convertToLanguage('Oylik', language)}</p>
       </div>
 
       {/* To'langan */}
@@ -129,7 +132,7 @@ const ReceiptsStats: React.FC = () => {
           <CheckCircle className="w-5 h-5" />
         </div>
         <p className="text-2xl font-bold">{stats.completed}</p>
-        <p className="text-sm text-white/80">To'langan</p>
+        <p className="text-sm text-white/80">{convertToLanguage("To'langan", language)}</p>
       </div>
     </div>
   );

@@ -594,7 +594,7 @@ const Warehouses: React.FC = () => {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder={t('warehouses.searchProducts')}
+              placeholder={convertToLanguage('Mahsulotlarni qidirish', language)}
               className="w-full pl-10 pr-4 py-2.5 bg-gray-100/80 border-0 rounded-xl text-sm focus:ring-2 focus:ring-emerald-500/50 focus:bg-white transition-all duration-200 placeholder:text-gray-400"
             />
           </div>
@@ -620,7 +620,7 @@ const Warehouses: React.FC = () => {
                 <Package className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
               </div>
               <div>
-                <p className="text-[10px] sm:text-xs text-emerald-100 font-medium">{t('warehouses.warehouseStock')}</p>
+                <p className="text-[10px] sm:text-xs text-emerald-100 font-medium">{convertToLanguage('Ombordagi mahsulotlar', language)}</p>
                 <p className="text-lg sm:text-xl font-bold text-white">{products.length}</p>
               </div>
             </div>
@@ -632,7 +632,7 @@ const Warehouses: React.FC = () => {
                 <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
               </div>
               <div>
-                <p className="text-[10px] sm:text-xs text-blue-100 font-medium">{t('warehouses.totalValue')}</p>
+                <p className="text-[10px] sm:text-xs text-blue-100 font-medium">{convertToLanguage('Umumiy qiymat', language)}</p>
                 <p className="text-lg sm:text-xl font-bold text-white">{totalValue.toLocaleString()}</p>
               </div>
             </div>
@@ -644,7 +644,7 @@ const Warehouses: React.FC = () => {
                 <AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
               </div>
               <div>
-                <p className="text-[10px] sm:text-xs text-amber-100 font-medium">{t('warehouses.lowStock')}</p>
+                <p className="text-[10px] sm:text-xs text-amber-100 font-medium">{convertToLanguage('Kam qolgan mahsulotlar', language)}</p>
                 <p className="text-lg sm:text-xl font-bold text-white">{lowStockCount}</p>
               </div>
             </div>
@@ -664,7 +664,7 @@ const Warehouses: React.FC = () => {
             <div className="w-20 h-20 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
               <Warehouse className="w-10 h-10 text-gray-300" />
             </div>
-            <p className="text-gray-500 font-medium">{t('warehouses.noProducts')}</p>
+            <p className="text-gray-500 font-medium">{convertToLanguage('Mahsulotlar topilmadi', language)}</p>
           </div>
         ) : (
           <>
@@ -774,7 +774,7 @@ const Warehouses: React.FC = () => {
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setShowAddModal(false)}>
           <div className="bg-white rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-200" onClick={(e) => e.stopPropagation()}>
             <div className="p-6 flex justify-between items-center bg-gradient-to-r from-emerald-500 to-teal-600">
-              <h3 className="text-xl font-bold text-white">Omborga mahsulot qo'shish</h3>
+              <h3 className="text-xl font-bold text-white">{convertToLanguage("Omborga mahsulot qo'shish", language)}</h3>
               <button onClick={() => setShowAddModal(false)} className="p-2 hover:bg-white/20 rounded-xl transition-colors">
                 <X className="w-5 h-5 text-white" />
               </button>
@@ -785,32 +785,32 @@ const Warehouses: React.FC = () => {
 
               {/* Product Name */}
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Mahsulot nomi *</label>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">{convertToLanguage('Mahsulot nomi', language)} *</label>
                 <input
                   type="text"
                   value={form.name}
                   onChange={(e) => setForm({ ...form, name: e.target.value })}
                   className="w-full px-4 py-3 bg-gray-50 border-0 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all"
-                  placeholder="Mahsulot nomini kiriting"
+                  placeholder={convertToLanguage('Mahsulot nomini kiriting', language)}
                 />
               </div>
 
               {/* Description */}
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Tavsif</label>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">{convertToLanguage('Tavsif', language)}</label>
                 <textarea
                   value={form.description}
                   onChange={(e) => setForm({ ...form, description: e.target.value })}
                   className="w-full px-4 py-3 bg-gray-50 border-0 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all resize-none"
                   rows={2}
-                  placeholder="Qo'shimcha ma'lumot..."
+                  placeholder={convertToLanguage("Qo'shimcha ma'lumot...", language)}
                 />
               </div>
 
               {/* Barcode */}
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-1">
-                  <Hash className="w-4 h-4" /> Shtrix-kod
+                  <Hash className="w-4 h-4" /> {convertToLanguage('Shtrix-kod', language)}
                 </label>
                 <div className="flex gap-2">
                   <input
@@ -820,14 +820,14 @@ const Warehouses: React.FC = () => {
                     onChange={(e) => setForm({ ...form, barcode: e.target.value })}
                     onKeyDown={handleBarcodeKeyDown}
                     className="flex-1 px-4 py-3 bg-gray-50 border-0 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all"
-                    placeholder="Skanerlang yoki kiriting"
+                    placeholder={convertToLanguage('Skanerlang yoki kiriting', language)}
                     autoFocus
                   />
                   <button
                     type="button"
                     onClick={generateBarcode}
                     className="px-4 py-3 bg-blue-500 text-white rounded-xl hover:bg-blue-600 transition-colors"
-                    title="Kod generatsiya qilish"
+                    title={convertToLanguage('Kod generatsiya qilish', language)}
                   >
                     <RefreshCw className="w-5 h-5" />
                   </button>
@@ -835,18 +835,18 @@ const Warehouses: React.FC = () => {
                     type="button"
                     onClick={() => openBarcodeScanner('add')}
                     className="px-4 py-3 bg-amber-500 text-white rounded-xl hover:bg-amber-600 transition-colors"
-                    title="Kamera bilan skanerlash"
+                    title={convertToLanguage('Kamera bilan skanerlash', language)}
                   >
                     <Camera className="w-5 h-5" />
                   </button>
                 </div>
-                {form.barcode && <p className="mt-2 text-sm text-gray-500">Kod: {form.barcode}</p>}
+                {form.barcode && <p className="mt-2 text-sm text-gray-500">{convertToLanguage('Kod', language)}: {form.barcode}</p>}
               </div>
 
               {/* Currency Rate */}
               <div className="bg-blue-50 rounded-xl p-3 flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium text-blue-700">Kurs: 1 $ =</span>
+                  <span className="text-sm font-medium text-blue-700">{convertToLanguage('Kurs', language)}: 1 $ =</span>
                   <span className="text-xs text-blue-500">(CBU)</span>
                 </div>
                 <div className="flex items-center gap-2">
@@ -862,7 +862,7 @@ const Warehouses: React.FC = () => {
                     onClick={fetchExchangeRate}
                     disabled={rateLoading}
                     className="p-1.5 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors disabled:opacity-50"
-                    title="CBU'dan yangilash"
+                    title={convertToLanguage("CBU'dan yangilash", language)}
                   >
                     <RefreshCw className={`w-4 h-4 ${rateLoading ? 'animate-spin' : ''}`} />
                   </button>
@@ -872,7 +872,7 @@ const Warehouses: React.FC = () => {
               {/* Cost Price */}
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  <DollarSign className="w-4 h-4 inline" /> Tan narxi
+                  <DollarSign className="w-4 h-4 inline" /> {convertToLanguage('Tan narxi', language)}
                 </label>
                 <div className="grid grid-cols-2 gap-3">
                   <div className="relative">
@@ -901,7 +901,7 @@ const Warehouses: React.FC = () => {
               {/* Selling Price */}
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  <DollarSign className="w-4 h-4 inline" /> Sotish narxi *
+                  <DollarSign className="w-4 h-4 inline" /> {convertToLanguage('Sotish narxi', language)} *
                 </label>
                 <div className="grid grid-cols-2 gap-3">
                   <div className="relative">
@@ -930,7 +930,7 @@ const Warehouses: React.FC = () => {
               {/* Stock */}
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-1">
-                  <Box className="w-4 h-4" /> Ombordagi qoldiq
+                  <Box className="w-4 h-4" /> {convertToLanguage('Ombordagi qoldiq', language)}
                 </label>
                 <input
                   type="number"
@@ -943,10 +943,10 @@ const Warehouses: React.FC = () => {
             </div>
             <div className="p-6 bg-gray-50 flex gap-3">
               <button onClick={() => setShowAddModal(false)} className="flex-1 px-4 py-3 text-gray-700 bg-white rounded-xl hover:bg-gray-100 font-semibold transition-all border border-gray-200">
-                Bekor qilish
+                {convertToLanguage('Bekor qilish', language)}
               </button>
               <button onClick={handleAddProduct} className="flex-1 px-4 py-3 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-xl font-semibold hover:from-emerald-600 hover:to-teal-700 transition-all shadow-lg shadow-emerald-500/25">
-                Qo'shish
+                {convertToLanguage("Qo'shish", language)}
               </button>
             </div>
           </div>

@@ -378,37 +378,42 @@ const Deliveries: React.FC = () => {
 
       {/* Stats */}
       <div className="px-4 sm:px-6 py-4">
-        <div className="grid grid-cols-3 gap-3">
-          <div className="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl p-4 text-white">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          {/* Deliveries Card */}
+          <div className="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl p-4 sm:p-5 text-white shadow-lg shadow-indigo-500/25">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-white/20 rounded-xl">
-                <Truck className="w-5 h-5" />
+              <div className="p-2.5 sm:p-3 bg-white/20 backdrop-blur-sm rounded-xl flex-shrink-0">
+                <Truck className="w-5 h-5 sm:w-6 sm:h-6" />
               </div>
-              <div>
-                <p className="text-xs text-indigo-100">{t('deliveries.monthlyDeliveries')}</p>
-                <p className="text-xl font-bold">{monthlyStats.totalDeliveries}</p>
+              <div className="min-w-0 flex-1">
+                <p className="text-xs sm:text-sm text-indigo-100 mb-0.5 truncate">Oylik yetkazib berishlar</p>
+                <p className="text-2xl sm:text-3xl font-bold">{monthlyStats.totalDeliveries}</p>
               </div>
             </div>
           </div>
-          <div className="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl p-4 text-white">
+
+          {/* Amount Card */}
+          <div className="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl p-4 sm:p-5 text-white shadow-lg shadow-emerald-500/25">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-white/20 rounded-xl">
-                <DollarSign className="w-5 h-5" />
+              <div className="p-2.5 sm:p-3 bg-white/20 backdrop-blur-sm rounded-xl flex-shrink-0">
+                <DollarSign className="w-5 h-5 sm:w-6 sm:h-6" />
               </div>
-              <div>
-                <p className="text-xs text-emerald-100">{t('deliveries.monthlyExpense')}</p>
-                <p className="text-xl font-bold">{formatMoney(monthlyStats.totalAmount)}</p>
+              <div className="min-w-0 flex-1">
+                <p className="text-xs sm:text-sm text-emerald-100 mb-0.5 truncate">Oylik xarajat</p>
+                <p className="text-xl sm:text-2xl font-bold truncate">{formatMoney(monthlyStats.totalAmount)}</p>
               </div>
             </div>
           </div>
-          <div className="bg-gradient-to-br from-amber-500 to-orange-600 rounded-2xl p-4 text-white">
+
+          {/* Products Card */}
+          <div className="bg-gradient-to-br from-amber-500 to-orange-600 rounded-2xl p-4 sm:p-5 text-white shadow-lg shadow-amber-500/25">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-white/20 rounded-xl">
-                <Package className="w-5 h-5" />
+              <div className="p-2.5 sm:p-3 bg-white/20 backdrop-blur-sm rounded-xl flex-shrink-0">
+                <Package className="w-5 h-5 sm:w-6 sm:h-6" />
               </div>
-              <div>
-                <p className="text-xs text-amber-100">{t('deliveries.products')}</p>
-                <p className="text-xl font-bold">{monthlyStats.totalItems}</p>
+              <div className="min-w-0 flex-1">
+                <p className="text-xs sm:text-sm text-amber-100 mb-0.5 truncate">Mahsulotlar</p>
+                <p className="text-2xl sm:text-3xl font-bold">{monthlyStats.totalItems}</p>
               </div>
             </div>
           </div>

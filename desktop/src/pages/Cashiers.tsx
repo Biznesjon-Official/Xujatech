@@ -138,7 +138,7 @@ const Cashiers: React.FC = () => {
   return (
     <div className="h-full flex flex-col">
       {/* Compact Header */}
-      <div className="bg-white border-b border-gray-100 px-3 sm:px-6 py-2 sm:py-3">
+      <div className="bg-white border-b border-gray-100 px-3 sm:px-6 py-4 sm:py-5">
         <div className="flex items-center gap-2">
           <div className="flex-1 relative">
             <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />

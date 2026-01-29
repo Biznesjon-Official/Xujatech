@@ -122,33 +122,16 @@ export function usePWA() {
     }
   }, []);
 
-  // Keshni tozalash
-  const clearCache = useCallback(async () => {
-    if ('caches' in window) {
-      const cacheNames = await caches.keys();
-      await Promise.all(cacheNames.map(name => caches.delete(name)));
-      return true;
-    }
-    return false;
-  }, []);
-
   return {
     ...state,
     install,
     update,
-    clearCache,
   };
 }
 
 // Offline ma'lumotlarni saqlash uchun IndexedDB helper
 const DB_NAME = 'xujatech-pos-offline';
 const DB_VERSION = 1;
-
-interface OfflineStore {
-  sales: any[];
-  products: any[];
-  customers: any[];
-}
 
 export function useOfflineStorage() {
   const [db, setDb] = useState<IDBDatabase | null>(null);
@@ -170,17 +153,6 @@ export function useOfflineStorage() {
       // Offline savdolar
       if (!database.objectStoreNames.contains('offlineSales')) {
         database.createObjectStore('offlineSales', { keyPath: 'id', autoIncrement: true });
-      }
-
-      // Keshlangan mahsulotlar
-      if (!database.objectStoreNames.contains('cachedProducts')) {
-        const productStore = database.createObjectStore('cachedProducts', { keyPath: '_id' });
-        productStore.createIndex('barcode', 'barcode', { unique: false });
-      }
-
-      // Keshlangan mijozlar
-      if (!database.objectStoreNames.contains('cachedCustomers')) {
-        database.createObjectStore('cachedCustomers', { keyPath: '_id' });
       }
 
       // Sinxronlash holati
@@ -222,51 +194,6 @@ export function useOfflineStorage() {
       const request = store.getAll();
 
       request.onsuccess = () => resolve(request.result);
-      request.onerror = () => reject(request.error);
-    });
-  }, [db]);
-
-  // Mahsulotlarni keshlash
-  const cacheProducts = useCallback(async (products: any[]) => {
-    if (!db) return;
-
-    const transaction = db.transaction(['cachedProducts'], 'readwrite');
-    const store = transaction.objectStore('cachedProducts');
-
-    // Avval tozalash
-    store.clear();
-
-    // Yangi ma'lumotlarni qo'shish
-    products.forEach(product => {
-      store.add(product);
-    });
-  }, [db]);
-
-  // Keshlangan mahsulotlarni olish
-  const getCachedProducts = useCallback(async () => {
-    if (!db) return [];
-
-    return new Promise<any[]>((resolve, reject) => {
-      const transaction = db.transaction(['cachedProducts'], 'readonly');
-      const store = transaction.objectStore('cachedProducts');
-      const request = store.getAll();
-
-      request.onsuccess = () => resolve(request.result);
-      request.onerror = () => reject(request.error);
-    });
-  }, [db]);
-
-  // Barcode bo'yicha mahsulot topish
-  const findProductByBarcode = useCallback(async (barcode: string) => {
-    if (!db) return null;
-
-    return new Promise<any>((resolve, reject) => {
-      const transaction = db.transaction(['cachedProducts'], 'readonly');
-      const store = transaction.objectStore('cachedProducts');
-      const index = store.index('barcode');
-      const request = index.get(barcode);
-
-      request.onsuccess = () => resolve(request.result || null);
       request.onerror = () => reject(request.error);
     });
   }, [db]);
@@ -323,9 +250,6 @@ export function useOfflineStorage() {
   return {
     addOfflineSale,
     getOfflineSales,
-    cacheProducts,
-    getCachedProducts,
-    findProductByBarcode,
     syncOfflineData,
     isReady: !!db,
   };

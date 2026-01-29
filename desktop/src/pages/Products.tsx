@@ -579,7 +579,7 @@ const Products: React.FC = () => {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder={selectedCategory ? "Mahsulotlarni qidirish..." : t('products.title')}
+              placeholder={selectedCategory ? convertToLanguage("Mahsulotlarni qidirish...", language) : t('products.title')}
               className="w-full pl-10 pr-4 py-2.5 bg-gray-100/80 border-0 rounded-xl text-sm focus:ring-2 focus:ring-emerald-500/50 focus:bg-white transition-all duration-200 placeholder:text-gray-400"
             />
           </div>
@@ -592,7 +592,7 @@ const Products: React.FC = () => {
             className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-xl text-sm font-semibold hover:from-emerald-600 hover:to-teal-700 transition-all duration-200 shadow-lg shadow-emerald-500/25 hover:shadow-xl hover:shadow-emerald-500/30 hover:-translate-y-0.5 active:scale-95"
           >
             <Plus className="w-4 h-4" />
-            <span className="hidden sm:inline">Kategoriya</span>
+            <span className="hidden sm:inline">{convertToLanguage('Kategoriya', language)}</span>
           </button>
         </div>
       </div>
@@ -620,7 +620,7 @@ const Products: React.FC = () => {
                 <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
               </div>
               <div>
-                <p className="text-[10px] sm:text-xs text-blue-100 font-medium">{t('common.total')}</p>
+                <p className="text-[10px] sm:text-xs text-blue-100 font-medium">{convertToLanguage('Jami', language)}</p>
                 <p className="text-lg sm:text-xl font-bold text-white tracking-tight">{totalValue.toLocaleString()}</p>
               </div>
             </div>
@@ -646,7 +646,7 @@ const Products: React.FC = () => {
                 <Box className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
               </div>
               <div>
-                <p className="text-[10px] sm:text-xs text-cyan-100 font-medium">Umumiy soni</p>
+                <p className="text-[10px] sm:text-xs text-cyan-100 font-medium">{convertToLanguage('Umumiy soni', language)}</p>
                 <p className="text-lg sm:text-xl font-bold text-white tracking-tight">{totalStock.toLocaleString()}</p>
               </div>
             </div>
@@ -697,11 +697,11 @@ const Products: React.FC = () => {
                   
                   <div className="space-y-2">
                     <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-500">Mahsulotlar:</span>
+                      <span className="text-sm text-gray-500">{convertToLanguage('Mahsulotlar', language)}:</span>
                       <span className="text-sm font-semibold text-gray-900">{group.products.length} ta</span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-500">Umumiy qiymat:</span>
+                      <span className="text-sm text-gray-500">{convertToLanguage('Umumiy qiymat', language)}:</span>
                       <span className="text-sm font-bold text-emerald-600">
                         {group.products.reduce((sum, p) => sum + (p.sellingPrice * p.currentStock), 0).toLocaleString()}
                       </span>
@@ -773,16 +773,16 @@ const Products: React.FC = () => {
                   
                   <div className="mb-3">
                     <h4 className="font-semibold text-gray-900 text-sm mb-1 line-clamp-2">{convertToLanguage(product.name, language)}</h4>
-                    <p className="text-xs text-gray-500">{product.description || 'Tavsif yo\'q'}</p>
+                    <p className="text-xs text-gray-500">{product.description || convertToLanguage("Tavsif yo'q", language)}</p>
                   </div>
 
                   <div className="space-y-2 mb-4">
                     <div className="flex justify-between items-center">
-                      <span className="text-xs text-gray-500">Tan narxi:</span>
+                      <span className="text-xs text-gray-500">{convertToLanguage('Tan narxi', language)}:</span>
                       <span className="text-sm font-semibold text-orange-600">{product.purchasePrice.toLocaleString()}</span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-xs text-gray-500">Sotish narxi:</span>
+                      <span className="text-xs text-gray-500">{convertToLanguage('Sotish narxi', language)}:</span>
                       <span className="text-sm font-bold text-gray-900">{product.sellingPrice.toLocaleString()}</span>
                     </div>
                     <div className="flex justify-between items-center">
@@ -790,7 +790,7 @@ const Products: React.FC = () => {
                       <span className="text-sm font-semibold text-blue-600">${(product.sellingPrice / usdRate).toFixed(2)}</span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-xs text-gray-500">Qoldiq:</span>
+                      <span className="text-xs text-gray-500">{convertToLanguage('Qoldiq', language)}:</span>
                       <span className={`text-sm font-semibold ${
                         product.currentStock < 0
                           ? 'text-red-600'
@@ -802,7 +802,7 @@ const Products: React.FC = () => {
                       </span>
                     </div>
                     <div className="flex justify-between items-center pt-1 border-t border-gray-200">
-                      <span className="text-xs text-gray-500">Jami qiymat:</span>
+                      <span className="text-xs text-gray-500">{convertToLanguage('Jami qiymat', language)}:</span>
                       <span className="text-sm font-bold text-purple-600">
                         {(product.sellingPrice * product.currentStock).toLocaleString()}
                       </span>

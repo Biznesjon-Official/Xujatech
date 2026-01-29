@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useLanguage } from '../i18n';
+import { convertToLanguage } from '../utils/transliterate';
 
 interface ReturnItem {
   productId: string;
@@ -57,7 +58,7 @@ interface Product {
 }
 
 const Returns: React.FC = () => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [returns, setReturns] = useState<ProductReturn[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -458,7 +459,7 @@ const Returns: React.FC = () => {
                 <DollarSign className="w-4 h-4 text-white" />
               </div>
               <div>
-                <p className="text-xs text-white/80">{t('common.totalAmount')}</p>
+                <p className="text-xs text-white/80">{convertToLanguage('Umumiy summa', language)}</p>
                 <p className="text-lg font-bold text-white">{formatMoney(stats.totalAmount)}</p>
               </div>
             </div>

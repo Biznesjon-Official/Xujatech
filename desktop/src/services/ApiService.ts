@@ -76,6 +76,8 @@ class ApiService {
         
         if (!response.ok) {
           console.error('❌ HTTP error! status:', response.status);
+          const errorText = await response.text();
+          console.error('❌ Error response:', errorText);
           throw new Error(`HTTP error! status: ${response.status}`);
         }
         
@@ -94,8 +96,15 @@ class ApiService {
             purchase_price: p.purchasePrice || p.purchase_price || 0,
             unit: p.unit || 'dona',
           }));
+          console.log('💾 Saving products to IndexedDB...');
           // Offline uchun saqlash
-          await offlineStorage.saveProducts(products);
+          try {
+            await offlineStorage.saveProducts(products);
+            console.log('✅ Products saved to IndexedDB');
+          } catch (saveError) {
+            console.error('❌ Failed to save to IndexedDB:', saveError);
+            // IndexedDB xatosi bo'lsa ham mahsulotlarni qaytaramiz
+          }
           return products;
         } else {
           console.warn('⚠️ Invalid data format from API:', data);
@@ -103,6 +112,8 @@ class ApiService {
         }
       } catch (error) {
         console.error('❌ API error, falling back to offline:', error);
+        console.error('❌ Error details:', error instanceof Error ? error.message : String(error));
+        // Xatolik yuz berganda offline storage'ga o'tamiz
       }
     }
 
@@ -339,14 +350,13 @@ class ApiService {
 
       console.log('Data refreshed from server');
     } catch (error) {
-      // Token noto'g'ri yoki muddati o'tgan bo'lishi mumkin
+      // Xatoni ignore qilamiz, chunki bu background refresh
+      // Agar token muddati o'tgan bo'lsa, keyingi login paytida yangilanadi
       if (error instanceof TypeError && error.message.includes('fetch')) {
-        console.log('Network error during refresh, will retry later');
-      } else if (error instanceof Error) {
-        console.error('Refresh error:', error.message, error);
-      } else {
-        console.error('Refresh error: Unknown error', error);
+        // Network xatosi - oddiy holat, log qilmaymiz
+        return;
       }
+      // Boshqa xatolarni ham ignore qilamiz
     }
   }
 

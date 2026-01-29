@@ -72,7 +72,7 @@ const Layout: React.FC = () => {
     { path: '/admin/returns', icon: RotateCcw, labelKey: 'returns.title', roles: ['admin', 'manager'] },
     { path: '/admin/debts', icon: CreditCard, labelKey: 'debts.title', roles: ['admin', 'manager'] },
     { path: '/admin/receipts', icon: FileText, labelKey: 'Cheklar', roles: ['admin', 'manager'] },
-    { path: '/admin/history', icon: History, labelKey: 'history.title', roles: ['admin', 'manager'] },
+    { path: '/admin/history', icon: History, labelKey: 'Tarix', roles: ['admin', 'manager'] },
     { path: '/admin/customers', icon: Users, labelKey: 'nav.customers', roles: ['admin', 'manager', 'cashier'] },
     { path: '/admin/settings', icon: Settings, labelKey: 'nav.settings', roles: ['admin'] },
   ];

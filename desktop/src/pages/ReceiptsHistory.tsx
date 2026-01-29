@@ -121,8 +121,8 @@ const ReceiptsHistory: React.FC = () => {
     <div className="p-6">
       {/* Header */}
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">Cheklar tarixi</h1>
-        <p className="text-gray-500">Telefondan kelgan barcha cheklar</p>
+        <h1 className="text-2xl font-bold text-gray-900 mb-2">{convertToLanguage('Cheklar tarixi', language)}</h1>
+        <p className="text-gray-500">{convertToLanguage('Telefondan kelgan barcha cheklar', language)}</p>
       </div>
 
       {/* Stats */}
@@ -139,7 +139,7 @@ const ReceiptsHistory: React.FC = () => {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Kassir yoki chek ID bo'yicha qidirish..."
+                placeholder={convertToLanguage("Kassir yoki chek ID bo'yicha qidirish...", language)}
                 className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
               />
             </div>
@@ -152,9 +152,9 @@ const ReceiptsHistory: React.FC = () => {
               onChange={(e) => setStatusFilter(e.target.value)}
               className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
             >
-              <option value="all">Barcha statuslar</option>
-              <option value="saved">Kutilmoqda</option>
-              <option value="processing">Jarayonda</option>
+              <option value="all">{convertToLanguage('Barcha statuslar', language)}</option>
+              <option value="saved">{convertToLanguage('Kutilmoqda', language)}</option>
+              <option value="processing">{convertToLanguage('Jarayonda', language)}</option>
               <option value="completed">To'langan</option>
               <option value="cancelled">Bekor qilingan</option>
             </select>
@@ -167,9 +167,9 @@ const ReceiptsHistory: React.FC = () => {
               onChange={(e) => setDateFilter(e.target.value)}
               className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
             >
-              <option value="all">Barcha vaqt</option>
-              <option value="today">Bugun</option>
-              <option value="week">Hafta</option>
+              <option value="all">{convertToLanguage('Barcha vaqt', language)}</option>
+              <option value="today">{convertToLanguage('Bugun', language)}</option>
+              <option value="week">{convertToLanguage('Hafta', language)}</option>
               <option value="month">Oy</option>
             </select>
           </div>
@@ -184,7 +184,7 @@ const ReceiptsHistory: React.FC = () => {
           </div>
         ) : filteredReceipts.length === 0 ? (
           <div className="text-center py-20">
-            <p className="text-gray-400 text-lg">Cheklar topilmadi</p>
+            <p className="text-gray-400 text-lg">{convertToLanguage('Cheklar topilmadi', language)}</p>
           </div>
         ) : (
           <div className="overflow-x-auto">

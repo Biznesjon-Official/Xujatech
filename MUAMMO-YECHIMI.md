@@ -8,18 +8,9 @@ POST http://localhost:3001/api/auth/login 401 (Unauthorized)
 ## ✅ Sabab
 Brauzer keshida **eski Service Worker** va **eski JavaScript kodlari** qolgan.
 
-## 🎯 Yechim (3 ta usul)
+## 🎯 Yechim (2 ta usul)
 
-### 1-USUL: Keshni Tozalash Sahifasi (ENG OSON) ⭐
-1. Brauzerda bu sahifani oching:
-   ```
-   http://localhost:3001/clear-cache.html
-   ```
-2. **"Hamma Narsani Tozalash"** tugmasini bosing
-3. Sahifa avtomatik yangilanadi
-4. Login qiling
-
-### 2-USUL: Brauzer DevTools
+### 1-USUL: Brauzer DevTools ⭐
 1. `F12` ni bosing (DevTools ochish)
 2. `Application` tabiga o'ting
 3. Chap tarafda:
@@ -28,7 +19,7 @@ Brauzer keshida **eski Service Worker** va **eski JavaScript kodlari** qolgan.
 4. `Ctrl + Shift + R` (hard refresh)
 5. Login qiling
 
-### 3-USUL: Inkognito/Private Mode
+### 2-USUL: Inkognito/Private Mode
 1. Inkognito/Private oynani oching:
    - Chrome: `Ctrl + Shift + N`
    - Firefox: `Ctrl + Shift + P`
@@ -76,14 +67,14 @@ Agar muammo davom etsa:
    npm run dev
    ```
 
-3. **Brauzer keshini to'liq tozalang:**
+3. **Brauzer ma'lumotlarini to'liq tozalang:**
    - Chrome: `Ctrl + Shift + Delete`
-   - "Cached images and files" ni tanlang
+   - "All time" ni tanlang
    - "Clear data" ni bosing
 
 ## ✅ Natija
 
-Keshni tozalagandan keyin:
+Ma'lumotlarni tozalagandan keyin:
 - ✅ Login ishlaydi
 - ✅ Cheksiz yangilanish to'xtaydi
 - ✅ Import xatolari yo'qoladi

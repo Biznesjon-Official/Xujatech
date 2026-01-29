@@ -40,6 +40,7 @@ import {
   Printer,
   QrCode,
   DollarSign,
+  Eye,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Barcode from 'react-barcode';
@@ -50,7 +51,7 @@ import { convertToLanguage } from '../utils/transliterate';
 import { useMobileDetect } from '../hooks/useMobileDetect';
 import MobilePOS from '../components/POS/MobilePOS';
 import SavedReceipts from '../components/POS/SavedReceipts';
-import { handleScanResult, searchProductByCode } from '../services/ScannerService';
+import { handleScanResult } from '../services/ScannerService';
 
 // Dollar kursi (default, keyinchalik API dan olinadi)
 const DEFAULT_USD_RATE = 12850;
@@ -62,6 +63,175 @@ interface Product {
   selling_price: number;
   current_stock: number;
 }
+
+// ==================== INTERFACES ====================
+interface ReceiptData {
+  saleNumber: string;
+  date: string;
+  cashierName: string;
+  items: any[];
+  totalAmount: number;
+  paymentMethod: string;
+  receivedAmount: number;
+  change: number;
+  customerName?: string;
+  mixedPayment?: {
+    cash: number;
+    card: number;
+    credit: number;
+  };
+}
+
+interface PaymentModalProps {
+  totalAmount: number;
+  cart: any[];
+  customer: any;
+  cashierName: string;
+  cashierId?: string;
+  onClose: () => void;
+  onSuccess: () => void;
+}
+
+interface CustomerOption {
+  _id: string;
+  fullName: string;
+  phone?: string;
+  currentDebt: number;
+  debtLimit?: number;
+}
+
+interface InstallmentPlan {
+  month: number;
+  date: string;
+  amount: number;
+}
+
+interface AddDebtModalProps {
+  customers: any[];
+  cashierId: string;
+  onClose: () => void;
+  onSuccess: () => void;
+  t: (key: string) => string;
+}
+
+interface ProductsTabProps {
+  t: (key: string) => string;
+  language: 'cyr' | 'lat';
+}
+
+interface CustomersTabProps {
+  t: (key: string) => string;
+  cashierId?: string;
+}
+
+interface ReceiptsTabProps {
+  t: (key: string) => string;
+  language: 'cyr' | 'lat';
+}
+
+// ==================== HELPER FUNCTIONS ====================
+const printReceipt = (data: ReceiptData) => {
+  const { saleNumber, date, cashierName, items, totalAmount, paymentMethod, receivedAmount, change, customerName, mixedPayment } = data;
+
+  const paymentMethodText = paymentMethod === 'cash' ? 'Naqd' :
+    paymentMethod === 'card' ? 'Karta' :
+      paymentMethod === 'mixed' ? 'Aralash' : "Bo'lib to'lash";
+
+  const receiptContent = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="UTF-8">
+      <title>Chek ${saleNumber}</title>
+      <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+          font-family: 'Courier New', monospace; 
+          width: 80mm; 
+          padding: 5mm;
+          font-size: 12px;
+        }
+        .header { text-align: center; margin-bottom: 10px; border-bottom: 1px dashed #000; padding-bottom: 10px; }
+        .header h1 { font-size: 18px; font-weight: bold; margin-bottom: 5px; }
+        .header p { font-size: 11px; color: #333; }
+        .info { margin: 10px 0; font-size: 11px; }
+        .info-row { display: flex; justify-content: space-between; margin: 3px 0; }
+        .items { border-top: 1px dashed #000; border-bottom: 1px dashed #000; padding: 10px 0; margin: 10px 0; }
+        .item { margin: 8px 0; }
+        .item-name { font-weight: bold; }
+        .item-details { display: flex; justify-content: space-between; font-size: 11px; color: #333; }
+        .totals { margin: 10px 0; }
+        .total-row { display: flex; justify-content: space-between; margin: 5px 0; }
+        .total-row.main { font-size: 16px; font-weight: bold; border-top: 1px solid #000; padding-top: 8px; margin-top: 8px; }
+        .footer { text-align: center; margin-top: 15px; padding-top: 10px; border-top: 1px dashed #000; font-size: 11px; }
+        .footer p { margin: 3px 0; }
+        @media print {
+          body { width: 80mm; }
+          @page { size: 80mm auto; margin: 0; }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="header">
+        <h1>SOTUV CHEKI</h1>
+        <p>Do'kon nomi</p>
+      </div>
+      
+      <div class="info">
+        <div class="info-row"><span>Chek №:</span><span>${saleNumber}</span></div>
+        <div class="info-row"><span>Sana:</span><span>${date}</span></div>
+        <div class="info-row"><span>Kassir:</span><span>${cashierName}</span></div>
+        ${customerName ? `<div class="info-row"><span>Mijoz:</span><span>${customerName}</span></div>` : ''}
+      </div>
+      
+      <div class="items">
+        ${items.map((item, idx) => `
+          <div class="item">
+            <div class="item-name">${idx + 1}. ${item.name}</div>
+            <div class="item-details">
+              <span>${item.quantity} x ${item.unitPrice.toLocaleString()}</span>
+              <span>${(item.quantity * item.unitPrice).toLocaleString()} so'm</span>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+      
+      <div class="totals">
+        <div class="total-row"><span>Mahsulotlar:</span><span>${items.length} ta</span></div>
+        <div class="total-row main"><span>JAMI:</span><span>${totalAmount.toLocaleString()} so'm</span></div>
+        <div class="total-row"><span>To'lov turi:</span><span>${paymentMethodText}</span></div>
+        ${paymentMethod === 'cash' ? `
+          <div class="total-row"><span>Qabul qilindi:</span><span>${receivedAmount.toLocaleString()} so'm</span></div>
+          ${change > 0 ? `<div class="total-row"><span>Qaytim:</span><span>${change.toLocaleString()} so'm</span></div>` : ''}
+        ` : ''}
+        ${paymentMethod === 'mixed' && mixedPayment ? `
+          <div class="total-row"><span>💵 Naqd:</span><span>${mixedPayment.cash.toLocaleString()} so'm</span></div>
+          <div class="total-row"><span>💳 Karta:</span><span>${mixedPayment.card.toLocaleString()} so'm</span></div>
+          <div class="total-row"><span>📅 Bo'lib to'lash:</span><span>${mixedPayment.credit.toLocaleString()} so'm</span></div>
+        ` : ''}
+      </div>
+      
+      <div class="footer">
+        <p>Xaridingiz uchun rahmat!</p>
+        <p>Yana keling!</p>
+      </div>
+      
+      <script>
+        window.onload = function() {
+          window.print();
+          setTimeout(function() { window.close(); }, 500);
+        }
+      </script>
+    </body>
+    </html>
+  `;
+
+  const printWindow = window.open('', '_blank', 'width=350,height=600');
+  if (printWindow) {
+    printWindow.document.write(receiptContent);
+    printWindow.document.close();
+  }
+};
 
 const POS: React.FC = () => {
   const dispatch = useDispatch();
@@ -88,6 +258,11 @@ const POS: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
+
+  // Debug: searchResults o'zgarishini kuzatish
+  useEffect(() => {
+    console.log('🔄 searchResults changed:', searchResults.length, searchResults);
+  }, [searchResults]);
   const [showNumpad, setShowNumpad] = useState(true);
   const [showSavedReceipts, setShowSavedReceipts] = useState(false);
 
@@ -95,13 +270,15 @@ const POS: React.FC = () => {
   const isDebtsPage = location.pathname.endsWith('/debts');
   const isProductsPage = location.pathname.endsWith('/products');
   const isCustomersPage = location.pathname.endsWith('/customers');
+  const isReceiptsPage = location.pathname.endsWith('/receipts');
   const getInitialTab = () => {
     if (isDebtsPage) return 'debts';
     if (isProductsPage) return 'products';
     if (isCustomersPage) return 'customers';
+    if (isReceiptsPage) return 'receipts';
     return 'pos';
   };
-  const [activeTab, setActiveTab] = useState<'pos' | 'debts' | 'products' | 'customers'>(getInitialTab());
+  const [activeTab, setActiveTab] = useState<'pos' | 'debts' | 'products' | 'customers' | 'receipts'>(getInitialTab());
   const [cashierDebts, setCashierDebts] = useState<any[]>([]);
   const [loadingDebts, setLoadingDebts] = useState(false);
   const [showAddDebt, setShowAddDebt] = useState(false);
@@ -114,6 +291,7 @@ const POS: React.FC = () => {
 
   // Effects - должны быть до любого return
   useEffect(() => {
+    console.log('🔌 useEffect 1: apiService.onStatusChange');
     const unsubscribe = apiService.onStatusChange((online) => {
       dispatch(setOnlineStatus(online));
     });
@@ -121,17 +299,27 @@ const POS: React.FC = () => {
   }, [dispatch]);
 
   useEffect(() => {
-    setActiveTab(getInitialTab());
-  }, [isDebtsPage, isProductsPage, isCustomersPage]);
+    console.log('📍 useEffect 2: location.pathname changed to', location.pathname);
+    const newTab = getInitialTab();
+    if (newTab !== activeTab) {
+      console.log('  → Setting activeTab to', newTab);
+      setActiveTab(newTab);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname]);
 
   useEffect(() => {
+    console.log('📑 useEffect 3: activeTab changed to', activeTab);
     if (activeTab === 'debts') {
+      console.log('  → Loading debts');
       loadCashierDebts();
       loadDebtCustomers();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab]);
 
   useEffect(() => {
+    console.log('⌨️ useEffect 4: keyboard event listener setup');
     const handleKeyDown = (e: KeyboardEvent) => {
       if (showPayment || showSearch) return;
       if (e.key >= '0' && e.key <= '9') handleNumberClick(e.key);
@@ -144,7 +332,11 @@ const POS: React.FC = () => {
       }
     };
     window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    return () => {
+      console.log('⌨️ useEffect 4: cleanup keyboard listener');
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [inputValue, inputMode, selectedItemId, showPayment, showSearch]);
 
   // Handlers
@@ -152,7 +344,7 @@ const POS: React.FC = () => {
   const handleBackspace = () => setInputValue((prev) => prev.slice(0, -1));
   const handleClear = () => setInputValue('');
 
-  const handleTabChange = (tab: 'pos' | 'debts' | 'products' | 'customers') => {
+  const handleTabChange = (tab: 'pos' | 'debts' | 'products' | 'customers' | 'receipts') => {
     setActiveTab(tab);
     if (tab === 'pos') {
       navigate(`/${cashierId}/pos`);
@@ -360,49 +552,83 @@ const POS: React.FC = () => {
 
   // Barcha mahsulotlarni yuklash
   const loadAllProducts = async () => {
+    console.log('📦 loadAllProducts called');
     setLoading(true);
     try {
+      console.log('  → Calling apiService.getProducts()');
       const products = await apiService.getProducts();
+      console.log('  → Products received:', products.length, products);
+      console.log('  → Setting searchResults to:', products);
       setSearchResults(products);
+      console.log('  → searchResults updated');
     } catch (error) {
-      console.error('Load products error:', error);
+      console.error('  → Load products error:', error);
+      setSearchResults([]);
     } finally {
       setLoading(false);
+      console.log('  → Loading finished');
     }
   };
 
-  // Qidiruv modali ochilganda
+  // Qidiruv modali ochilganda barcha mahsulotlarni yuklash
   useEffect(() => {
+    console.log('🔍 useEffect 5: showSearch changed to', showSearch);
     if (showSearch) {
+      console.log('  → Search modal opened, loading all products');
       loadAllProducts();
+    } else {
+      console.log('  → Search modal closed, clearing results');
+      setSearchResults([]);
+      setSearchQuery('');
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [showSearch]);
 
-  // Debounced search
+  // Debounced search - faqat qidiruv maydoni to'ldirilganda
   useEffect(() => {
+    console.log('🔎 useEffect 6: searchQuery changed to', searchQuery, 'showSearch:', showSearch);
     if (!showSearch) return;
-    
-    const timer = setTimeout(() => {
-      if (searchQuery.trim()) {
-        handleSearch();
+    if (!searchQuery.trim()) return; // Bo'sh bo'lsa hech narsa qilmaslik
+
+    const timer = setTimeout(async () => {
+      console.log('  → Debounced search executing with:', searchQuery);
+      setLoading(true);
+      try {
+        const products = await apiService.getProducts(searchQuery.trim());
+        console.log('  → Products received:', products.length);
+        setSearchResults(products);
+      } catch (error) {
+        console.error('  → Search error:', error);
+        toast.error(t('errors.somethingWentWrong'));
+      } finally {
+        setLoading(false);
       }
     }, 300); // 300ms kutish
 
-    return () => clearTimeout(timer);
+    return () => {
+      console.log('  → Clearing debounce timer');
+      clearTimeout(timer);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchQuery, showSearch]);
 
   const handleSearch = async () => {
+    console.log('🔍 Manual search triggered, searchQuery:', searchQuery);
+
     if (!searchQuery.trim()) {
+      console.log('📋 Empty search, loading all products');
       loadAllProducts();
       return;
     }
-    
+
     setLoading(true);
     try {
+      console.log('🌐 Calling apiService.getProducts with:', searchQuery.trim());
       const products = await apiService.getProducts(searchQuery.trim());
+      console.log('✅ Products received:', products.length, products);
       setSearchResults(products);
     } catch (error) {
-      console.error('Search error:', error);
+      console.error('❌ Search error:', error);
       toast.error(t('errors.somethingWentWrong'));
     } finally {
       setLoading(false);
@@ -700,24 +926,34 @@ const POS: React.FC = () => {
                 </div>
                 <div className="max-h-80 overflow-y-auto space-y-2">
                   {loading ? (
-                    <div className="text-center py-8"><div className="spinner mx-auto" /></div>
+                    <div className="text-center py-8">
+                      <div className="spinner mx-auto" />
+                      <p className="text-sm text-gray-500 mt-2">Yuklanmoqda...</p>
+                    </div>
                   ) : searchResults.length === 0 ? (
-                    <div className="text-center py-8 text-gray-400">{searchQuery ? t('common.notFound') : t('products.noProducts')}</div>
+                    <div className="text-center py-8 text-gray-400">
+                      {searchQuery ? t('common.notFound') : 'Mahsulotlar topilmadi'}
+                    </div>
                   ) : (
-                    searchResults.map((product) => (
-                      <button
-                        key={product.id}
-                        onClick={() => { addProductToCart(product); setShowSearch(false); setSearchQuery(''); setSearchResults([]); }}
-                        className="w-full p-4 border border-gray-100 rounded-xl hover:bg-emerald-50 hover:border-emerald-200 transition-all text-left"
-                      >
-                        <div className="font-medium text-gray-900">{convertToLanguage(product.name, language)}</div>
-                        <div className="flex justify-between text-sm text-gray-500 mt-1">
-                          <span className="font-mono">{product.barcode}</span>
-                          <span className="font-bold text-emerald-600">{product.selling_price.toLocaleString()} {t('common.sum')}</span>
-                        </div>
-                        <div className="text-xs text-gray-400 mt-1">{t('pos.inStock')}: {product.current_stock} {t('common.pcs')}</div>
-                      </button>
-                    ))
+                    <>
+                      <div className="text-xs text-gray-500 mb-2 px-1">
+                        Topildi: {searchResults.length} ta mahsulot
+                      </div>
+                      {searchResults.map((product) => (
+                        <button
+                          key={product.id}
+                          onClick={() => { addProductToCart(product); setShowSearch(false); setSearchQuery(''); setSearchResults([]); }}
+                          className="w-full p-4 border border-gray-100 rounded-xl hover:bg-emerald-50 hover:border-emerald-200 transition-all text-left"
+                        >
+                          <div className="font-medium text-gray-900">{convertToLanguage(product.name, language)}</div>
+                          <div className="flex justify-between text-sm text-gray-500 mt-1">
+                            <span className="font-mono">{product.barcode}</span>
+                            <span className="font-bold text-emerald-600">{product.selling_price.toLocaleString()} {t('common.sum')}</span>
+                          </div>
+                          <div className="text-xs text-gray-400 mt-1">{t('pos.inStock')}: {product.current_stock} {t('common.pcs')}</div>
+                        </button>
+                      ))}
+                    </>
                   )}
                 </div>
               </div>
@@ -861,7 +1097,14 @@ const POS: React.FC = () => {
             className={`w-full flex items-center justify-center gap-3 px-4 py-3.5 rounded-xl mb-2 transition-colors ${activeTab === 'debts' ? 'bg-cyan-50 text-cyan-600' : 'text-gray-600 hover:bg-gray-50'}`}
           >
             <BookOpen className="w-5 h-5" />
-            <span className="font-semibold text-base">{t('pos.debtBook')}</span>
+            <span className="font-semibold text-base">{convertToLanguage('Qarz daftari', language)}</span>
+          </button>
+          <button
+            onClick={() => { handleTabChange('receipts'); setShowMobileSidebar(false); }}
+            className={`w-full flex items-center justify-center gap-3 px-4 py-3.5 rounded-xl mb-2 transition-colors ${activeTab === 'receipts' ? 'bg-cyan-50 text-cyan-600' : 'text-gray-600 hover:bg-gray-50'}`}
+          >
+            <FileText className="w-5 h-5" />
+            <span className="font-semibold text-base">{t('receipts.title')}</span>
           </button>
         </nav>
 
@@ -896,7 +1139,8 @@ const POS: React.FC = () => {
               {activeTab === 'pos' && t('nav.pos')}
               {activeTab === 'products' && t('nav.products')}
               {activeTab === 'customers' && t('nav.customers')}
-              {activeTab === 'debts' && t('pos.debtBook')}
+              {activeTab === 'debts' && convertToLanguage('Qarz daftari', language)}
+              {activeTab === 'receipts' && t('receipts.title')}
             </h1>
           </div>
           <div className="flex items-center gap-3">
@@ -917,7 +1161,7 @@ const POS: React.FC = () => {
                 className="flex items-center gap-2 px-3 py-1.5 bg-cyan-500 rounded-lg text-white text-sm hover:bg-cyan-600 transition-colors"
               >
                 <Plus className="w-4 h-4" />
-                {t('pos.addDebt')}
+                {convertToLanguage("Qarz qo'shish", language)}
               </button>
             )}
           </div>
@@ -1105,7 +1349,10 @@ const POS: React.FC = () => {
                 {/* Mobile Layout - 2x2 Grid */}
                 <div className="grid grid-cols-2 gap-2 lg:hidden">
                   <button
-                    onClick={() => setShowSearch(true)}
+                    onClick={() => {
+                      console.log('🔘 Search button clicked (mobile)');
+                      setShowSearch(true);
+                    }}
                     className="flex items-center justify-center gap-2 px-3 py-2.5 bg-white border border-gray-200 rounded-xl text-gray-700 hover:bg-gray-50 text-sm font-medium"
                   >
                     <Search className="w-4 h-4" />
@@ -1138,7 +1385,10 @@ const POS: React.FC = () => {
                 {/* Desktop Layout - Horizontal */}
                 <div className="hidden lg:flex items-center gap-2">
                   <button
-                    onClick={() => setShowSearch(true)}
+                    onClick={() => {
+                      console.log('🔘 Search button clicked (desktop)');
+                      setShowSearch(true);
+                    }}
                     className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-full text-gray-700 hover:bg-gray-50"
                   >
                     <Search className="w-4 h-4" />
@@ -1263,7 +1513,7 @@ const POS: React.FC = () => {
         {/* Products Tab Content */}
         {activeTab === 'products' && (
           <div className="flex-1 overflow-auto bg-gray-50 p-4">
-            <ProductsTab t={t} />
+            <ProductsTab t={t} language={language} />
           </div>
         )}
 
@@ -1400,6 +1650,13 @@ const POS: React.FC = () => {
             </div>
           </div>
         )}
+
+        {/* Receipts Tab Content */}
+        {activeTab === 'receipts' && (
+          <div className="flex-1 overflow-auto bg-gray-50 p-4">
+            <ReceiptsTab t={t} language={language} />
+          </div>
+        )}
       </div>
 
       {/* Add Debt Modal */}
@@ -1493,15 +1750,7 @@ const POS: React.FC = () => {
                 <input
                   type="text"
                   value={searchQuery}
-                  onChange={(e) => {
-                    setSearchQuery(e.target.value);
-                    // Har bir o'zgarishda qidirish
-                    if (e.target.value.trim()) {
-                      handleSearch();
-                    } else {
-                      loadAllProducts();
-                    }
-                  }}
+                  onChange={(e) => setSearchQuery(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                   placeholder={t('pos.searchProduct')}
                   className="flex-1 px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:border-emerald-500"
@@ -1513,24 +1762,34 @@ const POS: React.FC = () => {
               </div>
               <div className="max-h-80 overflow-y-auto space-y-2">
                 {loading ? (
-                  <div className="text-center py-8"><div className="w-8 h-8 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin mx-auto" /></div>
+                  <div className="text-center py-8">
+                    <div className="w-8 h-8 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin mx-auto" />
+                    <p className="text-sm text-gray-500 mt-2">Yuklanmoqda...</p>
+                  </div>
                 ) : searchResults.length === 0 ? (
-                  <div className="text-center py-8 text-gray-400">{searchQuery ? t('common.notFound') : t('products.noProducts')}</div>
+                  <div className="text-center py-8 text-gray-400">
+                    {searchQuery ? t('common.notFound') : 'Mahsulotlar topilmadi'}
+                  </div>
                 ) : (
-                  searchResults.map((product) => (
-                    <button
-                      key={product.id}
-                      onClick={() => { addProductToCart(product); setShowSearch(false); setSearchQuery(''); setSearchResults([]); }}
-                      className="w-full p-3 border border-gray-100 rounded-lg hover:bg-emerald-50 hover:border-emerald-200 text-left"
-                    >
-                      <div className="font-medium text-gray-900">{convertToLanguage(product.name, language)}</div>
-                      <div className="flex justify-between text-sm text-gray-500 mt-1">
-                        <span className="font-mono">{product.barcode}</span>
-                        <span className="font-bold text-emerald-600">{product.selling_price.toLocaleString()} {t('common.sum')}</span>
-                      </div>
-                      <div className="text-xs text-gray-400 mt-1">{t('pos.inStock')}: {product.current_stock} {t('common.pcs')}</div>
-                    </button>
-                  ))
+                  <>
+                    <div className="text-xs text-gray-500 mb-2 px-1">
+                      Topildi: {searchResults.length} ta mahsulot
+                    </div>
+                    {searchResults.map((product) => (
+                      <button
+                        key={product.id}
+                        onClick={() => { addProductToCart(product); setShowSearch(false); setSearchQuery(''); setSearchResults([]); }}
+                        className="w-full p-3 border border-gray-100 rounded-lg hover:bg-emerald-50 hover:border-emerald-200 text-left"
+                      >
+                        <div className="font-medium text-gray-900">{convertToLanguage(product.name, language)}</div>
+                        <div className="flex justify-between text-sm text-gray-500 mt-1">
+                          <span className="font-mono">{product.barcode}</span>
+                          <span className="font-bold text-emerald-600">{product.selling_price.toLocaleString()} {t('common.sum')}</span>
+                        </div>
+                        <div className="text-xs text-gray-400 mt-1">{t('pos.inStock')}: {product.current_stock} {t('common.pcs')}</div>
+                      </button>
+                    ))}
+                  </>
                 )}
               </div>
             </div>
@@ -1580,111 +1839,8 @@ interface ReceiptData {
   };
 }
 
-const printReceipt = (data: ReceiptData) => {
-  const { saleNumber, date, cashierName, items, totalAmount, paymentMethod, receivedAmount, change, customerName, mixedPayment } = data;
-
-  const paymentMethodText = paymentMethod === 'cash' ? 'Naqd' :
-    paymentMethod === 'card' ? 'Karta' :
-      paymentMethod === 'mixed' ? 'Aralash' : "Bo'lib to'lash";
-
-  const receiptContent = `
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <meta charset="UTF-8">
-      <title>Chek ${saleNumber}</title>
-      <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { 
-          font-family: 'Courier New', monospace; 
-          width: 80mm; 
-          padding: 5mm;
-          font-size: 12px;
-        }
-        .header { text-align: center; margin-bottom: 10px; border-bottom: 1px dashed #000; padding-bottom: 10px; }
-        .header h1 { font-size: 18px; font-weight: bold; margin-bottom: 5px; }
-        .header p { font-size: 11px; color: #333; }
-        .info { margin: 10px 0; font-size: 11px; }
-        .info-row { display: flex; justify-content: space-between; margin: 3px 0; }
-        .items { border-top: 1px dashed #000; border-bottom: 1px dashed #000; padding: 10px 0; margin: 10px 0; }
-        .item { margin: 8px 0; }
-        .item-name { font-weight: bold; }
-        .item-details { display: flex; justify-content: space-between; font-size: 11px; color: #333; }
-        .totals { margin: 10px 0; }
-        .total-row { display: flex; justify-content: space-between; margin: 5px 0; }
-        .total-row.main { font-size: 16px; font-weight: bold; border-top: 1px solid #000; padding-top: 8px; margin-top: 8px; }
-        .footer { text-align: center; margin-top: 15px; padding-top: 10px; border-top: 1px dashed #000; font-size: 11px; }
-        .footer p { margin: 3px 0; }
-        @media print {
-          body { width: 80mm; }
-          @page { size: 80mm auto; margin: 0; }
-        }
-      </style>
-    </head>
-    <body>
-      <div class="header">
-        <h1>SOTUV CHEKI</h1>
-        <p>Do'kon nomi</p>
-      </div>
-      
-      <div class="info">
-        <div class="info-row"><span>Chek №:</span><span>${saleNumber}</span></div>
-        <div class="info-row"><span>Sana:</span><span>${date}</span></div>
-        <div class="info-row"><span>Kassir:</span><span>${cashierName}</span></div>
-        ${customerName ? `<div class="info-row"><span>Mijoz:</span><span>${customerName}</span></div>` : ''}
-      </div>
-      
-      <div class="items">
-        ${items.map((item, idx) => `
-          <div class="item">
-            <div class="item-name">${idx + 1}. ${item.name}</div>
-            <div class="item-details">
-              <span>${item.quantity} x ${item.unitPrice.toLocaleString()}</span>
-              <span>${(item.quantity * item.unitPrice).toLocaleString()} so'm</span>
-            </div>
-          </div>
-        `).join('')}
-      </div>
-      
-      <div class="totals">
-        <div class="total-row"><span>Mahsulotlar:</span><span>${items.length} ta</span></div>
-        <div class="total-row main"><span>JAMI:</span><span>${totalAmount.toLocaleString()} so'm</span></div>
-        <div class="total-row"><span>To'lov turi:</span><span>${paymentMethodText}</span></div>
-        ${paymentMethod === 'cash' ? `
-          <div class="total-row"><span>Qabul qilindi:</span><span>${receivedAmount.toLocaleString()} so'm</span></div>
-          ${change > 0 ? `<div class="total-row"><span>Qaytim:</span><span>${change.toLocaleString()} so'm</span></div>` : ''}
-        ` : ''}
-        ${paymentMethod === 'mixed' && mixedPayment ? `
-          <div class="total-row"><span>💵 Naqd:</span><span>${mixedPayment.cash.toLocaleString()} so'm</span></div>
-          <div class="total-row"><span>💳 Karta:</span><span>${mixedPayment.card.toLocaleString()} so'm</span></div>
-          <div class="total-row"><span>📅 Bo'lib to'lash:</span><span>${mixedPayment.credit.toLocaleString()} so'm</span></div>
-        ` : ''}
-      </div>
-      
-      <div class="footer">
-        <p>Xaridingiz uchun rahmat!</p>
-        <p>Yana keling!</p>
-      </div>
-      
-      <script>
-        window.onload = function() {
-          window.print();
-          setTimeout(function() { window.close(); }, 500);
-        }
-      </script>
-    </body>
-    </html>
-  `;
-
-  const printWindow = window.open('', '_blank', 'width=350,height=600');
-  if (printWindow) {
-    printWindow.document.write(receiptContent);
-    printWindow.document.close();
-  }
-};
-
 // ==================== PAYMENT MODAL ====================
-interface PaymentModalProps {
+interface PaymentModalPropsOld {
   totalAmount: number;
   cart: any[];
   customer: any;
@@ -1694,7 +1850,7 @@ interface PaymentModalProps {
   onSuccess: () => void;
 }
 
-interface CustomerOption {
+interface CustomerOptionOld {
   _id: string;
   fullName: string;
   phone?: string;
@@ -2812,11 +2968,12 @@ const AddDebtModal: React.FC<AddDebtModalProps> = ({ customers, cashierId, onClo
 };
 
 // ==================== PRODUCTS TAB ====================
-interface ProductsTabProps {
+interface ProductsTabPropsOld {
   t: (key: string) => string;
+  language: 'cyr' | 'lat';
 }
 
-const ProductsTab: React.FC<ProductsTabProps> = ({ t }) => {
+const ProductsTab: React.FC<ProductsTabProps> = ({ t, language }) => {
   const [products, setProducts] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -3179,44 +3336,44 @@ const ProductsTab: React.FC<ProductsTabProps> = ({ t }) => {
                 <input type="text" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="w-full px-4 py-3 bg-gray-50 border-0 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all" placeholder={t('products.productName')} />
               </div>
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Tavsif</label>
-                <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className="w-full px-4 py-3 bg-gray-50 border-0 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all resize-none" rows={2} placeholder="Qo'shimcha ma'lumot..." />
+                <label className="block text-sm font-semibold text-gray-700 mb-2">{convertToLanguage('Tavsif', language)}</label>
+                <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className="w-full px-4 py-3 bg-gray-50 border-0 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all resize-none" rows={2} placeholder={convertToLanguage("Qo'shimcha ma'lumot...", language)} />
               </div>
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Shtrix-kod</label>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">{convertToLanguage('Shtrix-kod', language)}</label>
                 <div className="flex gap-2">
-                  <input type="text" value={form.barcode} onChange={(e) => setForm({ ...form, barcode: e.target.value })} className="flex-1 px-4 py-3 bg-gray-50 border-0 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all" placeholder="Avtomatik yoki kiriting" readOnly />
-                  <button type="button" onClick={generateBarcode} className="px-4 py-3 bg-blue-500 text-white rounded-xl hover:bg-blue-600 transition-colors" title="Kod yaratish">
+                  <input type="text" value={form.barcode} onChange={(e) => setForm({ ...form, barcode: e.target.value })} className="flex-1 px-4 py-3 bg-gray-50 border-0 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all" placeholder={convertToLanguage("Avtomatik yoki kiriting", language)} readOnly />
+                  <button type="button" onClick={generateBarcode} className="px-4 py-3 bg-blue-500 text-white rounded-xl hover:bg-blue-600 transition-colors" title={convertToLanguage("Kod yaratish", language)}>
                     <RotateCcw className="w-5 h-5" />
                   </button>
                 </div>
-                {form.barcode && <p className="mt-2 text-sm text-gray-500">Kod: {form.barcode}</p>}
+                {form.barcode && <p className="mt-2 text-sm text-gray-500">{convertToLanguage('Kod', language)}: {form.barcode}</p>}
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Tan narxi</label>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">{convertToLanguage('Tan narxi', language)}</label>
                   <input type="number" value={form.cost_price} onChange={(e) => setForm({ ...form, cost_price: e.target.value })} className="w-full px-4 py-3 bg-gray-50 border-0 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all" placeholder="0" />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Sotish narxi *</label>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">{convertToLanguage('Sotish narxi', language)} *</label>
                   <input type="number" value={form.selling_price} onChange={(e) => setForm({ ...form, selling_price: e.target.value })} className="w-full px-4 py-3 bg-gray-50 border-0 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all" placeholder="0" />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Qoldiq</label>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">{convertToLanguage('Qoldiq', language)}</label>
                   <input type="number" value={form.current_stock} onChange={(e) => setForm({ ...form, current_stock: e.target.value })} className="w-full px-4 py-3 bg-gray-50 border-0 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all" placeholder="0" />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Min. qoldiq</label>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">{convertToLanguage('Min. qoldiq', language)}</label>
                   <input type="number" value={form.minimum_stock} onChange={(e) => setForm({ ...form, minimum_stock: e.target.value })} className="w-full px-4 py-3 bg-gray-50 border-0 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all" placeholder="5" />
                 </div>
               </div>
             </div>
             <div className="p-6 bg-gray-50 flex gap-3">
-              <button onClick={() => setShowAddModal(false)} className="flex-1 px-4 py-3 text-gray-700 bg-white rounded-xl hover:bg-gray-100 font-semibold transition-all border border-gray-200">Bekor qilish</button>
+              <button onClick={() => setShowAddModal(false)} className="flex-1 px-4 py-3 text-gray-700 bg-white rounded-xl hover:bg-gray-100 font-semibold transition-all border border-gray-200">{convertToLanguage('Bekor qilish', language)}</button>
               <button onClick={handleAddProduct} disabled={saving} className="flex-1 px-4 py-3 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-xl font-semibold disabled:opacity-50">
-                {saving ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mx-auto"></div> : "Qo'shish"}
+                {saving ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mx-auto"></div> : convertToLanguage("Qo'shish", language)}
               </button>
             </div>
           </div>
@@ -3754,4 +3911,356 @@ const CustomersTab: React.FC<CustomersTabProps> = ({ t, cashierId }) => {
   );
 };
 
+// ==================== RECEIPTS TAB ====================
+interface ReceiptsTabProps {
+  t: (key: string) => string;
+  language: 'cyr' | 'lat';
+}
+
+const ReceiptsTab: React.FC<ReceiptsTabProps> = ({ t, language }) => {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const [receipts, setReceipts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedReceipt, setSelectedReceipt] = useState<any>(null);
+
+  useEffect(() => {
+    fetchReceipts();
+  }, []);
+
+  const fetchReceipts = async () => {
+    try {
+      const token = localStorage.getItem('accessToken');
+
+      if (!token) {
+        console.warn('Token topilmadi, bo\'sh ro\'yxat ko\'rsatiladi');
+        setReceipts([]);
+        setLoading(false);
+        return;
+      }
+
+      const response = await fetch('/api/receipts/saved?source=mobile', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setReceipts(data.data || []);
+      } else if (response.status === 401) {
+        console.error('401 Unauthorized - Token noto\'g\'ri yoki muddati tugagan');
+        toast.error('Tizimga qayta kiring');
+        setReceipts([]);
+      } else {
+        console.error('Cheklar yuklash xatosi:', response.status);
+        toast.error('Cheklar yuklanmadi');
+        setReceipts([]);
+      }
+    } catch (error) {
+      console.error('Cheklar yuklash xatosi:', error);
+      toast.error('Cheklar yuklanmadi');
+      setReceipts([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleLoadToCart = async (receipt: any) => {
+    try {
+      // Savatni tozalash
+      dispatch(clearCart());
+
+      // Mahsulotlarni savatga qo'shish
+      for (const item of receipt.items) {
+        dispatch(addToCart({
+          id: item.productId,
+          productId: item.productId,
+          name: item.name,
+          unitPrice: item.price,
+          quantity: item.quantity,
+          barcode: item.barcode || '',
+          discountAmount: 0,
+        }));
+      }
+
+      // Chek statusini 'processing' ga o'zgartirish
+      const token = localStorage.getItem('accessToken');
+      await fetch(`/api/receipts/saved/${receipt._id}/status`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ status: 'processing' })
+      });
+
+      // Modalni yopish va POS tabiga o'tish
+      setSelectedReceipt(null);
+      toast.success(convertToLanguage('Mahsulotlar savatga yuklandi', language));
+
+      // POS tabiga o'tish
+      const cashierId = localStorage.getItem('selectedCashier');
+      const cashier = cashierId ? JSON.parse(cashierId) : null;
+      if (cashier) {
+        navigate(`/${cashier._id}/pos`);
+      }
+    } catch (error) {
+      console.error('Savatga yuklash xatosi:', error);
+      toast.error(convertToLanguage('Xatolik yuz berdi', language));
+    }
+  };
+
+  const filteredReceipts = receipts.filter(r =>
+    r.cashierName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    r._id.includes(searchQuery)
+  );
+
+  const formatDate = (date: string) => {
+    return new Date(date).toLocaleString('uz-UZ', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  const getStatusBadge = (status: string) => {
+    const badges: Record<string, { color: string; text: string }> = {
+      saved: { color: 'bg-blue-100 text-blue-700', text: 'Kutilmoqda' },
+      processing: { color: 'bg-amber-100 text-amber-700', text: 'Jarayonda' },
+      completed: { color: 'bg-emerald-100 text-emerald-700', text: "To'langan" },
+      cancelled: { color: 'bg-red-100 text-red-700', text: 'Bekor qilingan' },
+    };
+
+    const badge = badges[status] || badges.saved;
+    return (
+      <span className={`px-2 py-1 rounded-full text-xs font-medium ${badge.color}`}>
+        {convertToLanguage(badge.text, language)}
+      </span>
+    );
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="w-12 h-12 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      {/* Search */}
+      <div className="mb-4">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder={convertToLanguage("Kassir yoki chek ID bo'yicha qidirish...", language)}
+            className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+          />
+        </div>
+      </div>
+
+      {/* Receipts List */}
+      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        {filteredReceipts.length === 0 ? (
+          <div className="text-center py-12">
+            <FileText className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+            <p className="text-gray-500">{convertToLanguage('Cheklar topilmadi', language)}</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50 border-b border-gray-200">
+                <tr>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">
+                    {convertToLanguage('Chek ID', language)}
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">
+                    {convertToLanguage('Kassir', language)}
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">
+                    {convertToLanguage('Summa', language)}
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">
+                    {convertToLanguage('Holat', language)}
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">
+                    {convertToLanguage('Sana', language)}
+                  </th>
+                  <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600 uppercase">
+                    {convertToLanguage('Amallar', language)}
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {filteredReceipts.map((receipt) => (
+                  <tr key={receipt._id} className="hover:bg-gray-50">
+                    <td className="px-4 py-3">
+                      <span className="text-sm font-mono text-gray-600">
+                        #{receipt._id.slice(-8)}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className="text-sm font-medium text-gray-900">
+                        {convertToLanguage(receipt.cashierName || 'Noma\'lum', language)}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className="text-sm font-semibold text-gray-900">
+                        {receipt.total?.toLocaleString()} {convertToLanguage("so'm", language)}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      {getStatusBadge(receipt.status)}
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className="text-sm text-gray-600">
+                        {formatDate(receipt.createdAt)}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-center">
+                      <button
+                        onClick={() => setSelectedReceipt(receipt)}
+                        className="inline-flex items-center gap-1 px-3 py-1.5 bg-emerald-50 text-emerald-600 rounded-lg hover:bg-emerald-100 transition-colors text-sm font-medium"
+                      >
+                        <Eye className="w-4 h-4" />
+                        {convertToLanguage("Ko'rish", language)}
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {/* Receipt Detail Modal */}
+      {selectedReceipt && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-auto">
+            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-gray-900">
+                {convertToLanguage('Chek tafsilotlari', language)}
+              </h3>
+              <button
+                onClick={() => setSelectedReceipt(null)}
+                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5 text-gray-500" />
+              </button>
+            </div>
+
+            <div className="p-6">
+              {/* Receipt Info */}
+              <div className="mb-6 grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-sm text-gray-500 mb-1">{convertToLanguage('Chek ID', language)}</p>
+                  <p className="font-mono text-sm">#{selectedReceipt._id.slice(-8)}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500 mb-1">{convertToLanguage('Kassir', language)}</p>
+                  <p className="font-medium">{convertToLanguage(selectedReceipt.cashierName, language)}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500 mb-1">{convertToLanguage('Sana', language)}</p>
+                  <p className="text-sm">{formatDate(selectedReceipt.createdAt)}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500 mb-1">{convertToLanguage('Holat', language)}</p>
+                  {getStatusBadge(selectedReceipt.status)}
+                </div>
+              </div>
+
+              {/* Items */}
+              <div className="mb-6">
+                <h4 className="font-semibold text-gray-900 mb-3">{convertToLanguage('Mahsulotlar', language)}</h4>
+                <div className="border border-gray-200 rounded-lg overflow-hidden">
+                  <table className="w-full">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600">
+                          {convertToLanguage('Mahsulot', language)}
+                        </th>
+                        <th className="px-4 py-2 text-center text-xs font-semibold text-gray-600">
+                          {convertToLanguage('Miqdor', language)}
+                        </th>
+                        <th className="px-4 py-2 text-right text-xs font-semibold text-gray-600">
+                          {convertToLanguage('Narx', language)}
+                        </th>
+                        <th className="px-4 py-2 text-right text-xs font-semibold text-gray-600">
+                          {convertToLanguage('Jami', language)}
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-200">
+                      {selectedReceipt.items?.map((item: any, index: number) => (
+                        <tr key={index}>
+                          <td className="px-4 py-2 text-sm">{convertToLanguage(item.name, language)}</td>
+                          <td className="px-4 py-2 text-sm text-center">{item.quantity}</td>
+                          <td className="px-4 py-2 text-sm text-right">{item.price?.toLocaleString()}</td>
+                          <td className="px-4 py-2 text-sm text-right font-medium">
+                            {(item.quantity * item.price)?.toLocaleString()}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                    <tfoot className="bg-gray-50 border-t-2 border-gray-300">
+                      <tr>
+                        <td colSpan={3} className="px-4 py-3 text-right font-semibold text-gray-900">
+                          {convertToLanguage('Jami:', language)}
+                        </td>
+                        <td className="px-4 py-3 text-right font-bold text-emerald-600 text-lg">
+                          {selectedReceipt.total?.toLocaleString()} {convertToLanguage("so'm", language)}
+                        </td>
+                      </tr>
+                    </tfoot>
+                  </table>
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setSelectedReceipt(null)}
+                  className="px-4 py-2.5 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 font-medium transition-colors"
+                >
+                  {convertToLanguage('Yopish', language)}
+                </button>
+
+                {selectedReceipt.status === 'saved' && (
+                  <button
+                    onClick={() => handleLoadToCart(selectedReceipt)}
+                    className="flex-1 px-4 py-2.5 bg-blue-500 text-white rounded-xl hover:bg-blue-600 font-medium transition-colors flex items-center justify-center gap-2"
+                  >
+                    <ShoppingCart className="w-5 h-5" />
+                    {convertToLanguage('Savatga yuklash', language)}
+                  </button>
+                )}
+
+                <button
+                  onClick={() => window.print()}
+                  className="px-4 py-2.5 bg-emerald-500 text-white rounded-xl hover:bg-emerald-600 font-medium transition-colors flex items-center justify-center gap-2"
+                >
+                  <Printer className="w-5 h-5" />
+                  {convertToLanguage('Chop etish', language)}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 export default POS;
+

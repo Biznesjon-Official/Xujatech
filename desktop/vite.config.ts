@@ -14,12 +14,19 @@ export default defineConfig({
     host: '0.0.0.0',
     hmr: {
       port: 3001,
+      overlay: true,
     },
     proxy: {
       '/api': {
-        target: 'http://192.168.1.8:3006',
+        target: 'http://localhost:3006',
         changeOrigin: true,
       },
+    },
+    // Keshni butunlay o'chirish
+    headers: {
+      'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0',
     },
   },
   build: {
@@ -34,12 +41,14 @@ export default defineConfig({
         },
       },
     },
-    // PWA uchun service worker va manifest fayllarini copy qilish
     copyPublicDir: true,
   },
-  // PWA uchun public papkadagi fayllarni to'g'ri serve qilish
   publicDir: 'public',
   define: {
     'import.meta.env.VITE_API_URL': JSON.stringify(process.env.VITE_API_URL || 'http://localhost:3006'),
+  },
+  // Development rejimida keshni o'chirish
+  optimizeDeps: {
+    force: true,
   },
 });

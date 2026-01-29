@@ -48,13 +48,18 @@ const MobilePOS: React.FC<MobilePOSProps> = ({ cashierId, cashierName }) => {
   const { cart, totalAmount } = useSelector((state: RootState) => state.pos);
   const { isOnline } = useSelector((state: RootState) => state.sync);
   const { t, language } = useLanguage();
-  
+
   const [showScanner, setShowScanner] = useState(false);
   const [showSavedReceipts, setShowSavedReceipts] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+
+  // Debug: searchResults o'zgarishini kuzatish
+  useEffect(() => {
+    console.log('🔄 MobilePOS searchResults changed:', searchResults.length, searchResults);
+  }, [searchResults]);
   const [sending, setSending] = useState(false);
   const [savedReceiptsCount, setSavedReceiptsCount] = useState(0);
 
@@ -94,15 +99,15 @@ const MobilePOS: React.FC<MobilePOSProps> = ({ cashierId, cashierName }) => {
    */
   const handleScan = async (code: string) => {
     setShowScanner(false);
-    
+
     if (!code?.trim()) {
       toast.error(t('pos.productNotFound'));
       return;
     }
-    
+
     // Mahsulotni qidirish
     const result = await handleScanResult(code);
-    
+
     if (result.found) {
       // Mahsulot topildi — chekka qo'shish
       addProductToCart(result.product);
@@ -116,15 +121,15 @@ const MobilePOS: React.FC<MobilePOSProps> = ({ cashierId, cashierName }) => {
   // Mahsulotni savatga qo'shish
   const addProductToCart = (product: { id: string; barcode: string; name: string; sellingPrice: number; currentStock: number }) => {
     const existingItem = cart.find((item) => item.productId === product.id);
-    
+
     if (existingItem) {
       if (existingItem.quantity >= product.currentStock) {
         toast.error(t('pos.insufficientStock'));
         return;
       }
-      dispatch(updateCartItemQuantity({ 
-        id: existingItem.id, 
-        quantity: existingItem.quantity + 1 
+      dispatch(updateCartItemQuantity({
+        id: existingItem.id,
+        quantity: existingItem.quantity + 1
       }));
     } else {
       if (product.currentStock < 1) {
@@ -146,17 +151,25 @@ const MobilePOS: React.FC<MobilePOSProps> = ({ cashierId, cashierName }) => {
 
   // Mahsulotlarni qidirish (kod/shtrix-kod bo'yicha)
   const handleSearch = async (query?: string) => {
+    console.log('🔍 MobilePOS handleSearch called, query:', query);
+    console.log('🌐 isOnline:', isOnline);
+
     setLoading(true);
     try {
       let allProducts: any[] = [];
-      
-      if (isOnline) {
-        // Internet bor - MongoDB dan olish
+
+      // Har doim API'dan olishga harakat qilish
+      try {
+        console.log('📡 Trying to fetch from API...');
         allProducts = await apiService.getProducts();
+        console.log('✅ Products from API:', allProducts.length);
         // getProducts ichida allaqachon IndexedDB ga saqlanadi
-      } else {
+      } catch (apiError) {
+        console.warn('⚠️ API fetch failed, falling back to IndexedDB:', apiError);
         // Offline - IndexedDB dan olish
+        console.log('💾 Loading from IndexedDB...');
         const offlineProducts = await offlineStorage.getProducts();
+        console.log('✅ Products from IndexedDB:', offlineProducts.length);
         allProducts = offlineProducts.map(p => ({
           id: p.id,
           barcode: p.barcode,
@@ -165,23 +178,26 @@ const MobilePOS: React.FC<MobilePOSProps> = ({ cashierId, cashierName }) => {
           current_stock: p.current_stock,
         }));
       }
-      
+
       if (query && query.trim()) {
         // Kod bo'yicha qisman moslik
         const q = query.trim().toLowerCase();
-        const filtered = allProducts.filter(p => 
+        const filtered = allProducts.filter(p =>
           p.barcode?.toLowerCase().includes(q) ||
           p.name?.toLowerCase().includes(q)
         );
+        console.log('🔎 Filtered results:', filtered.length);
         setSearchResults(filtered);
       } else {
         // Bo'sh bo'lsa - barcha mahsulotlar
+        console.log('📋 Showing all products:', allProducts.length);
         setSearchResults(allProducts);
       }
     } catch (error) {
-      console.error('Qidirish xatosi:', error);
+      console.error('❌ Search error:', error);
       // Fallback to IndexedDB
       const offlineProducts = await offlineStorage.getProducts();
+      console.log('💾 Fallback to IndexedDB:', offlineProducts.length);
       const mapped = offlineProducts.map(p => ({
         id: p.id,
         barcode: p.barcode,
@@ -189,10 +205,10 @@ const MobilePOS: React.FC<MobilePOSProps> = ({ cashierId, cashierName }) => {
         selling_price: p.selling_price,
         current_stock: p.current_stock,
       }));
-      
+
       if (query && query.trim()) {
         const q = query.trim().toLowerCase();
-        setSearchResults(mapped.filter(p => 
+        setSearchResults(mapped.filter(p =>
           p.barcode?.toLowerCase().includes(q) ||
           p.name?.toLowerCase().includes(q)
         ));
@@ -206,20 +222,27 @@ const MobilePOS: React.FC<MobilePOSProps> = ({ cashierId, cashierName }) => {
 
   // Qidiruv ochilganda mahsulotlarni yuklash
   useEffect(() => {
+    console.log('🔍 MobilePOS useEffect: showSearch changed to', showSearch);
     if (showSearch) {
+      console.log('  → Calling handleSearch');
       handleSearch('');
     }
   }, [showSearch]);
 
   // Chekni yuborish (saqlash)
   const handleSendReceipt = async () => {
+    console.log('📤 handleSendReceipt called');
+    console.log('  → Cart items:', cart.length);
+    console.log('  → Total amount:', totalAmount);
+    
     if (cart.length === 0) {
       toast.error(t('pos.emptyCart'));
       return;
     }
 
     setSending(true);
-    
+    console.log('  → Sending state set to true');
+
     try {
       // Chek obyektini shakllantirish
       const receipt: SavedReceipt = {
@@ -240,40 +263,52 @@ const MobilePOS: React.FC<MobilePOSProps> = ({ cashierId, cashierName }) => {
         synced: false,
       };
 
+      console.log('  → Receipt object created:', receipt);
+
       // Har doim IndexedDB ga saqlash (offline backup)
+      console.log('  → Saving to IndexedDB...');
       await offlineStorage.saveSavedReceipt(receipt);
+      console.log('  ✅ Saved to IndexedDB');
 
       // Internet bor bo'lsa MongoDB ga ham yuborish
-      if (isOnline) {
-        try {
-          const token = localStorage.getItem('accessToken');
-          const response = await fetch('/api/receipts/saved', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify(receipt),
-          });
-          
-          if (response.ok) {
-            await offlineStorage.markSavedReceiptAsSynced(receipt.id);
-            toast.success(t('pos.receiptSaved'));
-          } else {
-            toast.success(t('pos.receiptSaved') + ' (lokal)');
-          }
-        } catch (error) {
-          console.log('Chek lokal saqlandi, keyinroq sinxronlanadi');
+      console.log('  → isOnline:', isOnline);
+      
+      // isOnline noto'g'ri bo'lishi mumkin, shuning uchun har doim serverga yuborishga harakat qilamiz
+      try {
+        const token = localStorage.getItem('accessToken');
+        console.log('  → Token:', token ? 'exists' : 'missing');
+        console.log('  → Sending to server...');
+        
+        const response = await fetch('/api/receipts/saved', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(receipt),
+        });
+
+        console.log('  → Server response status:', response.status);
+        const responseData = await response.json();
+        console.log('  → Server response data:', responseData);
+
+        if (response.ok) {
+          await offlineStorage.markSavedReceiptAsSynced(receipt.id);
+          console.log('  ✅ Receipt synced');
+          toast.success(t('pos.receiptSaved'));
+        } else {
+          console.warn('  ⚠️ Server error, saved locally');
           toast.success(t('pos.receiptSaved') + ' (lokal)');
         }
-      } else {
-        toast.success(t('pos.receiptSaved') + ' (offline)');
+      } catch (error) {
+        console.error('  ❌ Server error:', error);
+        toast.success(t('pos.receiptSaved') + ' (lokal)');
       }
 
       // Savatni tozalash
       dispatch(clearCart());
       loadSavedReceiptsCount();
-      
+
     } catch (error) {
       console.error('Chek saqlash xatosi:', error);
       toast.error(t('errors.somethingWentWrong'));
@@ -288,7 +323,7 @@ const MobilePOS: React.FC<MobilePOSProps> = ({ cashierId, cashierName }) => {
     if (!item) return;
 
     const newQuantity = item.quantity + delta;
-    
+
     if (newQuantity <= 0) {
       dispatch(removeFromCart(itemId));
     } else {
@@ -375,7 +410,7 @@ const MobilePOS: React.FC<MobilePOSProps> = ({ cashierId, cashierName }) => {
                       <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
-                  
+
                   <div className="flex items-center justify-between">
                     {/* Miqdor boshqaruvi */}
                     <div className="flex items-center gap-2">
@@ -395,7 +430,7 @@ const MobilePOS: React.FC<MobilePOSProps> = ({ cashierId, cashierName }) => {
                         <Plus className="w-4 h-4" />
                       </button>
                     </div>
-                    
+
                     {/* Narx */}
                     <div className="text-right">
                       <p className="font-bold text-gray-900">
@@ -428,7 +463,10 @@ const MobilePOS: React.FC<MobilePOSProps> = ({ cashierId, cashierName }) => {
           <div className="grid grid-cols-2 gap-3">
             {/* Qidirish tugmasi */}
             <button
-              onClick={() => setShowSearch(true)}
+              onClick={() => {
+                console.log('🔘 MobilePOS: Search button clicked');
+                setShowSearch(true);
+              }}
               className="flex items-center justify-center gap-2 py-3 bg-gray-100 rounded-xl font-medium text-gray-700 hover:bg-gray-200 transition-colors active:scale-95"
             >
               <Search className="w-5 h-5" />
@@ -481,11 +519,11 @@ const MobilePOS: React.FC<MobilePOSProps> = ({ cashierId, cashierName }) => {
 
       {/* Qidiruv modali */}
       {showSearch && (
-        <div 
+        <div
           className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
           onClick={() => setShowSearch(false)}
         >
-          <div 
+          <div
             className="bg-white rounded-3xl w-full max-w-lg max-h-[80vh] overflow-hidden animate-slideUp"
             onClick={(e) => e.stopPropagation()}
           >

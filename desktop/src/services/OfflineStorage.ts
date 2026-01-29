@@ -67,7 +67,7 @@ export interface SavedReceipt {
 
 class OfflineStorage {
   private dbName = 'xujatech_pos_offline';
-  private dbVersion = 2; // Увеличена версия для добавления saved_receipts store
+  private dbVersion = 3; // Versiya oshirildi: barcode index unique emas
   private db: IDBDatabase | null = null;
 
   // IndexedDB ni ishga tushirish
@@ -83,12 +83,25 @@ class OfflineStorage {
 
       request.onupgradeneeded = (event) => {
         const db = (event.target as IDBOpenDBRequest).result;
+        const oldVersion = event.oldVersion;
 
         // Products store
         if (!db.objectStoreNames.contains('products')) {
           const productStore = db.createObjectStore('products', { keyPath: 'id' });
-          productStore.createIndex('barcode', 'barcode', { unique: true });
+          productStore.createIndex('barcode', 'barcode', { unique: false }); // Bir xil barcode bo'lishi mumkin
           productStore.createIndex('name', 'name', { unique: false });
+        } else if (oldVersion < 3) {
+          // Version 3: barcode index'ini unique'dan oddiy index'ga o'zgartirish
+          const transaction = (event.target as IDBOpenDBRequest).transaction!;
+          const productStore = transaction.objectStore('products');
+          
+          // Eski index'ni o'chirish
+          if (productStore.indexNames.contains('barcode')) {
+            productStore.deleteIndex('barcode');
+          }
+          
+          // Yangi index yaratish (unique: false)
+          productStore.createIndex('barcode', 'barcode', { unique: false });
         }
 
         // Customers store
@@ -127,28 +140,39 @@ class OfflineStorage {
   // ==================== PRODUCTS ====================
 
   async saveProducts(products: Product[]): Promise<void> {
-    if (!this.db) await this.init();
-    const tx = this.db!.transaction('products', 'readwrite');
-    const store = tx.objectStore('products');
+    try {
+      if (!this.db) await this.init();
+      const tx = this.db!.transaction('products', 'readwrite');
+      const store = tx.objectStore('products');
 
-    // Avval eski mahsulotlarni tozalash (o'chirilganlarni olib tashlash uchun)
-    store.clear();
+      // Avval eski mahsulotlarni tozalash (o'chirilganlarni olib tashlash uchun)
+      store.clear();
 
-    for (const product of products) {
-      // MongoDB _id ni id ga o'zgartirish
-      const productToSave = {
-        ...product,
-        id: product.id || (product as any)._id,
-      };
-      if (productToSave.id) {
-        store.put(productToSave);
+      for (const product of products) {
+        // MongoDB _id ni id ga o'zgartirish
+        const productToSave = {
+          ...product,
+          id: product.id || (product as any)._id,
+        };
+        if (productToSave.id) {
+          store.put(productToSave);
+        }
       }
-    }
 
-    return new Promise((resolve, reject) => {
-      tx.oncomplete = () => resolve();
-      tx.onerror = () => reject(tx.error);
-    });
+      return new Promise((resolve, reject) => {
+        tx.oncomplete = () => {
+          console.log('✅ IndexedDB transaction completed');
+          resolve();
+        };
+        tx.onerror = () => {
+          console.error('❌ IndexedDB transaction error:', tx.error);
+          reject(tx.error || new Error('IndexedDB transaction failed'));
+        };
+      });
+    } catch (error) {
+      console.error('❌ saveProducts error:', error);
+      throw error;
+    }
   }
 
   async getProducts(): Promise<Product[]> {

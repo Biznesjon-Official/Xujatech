@@ -40,6 +40,7 @@ function App() {
             <Route path="/:cashierId/pos/products" element={<POS />} />
             <Route path="/:cashierId/pos/customers" element={<POS />} />
             <Route path="/:cashierId/pos/debts" element={<POS />} />
+            <Route path="/:cashierId/pos/receipts" element={<POS />} />
             
             {/* Admin Panel */}
             <Route path="/admin" element={<Layout />}>

@@ -1,5 +1,5 @@
 // XUJATECH POS Service Worker
-const CACHE_NAME = 'xujatech-pos-v2'; // Versiya yangilandi
+const CACHE_NAME = 'xujatech-pos-v3'; // Versiya yangilandi
 const OFFLINE_URL = '/offline.html';
 
 // Keshlanadigan statik resurslar

@@ -178,10 +178,10 @@ const History: React.FC = () => {
 
   const getPaymentMethodLabel = (method: string) => {
     switch (method) {
-      case 'cash': return 'Naqd';
-      case 'card': return 'Karta';
-      case 'transfer': return "O'tkazma";
-      case 'debt': return 'Qarz';
+      case 'cash': return convertToLanguage('Naqd', language);
+      case 'card': return convertToLanguage('Karta', language);
+      case 'transfer': return convertToLanguage("O'tkazma", language);
+      case 'debt': return convertToLanguage('Qarz', language);
       default: return method;
     }
   };
@@ -227,7 +227,7 @@ const History: React.FC = () => {
               }`}
             >
               <ShoppingCart className="w-4 h-4" />
-              {t('history.salesHistory')}
+              {convertToLanguage('Sotuv tarixi', language)}
             </button>
             <button
               onClick={() => setActiveTab('debts')}
@@ -238,7 +238,7 @@ const History: React.FC = () => {
               }`}
             >
               <CreditCard className="w-4 h-4" />
-              {t('history.debtHistory')}
+              {convertToLanguage('Qarz tarixi', language)}
             </button>
           </div>
 
@@ -250,7 +250,7 @@ const History: React.FC = () => {
                 type="text" 
                 value={searchQuery} 
                 onChange={(e) => setSearchQuery(e.target.value)} 
-                placeholder={t('common.search') + '...'} 
+                placeholder={convertToLanguage('Qidirish', language) + '...'} 
                 className="w-full pl-10 pr-4 py-2.5 bg-gray-100/80 border-0 rounded-xl text-sm focus:ring-2 focus:ring-emerald-500/50 focus:bg-white transition-all" 
               />
             </div>
@@ -263,9 +263,9 @@ const History: React.FC = () => {
               >
                 <Calendar className="w-4 h-4" />
                 <span className="hidden sm:inline">
-                  {dateFilter === 'today' ? t('history.today') : 
-                   dateFilter === 'week' ? t('history.week') : 
-                   dateFilter === 'month' ? t('history.month') : t('history.all')}
+                  {dateFilter === 'today' ? convertToLanguage('Bugun', language) : 
+                   dateFilter === 'week' ? convertToLanguage('Hafta', language) : 
+                   dateFilter === 'month' ? convertToLanguage('Oy', language) : convertToLanguage('Hammasi', language)}
                 </span>
                 <ChevronDown className="w-4 h-4" />
               </button>
@@ -273,10 +273,10 @@ const History: React.FC = () => {
               {showDatePicker && (
                 <div className="absolute right-0 top-full mt-2 bg-white rounded-xl shadow-xl border border-gray-200 py-2 z-10 min-w-[150px]">
                   {[
-                    { value: 'today', label: t('history.today') },
-                    { value: 'week', label: t('history.week') },
-                    { value: 'month', label: t('history.month') },
-                    { value: 'all', label: t('history.all') },
+                    { value: 'today', label: convertToLanguage('Bugun', language) },
+                    { value: 'week', label: convertToLanguage('Hafta', language) },
+                    { value: 'month', label: convertToLanguage('Oy', language) },
+                    { value: 'all', label: convertToLanguage('Hammasi', language) },
                   ].map(option => (
                     <button
                       key={option.value}
@@ -305,7 +305,7 @@ const History: React.FC = () => {
                   <ShoppingCart className="w-4 h-4 text-blue-600" />
                 </div>
                 <div>
-                  <p className="text-xs text-gray-500">{t('history.totalSales')}</p>
+                  <p className="text-xs text-gray-500">{convertToLanguage('Jami sotuvlar', language)}</p>
                   <p className="text-lg font-bold text-gray-900">{salesStats.total}</p>
                 </div>
               </div>
@@ -316,7 +316,7 @@ const History: React.FC = () => {
                   <DollarSign className="w-4 h-4 text-emerald-600" />
                 </div>
                 <div>
-                  <p className="text-xs text-gray-500">{t('history.cash')}</p>
+                  <p className="text-xs text-gray-500">{convertToLanguage('Naqd', language)}</p>
                   <p className="text-lg font-bold text-emerald-600">{formatMoney(salesStats.cash)}</p>
                 </div>
               </div>
@@ -327,7 +327,7 @@ const History: React.FC = () => {
                   <CreditCard className="w-4 h-4 text-blue-600" />
                 </div>
                 <div>
-                  <p className="text-xs text-gray-500">{t('history.card')}</p>
+                  <p className="text-xs text-gray-500">{convertToLanguage('Karta', language)}</p>
                   <p className="text-lg font-bold text-blue-600">{formatMoney(salesStats.card)}</p>
                 </div>
               </div>
@@ -338,7 +338,7 @@ const History: React.FC = () => {
                   <TrendingUp className="w-4 h-4 text-white" />
                 </div>
                 <div>
-                  <p className="text-xs text-white/80">{t('history.totalAmount')}</p>
+                  <p className="text-xs text-white/80">{convertToLanguage('Umumiy summa', language)}</p>
                   <p className="text-lg font-bold text-white">{formatMoney(salesStats.totalAmount)}</p>
                 </div>
               </div>
@@ -352,7 +352,7 @@ const History: React.FC = () => {
                   <TrendingUp className="w-4 h-4 text-red-600" />
                 </div>
                 <div>
-                  <p className="text-xs text-gray-500">{t('history.debtGiven')}</p>
+                  <p className="text-xs text-gray-500">Berilgan qarzlar</p>
                   <p className="text-lg font-bold text-red-600">{debtStats.addedCount}</p>
                 </div>
               </div>
@@ -363,7 +363,7 @@ const History: React.FC = () => {
                   <TrendingDown className="w-4 h-4 text-emerald-600" />
                 </div>
                 <div>
-                  <p className="text-xs text-gray-500">{t('history.debtPaid')}</p>
+                  <p className="text-xs text-gray-500">To'langan qarzlar</p>
                   <p className="text-lg font-bold text-emerald-600">{debtStats.paidCount}</p>
                 </div>
               </div>
@@ -374,7 +374,7 @@ const History: React.FC = () => {
                   <TrendingUp className="w-4 h-4 text-white" />
                 </div>
                 <div>
-                  <p className="text-xs text-white/80">{t('history.debtGiven')}</p>
+                  <p className="text-xs text-white/80">Berilgan qarzlar</p>
                   <p className="text-lg font-bold text-white">{formatMoney(debtStats.totalAdded)}</p>
                 </div>
               </div>
@@ -385,7 +385,7 @@ const History: React.FC = () => {
                   <TrendingDown className="w-4 h-4 text-white" />
                 </div>
                 <div>
-                  <p className="text-xs text-white/80">{t('history.debtPaid')}</p>
+                  <p className="text-xs text-white/80">To'langan qarzlar</p>
                   <p className="text-lg font-bold text-white">{formatMoney(debtStats.totalPaid)}</p>
                 </div>
               </div>
@@ -409,7 +409,7 @@ const History: React.FC = () => {
                   <div className="w-20 h-20 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
                     <ShoppingCart className="w-10 h-10 text-gray-300" />
                   </div>
-                  <p className="text-gray-500 font-medium">{t('history.noSales')}</p>
+                  <p className="text-gray-500 font-medium">{convertToLanguage('Sotuvlar topilmadi', language)}</p>
                 </div>
               ) : (
                 <div className="divide-y divide-gray-100">
@@ -477,7 +477,7 @@ const History: React.FC = () => {
                   <div className="w-20 h-20 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
                     <CreditCard className="w-10 h-10 text-gray-300" />
                   </div>
-                  <p className="text-gray-500 font-medium">{t('history.noDebtHistory')}</p>
+                  <p className="text-gray-500 font-medium">Qarz tarixi topilmadi</p>
                 </div>
               ) : (
                 <div className="divide-y divide-gray-100">
