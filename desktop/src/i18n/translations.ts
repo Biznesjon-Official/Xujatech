@@ -514,6 +514,10 @@ export const translations = {
   'deliveries.deliverySaved': 'Yetkazib berish saqlandi',
   'deliveries.deliveryDeleted': "Yetkazib berish o'chirildi",
   'deliveries.confirmDelete': "Yetkazib berishni o'chirishni tasdiqlaysizmi?",
+  'deliveries.supplierName': "Ta'minotchi nomi",
+  'deliveries.supplierPhone': "Ta'minotchi telefoni",
+  'deliveries.products': 'Mahsulotlar',
+  'deliveries.searchProducts': 'Mahsulot qidirish',
 
   // ==================== SKANER ====================
   'scanner.permissionDenied': 'Kameraga ruxsat berilmagan',
