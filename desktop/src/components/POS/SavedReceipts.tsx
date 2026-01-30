@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import offlineStorage from '../../services/OfflineStorage';
+import socketService from '../../services/SocketService';
 import { useLanguage } from '../../i18n';
 import { convertToLanguage } from '../../utils/transliterate';
 
@@ -52,6 +53,7 @@ interface SavedReceiptsProps {
 const SavedReceipts: React.FC<SavedReceiptsProps> = ({ isOpen, onClose, onReceiptLoaded }) => {
   const dispatch = useDispatch();
   const { isOnline } = useSelector((state: RootState) => state.sync);
+  const { user } = useSelector((state: RootState) => state.auth);
   const { t, language } = useLanguage();
   const [receipts, setReceipts] = useState<SavedReceipt[]>([]);
   const [loading, setLoading] = useState(true);
@@ -62,6 +64,37 @@ const SavedReceipts: React.FC<SavedReceiptsProps> = ({ isOpen, onClose, onReceip
       loadReceipts();
     }
   }, [isOpen]);
+
+  // 🔥 Socket.IO real-time yangilanishlar
+  useEffect(() => {
+    const cashierId = user?.id;
+    if (!cashierId) return;
+
+    // Socket.IO ga ulanish
+    socketService.connect(cashierId);
+
+    // Yangi chek saqlanganda
+    socketService.onReceiptSaved((receipt) => {
+      console.log('🔔 New receipt saved:', receipt);
+      toast.success('Yangi chek saqlandi!', { icon: '📥' });
+      
+      // Ro'yxatga qo'shish
+      setReceipts((prev) => [receipt, ...prev]);
+    });
+
+    // Chek o'chirilganda
+    socketService.onReceiptDeleted((receiptId) => {
+      console.log('🔔 Receipt deleted:', receiptId);
+      
+      // Ro'yxatdan o'chirish
+      setReceipts((prev) => prev.filter((r) => r.id !== receiptId));
+    });
+
+    // Cleanup
+    return () => {
+      socketService.removeAllListeners();
+    };
+  }, [user?.id]);
 
   const loadReceipts = async () => {
     setLoading(true);

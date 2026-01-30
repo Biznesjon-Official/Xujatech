@@ -21,6 +21,11 @@ export default defineConfig({
         target: 'http://localhost:3006',
         changeOrigin: true,
       },
+      '/socket.io': {
+        target: 'http://localhost:3006',
+        changeOrigin: true,
+        ws: true,
+      },
     },
     // Keshni butunlay o'chirish
     headers: {

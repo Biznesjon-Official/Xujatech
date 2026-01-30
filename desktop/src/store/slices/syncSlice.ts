@@ -9,7 +9,7 @@ interface SyncState {
 }
 
 const initialState: SyncState = {
-  isOnline: false,
+  isOnline: navigator.onLine, // Brauzer holatidan boshlash
   lastSync: null,
   pendingOperations: 0,
   syncInProgress: false,

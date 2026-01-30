@@ -17,7 +17,10 @@ class ApiService {
     window.addEventListener('online', () => this.setOnline(true));
     window.addEventListener('offline', () => this.setOnline(false));
 
-    // Dastlabki holat
+    // Dastlabki holat - navigator.onLine ni ishlatish
+    this.isOnline = navigator.onLine;
+    
+    // Server bilan aloqani tekshirish (background)
     this.checkConnection();
   }
 

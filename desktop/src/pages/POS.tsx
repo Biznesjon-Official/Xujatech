@@ -46,6 +46,7 @@ import toast from 'react-hot-toast';
 import Barcode from 'react-barcode';
 import apiService from '../services/ApiService';
 import offlineStorage, { SavedReceipt } from '../services/OfflineStorage';
+import socketService from '../services/SocketService';
 import { useLanguage } from '../i18n';
 import { convertToLanguage } from '../utils/transliterate';
 import { useMobileDetect } from '../hooks/useMobileDetect';
@@ -292,11 +293,33 @@ const POS: React.FC = () => {
   // Effects - должны быть до любого return
   useEffect(() => {
     console.log('🔌 useEffect 1: apiService.onStatusChange');
+    
+    // Dastlabki holatni o'rnatish
+    const initialStatus = apiService.getStatus();
+    dispatch(setOnlineStatus(initialStatus.isOnline));
+    console.log('📡 Initial online status:', initialStatus.isOnline);
+    
+    // Holatni kuzatish
     const unsubscribe = apiService.onStatusChange((online) => {
+      console.log('📡 Online status changed:', online);
       dispatch(setOnlineStatus(online));
     });
     return unsubscribe;
   }, [dispatch]);
+
+  // 🔥 Socket.IO ulanish
+  useEffect(() => {
+    const currentCashierId = cashierId || selectedCashier?._id || user?.id;
+    if (currentCashierId) {
+      console.log('🔌 Connecting to Socket.IO for cashier:', currentCashierId);
+      socketService.connect(currentCashierId);
+    }
+
+    return () => {
+      console.log('🔌 Disconnecting Socket.IO');
+      socketService.disconnect();
+    };
+  }, [cashierId, selectedCashier?._id, user?.id]);
 
   useEffect(() => {
     console.log('📍 useEffect 2: location.pathname changed to', location.pathname);
@@ -1346,39 +1369,39 @@ const POS: React.FC = () => {
 
               {/* Bottom Actions */}
               <div className="px-3 py-3 bg-gray-50 border-t border-gray-200">
-                {/* Mobile Layout - 2x2 Grid */}
+                {/* Mobile Layout - Compact 2x2 Grid */}
                 <div className="grid grid-cols-2 gap-2 lg:hidden">
                   <button
                     onClick={() => {
                       console.log('🔘 Search button clicked (mobile)');
                       setShowSearch(true);
                     }}
-                    className="flex items-center justify-center gap-2 px-3 py-2.5 bg-white border border-gray-200 rounded-xl text-gray-700 hover:bg-gray-50 text-sm font-medium"
+                    className="flex items-center justify-center gap-1.5 px-2 py-2 bg-white border border-gray-200 rounded-lg text-gray-700 hover:bg-gray-50 text-xs font-medium active:scale-95 transition-all"
                   >
-                    <Search className="w-4 h-4" />
-                    {t('common.search')}
+                    <Search className="w-3.5 h-3.5" />
+                    <span className="truncate">{t('common.search')}</span>
                   </button>
                   <button
                     onClick={() => dispatch(clearCart())}
-                    className="flex items-center justify-center gap-2 px-3 py-2.5 bg-white border border-orange-200 rounded-xl text-orange-500 hover:bg-orange-50 text-sm font-medium"
+                    className="flex items-center justify-center gap-1.5 px-2 py-2 bg-white border border-orange-200 rounded-lg text-orange-500 hover:bg-orange-50 text-xs font-medium active:scale-95 transition-all"
                   >
-                    <RotateCcw className="w-4 h-4" />
-                    {t('pos.clearCart')}
+                    <RotateCcw className="w-3.5 h-3.5" />
+                    <span className="truncate">{t('pos.clearCart')}</span>
                   </button>
                   <button
                     onClick={handleSaveReceipt}
-                    className="flex items-center justify-center gap-2 px-3 py-2.5 bg-white border border-gray-200 rounded-xl text-gray-700 hover:bg-gray-50 text-sm font-medium"
+                    className="flex items-center justify-center gap-1.5 px-2 py-2 bg-white border border-gray-200 rounded-lg text-gray-700 hover:bg-gray-50 text-xs font-medium active:scale-95 transition-all"
                   >
-                    <Save className="w-4 h-4" />
-                    {t('common.save')}
+                    <Save className="w-3.5 h-3.5" />
+                    <span className="truncate">{t('common.save')}</span>
                   </button>
                   <button
                     onClick={handlePayment}
                     disabled={cart.length === 0}
-                    className="flex items-center justify-center gap-2 px-3 py-2.5 bg-emerald-500 rounded-xl text-white font-semibold hover:bg-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                    className="flex items-center justify-center gap-1.5 px-2 py-2 bg-emerald-500 rounded-lg text-white font-semibold hover:bg-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed text-xs active:scale-95 transition-all"
                   >
-                    <CreditCard className="w-4 h-4" />
-                    {t('pos.payment')}
+                    <CreditCard className="w-3.5 h-3.5" />
+                    <span className="truncate">{t('pos.payment')}</span>
                   </button>
                 </div>
 

@@ -6,6 +6,7 @@
 import { Router, Request, Response } from 'express';
 import { SavedReceipt } from '../models/SavedReceipt';
 import { authenticateToken, AuthRequest } from '../middleware/auth';
+import { notifySavedReceipt, notifyReceiptDeleted, notifyReceiptOpened } from '../services/socket.service';
 
 const router = Router();
 
@@ -126,6 +127,12 @@ router.post('/saved', authenticateToken, async (req: AuthRequest, res: Response)
 
     await receipt.save();
 
+    // 🔥 Real-time xabar yuborish
+    const targetCashierId = cashierId || (req as any).user?.userId;
+    if (targetCashierId) {
+      notifySavedReceipt(targetCashierId, receipt);
+    }
+
     res.status(201).json({ success: true, data: receipt });
   } catch (error: any) {
     console.error('Chek yaratish xatosi:', error);
@@ -204,12 +211,17 @@ router.post('/saved/:id/claim', authenticateToken, async (req: AuthRequest, res:
 });
 
 // Saqlangan chekni o'chirish
-router.delete('/saved/:id', authenticateToken, async (req: Request, res: Response) => {
+router.delete('/saved/:id', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
     const receipt = await SavedReceipt.findByIdAndDelete(req.params.id);
 
     if (!receipt) {
       return res.status(404).json({ success: false, message: 'Chek topilmadi' });
+    }
+
+    // 🔥 Real-time xabar yuborish
+    if (receipt.cashierId) {
+      notifyReceiptDeleted(receipt.cashierId.toString(), req.params.id);
     }
 
     res.json({ success: true, message: 'Chek o\'chirildi' });

@@ -33,6 +33,7 @@ import toast from 'react-hot-toast';
 import offlineStorage, { SavedReceipt } from '../../services/OfflineStorage';
 import { handleScanResult } from '../../services/ScannerService';
 import apiService from '../../services/ApiService';
+import socketService from '../../services/SocketService';
 import BarcodeScanner from './BarcodeScanner';
 import SavedReceipts from './SavedReceipts';
 import { useLanguage } from '../../i18n';
@@ -63,10 +64,37 @@ const MobilePOS: React.FC<MobilePOSProps> = ({ cashierId, cashierName }) => {
   const [sending, setSending] = useState(false);
   const [savedReceiptsCount, setSavedReceiptsCount] = useState(0);
 
+  // 📡 Online status initialization
+  useEffect(() => {
+    const initialStatus = apiService.getStatus();
+    dispatch({ type: 'sync/setOnlineStatus', payload: initialStatus.isOnline });
+    console.log('📡 MobilePOS: Initial online status:', initialStatus.isOnline);
+    
+    const unsubscribe = apiService.onStatusChange((online) => {
+      console.log('📡 MobilePOS: Online status changed:', online);
+      dispatch({ type: 'sync/setOnlineStatus', payload: online });
+    });
+    
+    return unsubscribe;
+  }, [dispatch]);
+
   // Saqlangan cheklar sonini yuklash
   useEffect(() => {
     loadSavedReceiptsCount();
   }, []);
+
+  // 🔥 Socket.IO ulanish
+  useEffect(() => {
+    if (cashierId) {
+      console.log('🔌 MobilePOS: Connecting to Socket.IO for cashier:', cashierId);
+      socketService.connect(cashierId);
+    }
+
+    return () => {
+      console.log('🔌 MobilePOS: Disconnecting Socket.IO');
+      socketService.disconnect();
+    };
+  }, [cashierId]);
 
   const loadSavedReceiptsCount = async () => {
     try {
@@ -337,9 +365,9 @@ const MobilePOS: React.FC<MobilePOSProps> = ({ cashierId, cashierName }) => {
   };
 
   return (
-    <div className="h-screen h-[100dvh] bg-gray-100 flex flex-col">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-emerald-500 to-teal-600 px-4 py-3 safe-area-top">
+    <div className="h-screen h-[100dvh] bg-gray-100 flex flex-col overflow-hidden">
+      {/* Header - Fixed */}
+      <div className="bg-gradient-to-r from-emerald-500 to-teal-600 px-4 py-3 safe-area-top flex-shrink-0">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
@@ -375,10 +403,10 @@ const MobilePOS: React.FC<MobilePOSProps> = ({ cashierId, cashierName }) => {
         </div>
       </div>
 
-      {/* Asosiy kontent */}
-      <div className="flex-1 overflow-hidden flex flex-col">
+      {/* Asosiy kontent - Scrollable */}
+      <div className="flex-1 overflow-y-auto">
         {/* Savat elementlari */}
-        <div className="flex-1 overflow-y-auto p-4">
+        <div className="p-4 pb-32">
           {cart.length === 0 ? (
             <div className="h-full flex flex-col items-center justify-center text-gray-400">
               <Package className="w-20 h-20 mb-4 opacity-50" />
@@ -446,61 +474,63 @@ const MobilePOS: React.FC<MobilePOSProps> = ({ cashierId, cashierName }) => {
             </div>
           )}
         </div>
+      </div>
 
-        {/* Pastki panel */}
-        <div className="bg-white border-t border-gray-200 p-4 safe-area-bottom">
-          {/* Jami */}
-          {cart.length > 0 && (
-            <div className="flex justify-between items-center mb-4 px-2">
-              <span className="text-gray-600">{t('common.total')}:</span>
-              <span className="text-2xl font-bold text-gray-900">
-                {totalAmount.toLocaleString()} {t('common.sum')}
-              </span>
-            </div>
-          )}
-
-          {/* Amal tugmalari */}
-          <div className="grid grid-cols-2 gap-3">
-            {/* Qidirish tugmasi */}
-            <button
-              onClick={() => {
-                console.log('🔘 MobilePOS: Search button clicked');
-                setShowSearch(true);
-              }}
-              className="flex items-center justify-center gap-2 py-3 bg-gray-100 rounded-xl font-medium text-gray-700 hover:bg-gray-200 transition-colors active:scale-95"
-            >
-              <Search className="w-5 h-5" />
-              {t('common.search')}
-            </button>
-
-            {/* Skanerlash tugmasi */}
-            <button
-              onClick={() => setShowScanner(true)}
-              className="flex items-center justify-center gap-2 py-3 bg-emerald-500 rounded-xl font-medium text-white hover:bg-emerald-600 transition-colors active:scale-95"
-            >
-              <Camera className="w-5 h-5" />
-              {t('pos.scanBarcode')}
-            </button>
+      {/* Pastki panel - Fixed */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 safe-area-bottom shadow-lg">
+        {/* Jami */}
+        {cart.length > 0 && (
+          <div className="flex justify-between items-center mb-3 px-2">
+            <span className="text-gray-600 text-sm">{t('common.total')}:</span>
+            <span className="text-xl font-bold text-gray-900">
+              {totalAmount.toLocaleString()} {t('common.sum')}
+            </span>
           </div>
+        )}
 
-          {/* Yuborish tugmasi (savatda mahsulot bo'lganda) */}
-          {cart.length > 0 && (
-            <button
-              onClick={handleSendReceipt}
-              disabled={sending}
-              className="w-full mt-3 flex items-center justify-center gap-2 py-4 bg-gradient-to-r from-amber-500 to-orange-600 rounded-xl font-semibold text-white hover:from-amber-600 hover:to-orange-700 transition-all disabled:opacity-50 active:scale-[0.98]"
-            >
-              {sending ? (
-                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              ) : (
-                <>
-                  <Send className="w-5 h-5" />
-                  {t('pos.sendReceipt')} ({cart.length} {t('common.pcs')})
-                </>
-              )}
-            </button>
-          )}
+        {/* Amal tugmalari */}
+        <div className="grid grid-cols-2 gap-2">
+          {/* Qidirish tugmasi */}
+          <button
+            onClick={() => {
+              console.log('🔘 MobilePOS: Search button clicked');
+              setShowSearch(true);
+            }}
+            className="flex flex-col items-center justify-center gap-1.5 py-3 bg-gray-100 rounded-xl font-medium text-gray-700 hover:bg-gray-200 transition-colors active:scale-95"
+          >
+            <Search className="w-6 h-6" />
+            <span className="text-xs">{t('common.search')}</span>
+          </button>
+
+          {/* Skanerlash tugmasi */}
+          <button
+            onClick={() => setShowScanner(true)}
+            className="flex flex-col items-center justify-center gap-1.5 py-3 bg-emerald-500 rounded-xl font-medium text-white hover:bg-emerald-600 transition-colors active:scale-95"
+          >
+            <Camera className="w-6 h-6" />
+            <span className="text-xs leading-tight text-center">
+              {t('pos.scanBarcode')}
+            </span>
+          </button>
         </div>
+
+        {/* Yuborish tugmasi (savatda mahsulot bo'lganda) */}
+        {cart.length > 0 && (
+          <button
+            onClick={handleSendReceipt}
+            disabled={sending}
+            className="w-full mt-3 flex items-center justify-center gap-2 py-3.5 bg-gradient-to-r from-amber-500 to-orange-600 rounded-xl font-semibold text-white hover:from-amber-600 hover:to-orange-700 transition-all disabled:opacity-50 active:scale-[0.98]"
+          >
+            {sending ? (
+              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+            ) : (
+              <>
+                <Send className="w-5 h-5" />
+                {t('pos.sendReceipt')} ({cart.length} {t('common.pcs')})
+              </>
+            )}
+          </button>
+        )}
       </div>
 
       {/* Shtrix-kod skaner modali */}

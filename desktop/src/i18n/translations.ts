@@ -200,6 +200,9 @@ export const translations = {
   'pos.noSavedReceipts': 'Saqlangan cheklar yo\'q',
   'pos.openFromDesktop': 'Noutbukdan ochish uchun chekni yuboring',
   'pos.openReceipt': 'Chekni ochish',
+  'pos.addDebt': "Qarz qo'shish",
+  'pos.simpleDebt': 'Oddiy qarz',
+  'pos.credit': "Bo'lib to'lash",
 
   // ==================== МАҲСУЛОТЛАР ====================
   'products.title': 'Mahsulotlar',

@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import { createServer } from 'http';
 
 // Load environment variables FIRST
 dotenv.config();
@@ -8,6 +9,7 @@ dotenv.config();
 import { connectDatabase } from './config/database';
 import { startScheduler } from './services/scheduler.service';
 import { startPolling } from './services/telegram.service';
+import { initializeSocket } from './services/socket.service';
 
 // Import routes
 import authRoutes from './routes/auth';
@@ -84,14 +86,22 @@ async function startServer() {
   try {
     await connectDatabase();
     
+    // Create HTTP server
+    const httpServer = createServer(app);
+    
+    // Initialize Socket.IO
+    initializeSocket(httpServer);
+    console.log('✅ Socket.IO initialized');
+    
     // Start notification scheduler
     startScheduler();
     
     // Start Telegram bot polling
     startPolling();
     
-    app.listen(PORT, () => {
+    httpServer.listen(PORT, () => {
       console.log(`🚀 Server running on http://localhost:${PORT}`);
+      console.log(`🔌 Socket.IO ready for connections`);
     });
   } catch (error) {
     console.error('Failed to start server:', error);
