@@ -174,7 +174,10 @@ const History: React.FC = () => {
     return date.toLocaleDateString('uz-UZ') + ' ' + date.toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' });
   };
   
-  const formatMoney = (amount: number) => amount.toLocaleString('uz-UZ');
+  const formatMoney = (amount: number | undefined | null) => {
+    if (amount === undefined || amount === null || isNaN(amount)) return '0';
+    return amount.toLocaleString('uz-UZ');
+  };
 
   const getPaymentMethodLabel = (method: string) => {
     switch (method) {
@@ -205,8 +208,14 @@ const History: React.FC = () => {
   };
 
   const debtStats = {
-    totalAdded: filteredDebtHistory.filter(d => d.action === 'added').reduce((sum, d) => sum + Math.abs(d.amount || d.newAmount - d.previousAmount), 0),
-    totalPaid: filteredDebtHistory.filter(d => d.action === 'paid').reduce((sum, d) => sum + Math.abs(d.amount || d.previousAmount - d.newAmount), 0),
+    totalAdded: filteredDebtHistory.filter(d => d.action === 'added').reduce((sum, d) => {
+      const amount = d.amount || (d.newAmount - d.previousAmount);
+      return sum + Math.abs(amount || 0);
+    }, 0),
+    totalPaid: filteredDebtHistory.filter(d => d.action === 'paid').reduce((sum, d) => {
+      const amount = d.amount || (d.previousAmount - d.newAmount);
+      return sum + Math.abs(amount || 0);
+    }, 0),
     addedCount: filteredDebtHistory.filter(d => d.action === 'added').length,
     paidCount: filteredDebtHistory.filter(d => d.action === 'paid').length,
   };

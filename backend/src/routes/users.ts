@@ -3,6 +3,23 @@ import { User } from '../models';
 
 const router = Router();
 
+// Get cashiers only (optimized for home page)
+router.get('/cashiers', async (req: Request, res: Response) => {
+  try {
+    const cashiers = await User.find({ 
+      isActive: true, 
+      role: 'cashier' 
+    })
+      .select('_id fullName username')
+      .sort({ fullName: 1 })
+      .lean(); // Use lean() for better performance
+
+    res.json({ success: true, data: cashiers });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Server xatosi' });
+  }
+});
+
 // Get all users
 router.get('/', async (req: Request, res: Response) => {
   try {

@@ -53,14 +53,29 @@ const Home: React.FC = () => {
   const loadCashiers = async () => {
     setLoadingCashiers(true);
     try {
-      const response = await fetch('/api/users');
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 soniya timeout
+      
+      const response = await fetch('/api/users/cashiers', {
+        signal: controller.signal,
+      });
+      clearTimeout(timeoutId);
+      
       const data = await response.json();
       if (data.success) {
-        const cashierUsers = data.data.filter((u: any) => u.role === 'cashier');
-        setCashiers(cashierUsers);
+        setCashiers(data.data || []);
+      } else {
+        toast.error('Kassirlarni yuklashda xatolik');
+        setCashiers([]);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Load cashiers error:', error);
+      if (error.name === 'AbortError') {
+        toast.error('Server javob bermadi. Iltimos, qayta urinib ko\'ring.');
+      } else {
+        toast.error('Kassirlarni yuklashda xatolik');
+      }
+      setCashiers([]); // Bo'sh array qo'yamiz
     } finally {
       setLoadingCashiers(false);
     }
@@ -216,8 +231,9 @@ const Home: React.FC = () => {
 
         {/* Cashiers Grid */}
         {loadingCashiers ? (
-          <div className="flex justify-center py-16">
-            <div className="spinner spinner-lg spinner-white"></div>
+          <div className="flex flex-col items-center justify-center py-12">
+            <div className="w-12 h-12 border-4 border-white/30 border-t-white rounded-full animate-spin mb-3"></div>
+            <p className="text-white/70 text-sm">{t('home.loading')}</p>
           </div>
         ) : cashiers.length === 0 ? (
           <div className="text-center py-12 sm:py-20">
