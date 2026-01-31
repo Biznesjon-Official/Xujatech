@@ -245,12 +245,17 @@ const Products: React.FC = () => {
 
       if (data.success) {
         toast.success('Kategoriya qo\'shildi');
+        
+        // ✅ Yangi kategoriyani darhol state'ga qo'shish
+        const newCategory = data.data;
+        setCategories([...categories, newCategory]);
+        
         setNewCategoryName('');
         setShowAddCategoryInput(false);
-        loadCategories();
+        
         // Автоматически выбираем новую категорию
-        if (data.data?._id) {
-          setForm({ ...form, category_id: data.data._id });
+        if (newCategory?._id) {
+          setForm({ ...form, category_id: newCategory._id });
         }
       } else {
         toast.error(data.message || 'Xatolik');

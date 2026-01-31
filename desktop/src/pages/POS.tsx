@@ -3020,10 +3020,43 @@ const ProductsTab: React.FC<ProductsTabProps> = ({ t, language }) => {
   const [showAddCategoryInput, setShowAddCategoryInput] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState('');
 
+  // Dollar kursi - CBU API'dan olinadi
+  const [usdRate, setUsdRate] = useState(12850);
+
+  // CBU API'dan valyuta kursini olish
+  const fetchExchangeRate = async () => {
+    try {
+      const response = await fetch('https://cbu.uz/uz/arkhiv-kursov-valyut/json/');
+      const data = await response.json();
+      const usdCurrency = data.find((item: any) => item.Ccy === 'USD');
+      if (usdCurrency) {
+        const rate = parseFloat(usdCurrency.Rate);
+        setUsdRate(Math.round(rate));
+        console.log('💱 CBU kurs yangilandi:', rate);
+      }
+    } catch (error) {
+      console.error('Valyuta kursini olishda xatolik:', error);
+    }
+  };
+
   useEffect(() => {
     loadProducts();
     loadCategories();
+    fetchExchangeRate(); // Kurs olish
   }, []);
+
+  // Debug: kategoriyalar o'zgarishini kuzatish
+  useEffect(() => {
+    console.log('📋 Kategoriyalar yangilandi:', categories.length, categories);
+  }, [categories]);
+
+  // Modal ochilganda kategoriyalarni qayta yuklash
+  useEffect(() => {
+    if (showAddModal || showEditModal) {
+      console.log('🔄 Modal ochildi, kategoriyalarni qayta yuklash...');
+      loadCategories();
+    }
+  }, [showAddModal, showEditModal]);
 
   const loadProducts = async () => {
     setLoading(true);
@@ -3088,6 +3121,9 @@ const ProductsTab: React.FC<ProductsTabProps> = ({ t, language }) => {
       toast.error('Kategoriya nomini kiriting');
       return;
     }
+    
+    console.log('🔵 Kategoriya qo\'shish boshlandi:', newCategoryName);
+    
     try {
       const token = localStorage.getItem('accessToken');
       const response = await fetch('/api/categories', {
@@ -3095,19 +3131,35 @@ const ProductsTab: React.FC<ProductsTabProps> = ({ t, language }) => {
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ name: newCategoryName.trim() }),
       });
+      
       const data = await response.json();
+      console.log('🔵 Server javobi:', data);
+      
       if (data.success) {
         toast.success('Kategoriya qo\'shildi');
+        
+        // Yangi kategoriyani darhol state'ga qo'shish
+        const newCategory = data.data;
+        console.log('🔵 Yangi kategoriya:', newCategory);
+        console.log('🔵 Hozirgi kategoriyalar:', categories);
+        
+        setCategories([...categories, newCategory]);
+        console.log('🔵 Yangilangan kategoriyalar:', [...categories, newCategory]);
+        
+        // Formni tozalash va yangi kategoriyani tanlash
         setNewCategoryName('');
         setShowAddCategoryInput(false);
-        loadCategories();
-        if (data.data?._id) {
-          setForm({ ...form, category_id: data.data._id });
+        
+        if (newCategory?._id) {
+          setForm({ ...form, category_id: newCategory._id });
+          console.log('🔵 Kategoriya tanlandi:', newCategory._id);
         }
       } else {
+        console.error('🔴 Xatolik:', data.message);
         toast.error(data.message || 'Xatolik');
       }
     } catch (error) {
+      console.error('🔴 Catch xatolik:', error);
       toast.error('Xatolik yuz berdi');
     }
   };
@@ -3240,7 +3292,14 @@ const ProductsTab: React.FC<ProductsTabProps> = ({ t, language }) => {
             <h2 className="font-semibold text-gray-900">{t('nav.products')}</h2>
             <p className="text-sm text-gray-500">{products.length} {t('nav.products').toLowerCase()}</p>
           </div>
-          <button onClick={() => { resetForm(); setShowAddModal(true); }} className="flex items-center gap-2 px-3 py-2 bg-cyan-500 text-white rounded-lg text-sm font-medium hover:bg-cyan-600 transition-colors">
+          <button 
+            onClick={() => { 
+              resetForm(); 
+              loadCategories(); // Kategoriyalarni qayta yuklash
+              setShowAddModal(true); 
+            }} 
+            className="flex items-center gap-2 px-3 py-2 bg-cyan-500 text-white rounded-lg text-sm font-medium hover:bg-cyan-600 transition-colors"
+          >
             <Plus className="w-4 h-4" />
             {t('products.addProduct')}
           </button>
@@ -3265,39 +3324,56 @@ const ProductsTab: React.FC<ProductsTabProps> = ({ t, language }) => {
               <tr>
                 <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase whitespace-nowrap">{t('products.barcode')}</th>
                 <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase whitespace-nowrap">{t('products.title')}</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase whitespace-nowrap">Kategoriya</th>
                 <th className="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase whitespace-nowrap">{t('common.price')}</th>
+                <th className="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase whitespace-nowrap">Dollar</th>
                 <th className="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase whitespace-nowrap">{t('nav.inventory')}</th>
                 <th className="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase whitespace-nowrap">{t('common.actions')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {filteredProducts.map((product) => (
-                <tr key={product._id || product.id} className="hover:bg-gray-50">
-                  <td className="px-4 py-3 font-mono text-sm text-gray-500 whitespace-nowrap">{product.barcode || '-'}</td>
-                  <td className="px-4 py-3 font-medium text-gray-900 whitespace-nowrap">
-                    <span className="truncate block max-w-[200px]">{product.name}</span>
-                  </td>
-                  <td className="px-4 py-3 text-right text-emerald-600 font-semibold whitespace-nowrap">{(product.selling_price || 0).toLocaleString()} {t('common.sum')}</td>
-                  <td className="px-4 py-3 text-right whitespace-nowrap">
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${product.current_stock > 10 ? 'bg-emerald-100 text-emerald-700' : product.current_stock > 0 ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'}`}>
-                      {product.current_stock || 0} {t('common.pcs')}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 whitespace-nowrap">
-                    <div className="flex items-center justify-end gap-1">
-                      <button onClick={() => { setSelectedProductForBarcode(product); setShowBarcodeModal(true); }} className="p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors" title="Shtrix kod">
-                        <Printer className="w-4 h-4" />
-                      </button>
-                      <button onClick={() => openEditModal(product)} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title={t('common.edit')}>
-                        <Edit className="w-4 h-4" />
-                      </button>
-                      <button onClick={() => handleDeleteProduct(product)} className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors" title={t('common.delete')}>
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
+              {filteredProducts.map((product) => {
+                const categoryName = product.categoryId?.name || product.category_name || '—';
+                const priceInUSD = Math.round(product.selling_price / usdRate); // Butun raqam
+                
+                return (
+                  <tr key={product._id || product.id} className="hover:bg-gray-50">
+                    <td className="px-4 py-3 font-mono text-sm text-gray-500 whitespace-nowrap">{product.barcode || '-'}</td>
+                    <td className="px-4 py-3 font-medium text-gray-900 whitespace-nowrap">
+                      <span className="truncate block max-w-[200px]">{product.name}</span>
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">
+                      <span className="px-2 py-1 bg-blue-50 text-blue-700 rounded-lg text-xs font-medium">
+                        {categoryName}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-right text-emerald-600 font-semibold whitespace-nowrap">
+                      {product.selling_price.toLocaleString()} {t('common.sum')}
+                    </td>
+                    <td className="px-4 py-3 text-right text-blue-600 font-semibold whitespace-nowrap">
+                      ${priceInUSD}
+                    </td>
+                    <td className="px-4 py-3 text-right whitespace-nowrap">
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${product.current_stock > 10 ? 'bg-emerald-100 text-emerald-700' : product.current_stock > 0 ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'}`}>
+                        {product.current_stock || 0} {t('common.pcs')}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      <div className="flex items-center justify-end gap-1">
+                        <button onClick={() => { setSelectedProductForBarcode(product); setShowBarcodeModal(true); }} className="p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors" title="Shtrix kod">
+                          <Printer className="w-4 h-4" />
+                        </button>
+                        <button onClick={() => openEditModal(product)} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title={t('common.edit')}>
+                          <Edit className="w-4 h-4" />
+                        </button>
+                        <button onClick={() => handleDeleteProduct(product)} className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors" title={t('common.delete')}>
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
