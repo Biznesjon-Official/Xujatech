@@ -1,319 +1,195 @@
-# XUJATECh - POS + Inventory + CRM System
+# XUJATECh - POS va Ombor Boshqaruv Tizimi
 
-A comprehensive sales and warehouse management system for home appliance stores.
+Modern POS (Point of Sale) va ombor boshqaruv tizimi maishiy texnika do'konlari uchun.
 
-## 🚀 Quick Start
+## 🚀 Xususiyatlar
 
-### Development Environment
+- ✅ POS (Savdo nuqtasi) tizimi
+- ✅ Ombor va mahsulot boshqaruvi
+- ✅ Mijozlar va qarzlar nazorati
+- ✅ Yetkazib berish boshqaruvi
+- ✅ Qaytarishlar tizimi
+- ✅ Offline-first arxitektura
+- ✅ Ko'p filial bilan ishlash
+- ✅ Barcode/QR kod skanerlash
+- ✅ Telegram bot integratsiya
+- ✅ Ko'p tillilik (Lotin/Kirill)
 
-1. **Clone the repository:**
+## 📋 Texnologiyalar
+
+### Frontend
+- React 18 + TypeScript
+- Vite
+- TailwindCSS
+- Redux Toolkit
+- PWA (Progressive Web App)
+
+### Backend
+- Node.js + Express
+- TypeScript
+- MongoDB
+- Socket.IO
+- JWT Authentication
+
+## 🛠 O'rnatish
+
+### Talablar
+- Node.js 18+
+- MongoDB 7+
+- npm yoki yarn
+
+### Lokal Development
+
+1. Repository ni clone qiling:
 ```bash
-git clone https://github.com/Biznesjon-Official/Xujatech.git
-cd Xujatech
+git clone https://github.com/your-username/xujatech-pos.git
+cd xujatech-pos
 ```
 
-2. **Setup environment files:**
+2. Barcha bog'liqliklarni o'rnating:
+```bash
+npm run install:all
+```
+
+3. Environment fayllarini sozlang:
 ```bash
 # Backend
-copy backend\.env.example backend\.env
-# Edit backend/.env with your development settings
-
-# Frontend  
-copy desktop\.env.example desktop\.env
-# Edit desktop/.env with your development settings
+cp backend/.env.example backend/.env
+# Desktop
+cp desktop/.env.example desktop/.env
 ```
 
-3. **Install dependencies and start:**
+4. MongoDB ni ishga tushiring va .env faylida sozlang
+
+5. Development rejimda ishga tushiring:
 ```bash
-npm install
-cd backend && npm install
-cd ../desktop && npm install
-
-# Start backend (Terminal 1)
-cd backend && npm run dev
-
-# Start frontend (Terminal 2) 
-cd desktop && npm run dev
-```
-
-4. **Access the application:**
-- Frontend: http://localhost:3000
-- Backend API: http://localhost:3005
-
-## 📁 Project Structure
-
-```
-├── backend/          # Node.js API server
-├── desktop/          # React frontend
-├── docs/            # Documentation
-├── ssl/             # SSL certificates
-└── deploy-production.sh  # Production deployment script
-```
-
-## 🛠 Development vs Production
-
-| Environment | Backend Port | Frontend Port | Database | API URL |
-|-------------|-------------|---------------|----------|---------|
-| Development | 3005 | 3000 | xujatech_pos_dev | http://localhost:3005 |
-| Production | 3000 | 443 (HTTPS) | xujatech_pos | https://xujatech.biznesjon.uz/api |
-
-## 📋 Features
-
-- 🛒 Point of Sale interface
-- 📦 Inventory management
-- 👥 Customer management
-- 📊 Sales reporting
-- 🔄 Offline sync capability
-- 📱 Mobile responsive
-- 🔐 User authentication
-- 📈 Dashboard analytics
-
-## 🔧 Tech Stack
-
-- **Frontend:** React, TypeScript, Tailwind CSS, Redux Toolkit
-- **Backend:** Node.js, Express, TypeScript
-- **Database:** MongoDB
-- **Authentication:** JWT
-- **Deployment:** PM2, Nginx
-
-## 📚 Documentation
-
-See the `docs/` folder for detailed documentation:
-- [API Endpoints](docs/api-endpoints.md)
-- [Database Schema](docs/database-schema.md)
-- [System Architecture](docs/system-architecture.md)
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create your feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a Pull Request
-
-## 📄 License
-
-This project is proprietary software.
-
-## 🔧 Prerequisites
-- Node.js 18+ and npm
-- PostgreSQL 12+
-- Windows 10+ (for desktop app)
-
-### Installation
-
-1. **Clone and install dependencies**
-```bash
-git clone <repository-url>
-cd xujatech-pos
-npm run install:all
-```
-
-2. **Setup PostgreSQL database**
-```bash
-# Create database
-createdb xujatech_pos
-
-# Copy environment file
-cd backend
-cp .env.example .env
-
-# Edit .env file with your database credentials
-# DB_HOST=localhost
-# DB_PORT=5432
-# DB_USER=postgres
-# DB_PASSWORD=your_password
-# DB_NAME=xujatech_pos
-```
-
-3. **Run database migrations**
-```bash
-cd backend
-npm run migrate
-npm run seed
-```
-
-4. **Start development**
-```bash
-# From root directory
 npm run dev
 ```
 
-This will start:
-- Backend API server on http://localhost:3000
-- Desktop POS application (Electron + React)
+Backend: http://localhost:3000
+Frontend: http://localhost:3001
 
-### Default Login Credentials
-- **Username**: admin
-- **Password**: admin123
-
-## 🏗️ System Architecture
-
-### Technology Stack
-- **Backend**: Node.js + Express + TypeScript + PostgreSQL
-- **Desktop**: Electron + React + TypeScript + SQLite (offline)
-- **State Management**: Redux Toolkit
-- **Styling**: Tailwind CSS
-- **Hardware**: USB/Serial integration for peripherals
-
-### Key Features
-- ✅ **Multi-platform POS** (Windows desktop, future Android)
-- ✅ **Offline-first operation** with automatic sync
-- ✅ **Role-based access** (Admin, Manager, Cashier)
-- ✅ **Hardware integration** (barcode scanner, receipt printer)
-- ✅ **Comprehensive inventory** management
-- ✅ **Customer debt tracking** and payment processing
-- ✅ **Business reporting** and analytics
-
-## 📊 Database Schema
-
-The system uses PostgreSQL for the server and SQLite for offline operations:
-
-- **Users & Authentication** - Role-based access control
-- **Products & Categories** - Product catalog with variants
-- **Suppliers** - Supplier management with credit tracking
-- **Customers** - Customer data with debt and discount tracking
-- **Sales & Payments** - Transaction records with multiple payment methods
-- **Inventory** - Stock movements and current levels
-- **Sync Operations** - Offline synchronization tracking
-
-## 🖥️ User Interface
-
-### Windows Desktop POS
-- **4-panel layout**: Product search, cart, customer info, payment
-- **Keyboard shortcuts** for power users (F1-F12)
-- **Hardware integration** for barcode scanning and printing
-- **Offline indicators** and sync status
-
-### User Roles
-- **Administrator**: Full system access, settings, user management
-- **Manager**: Reports, inventory monitoring, supplier management  
-- **Cashier**: Sales operations, customer management, receipt printing
-
-## 🔄 Offline Synchronization
-
-The system implements an **offline-first architecture**:
-
-- **Local SQLite database** mirrors server data
-- **Conflict resolution** with business rule priorities
-- **Batch synchronization** when connection restored
-- **Real-time sync** when online
-- **Queue-based operations** for reliability
-
-## 📈 Development Roadmap
-
-### MVP (Current) - Core POS functionality
-- ✅ Basic user management and authentication
-- ✅ Product catalog with barcode support
-- ✅ Simple POS operations (cash payments)
-- ✅ Customer management with debt tracking
-- ✅ Basic inventory management
-- ✅ Windows desktop application
-- ✅ Basic offline support
-
-### Phase 2 - Enhanced POS
-- Multiple payment methods (Card, Click/Payme)
-- Advanced customer features (discounts, loyalty)
-- Product variants and warranty tracking
-- Return processing
-- Enhanced reporting with profit analysis
-
-### Phase 3 - Mobile & Multi-location
-- Android POS application
-- Multi-store support
-- Supplier management
-- Advanced synchronization
-- Real-time notifications
-
-### Phase 4 - Enterprise Features
-- Business intelligence and analytics
-- External integrations (accounting, e-commerce)
-- Automated inventory management
-- Advanced reporting and forecasting
-
-## 🛠️ Development Commands
+### Production Build
 
 ```bash
-# Install all dependencies
-npm run install:all
-
-# Development (starts both backend and desktop)
-npm run dev
-
-# Backend only
-npm run dev:backend
-
-# Desktop only  
-npm run dev:desktop
-
-# Build for production
 npm run build
-
-# Database operations
-cd backend
-npm run migrate    # Run migrations
-npm run seed      # Seed default data
 ```
 
-## 📁 Project Structure
+## 🚀 VPS ga Deploy
 
-```
-xujatech-pos/
-├── backend/                     # Node.js API server
-│   ├── src/
-│   │   ├── routes/             # API endpoints
-│   │   ├── middleware/         # Auth, validation, etc.
-│   │   ├── services/           # Business logic
-│   │   ├── config/             # Database, settings
-│   │   ├── migrations/         # Database migrations
-│   │   └── seeds/              # Default data
-│   └── package.json
-├── desktop/                     # Electron POS application
-│   ├── src/
-│   │   ├── main.ts             # Electron main process
-│   │   ├── preload.ts          # IPC bridge
-│   │   ├── services/           # Database, hardware, sync
-│   │   ├── components/         # React UI components
-│   │   ├── pages/              # Application pages
-│   │   └── store/              # Redux store
-│   └── package.json
-├── docs/                        # Documentation
-└── package.json                 # Root workspace config
+### Avtomatik Deploy (Tavsiya etiladi)
+
+```bash
+chmod +x deploy-vps.sh
+./deploy-vps.sh
 ```
 
-## 🔧 Hardware Integration
+### Manual Deploy
 
-### Supported Hardware
-- **Receipt Printers**: ESC/POS compatible thermal printers
-- **Barcode Scanners**: USB HID and camera-based scanning
-- **Cash Drawers**: Automatic opening via printer
-- **Payment Terminals**: Future integration capability
+Batafsil ko'rsatmalar uchun [DEPLOY.md](./DEPLOY.md) faylini ko'ring.
 
-### Configuration
-- Network printers: Configure IP in hardware settings
-- USB devices: Automatic detection and setup
-- Serial devices: COM port configuration
-
-## 🚀 Deployment
+## 📦 Docker bilan ishga tushirish
 
 ### Development
 ```bash
-npm run dev
+docker-compose up -d
 ```
 
-### Production Build
+### Production
 ```bash
-npm run build
-npm run dist  # Creates installer
+docker-compose -f docker-compose.prod.yml up -d
 ```
 
-### Database Backup
-The system includes automatic backup functionality accessible through the desktop application.
+## 🔐 Standart Login
 
-## 📞 Support
+```
+Username: admin
+Password: admin123
+```
 
-For technical support and feature requests, please refer to the project documentation or contact the development team.
+⚠️ **Muhim**: Production muhitda parolni o'zgartiring!
+
+## 📁 Loyiha Strukturasi
+
+```
+xujatech-pos/
+├── backend/          # Backend API (Node.js + Express)
+│   ├── src/
+│   │   ├── routes/   # API endpoints
+│   │   ├── models/   # Database models
+│   │   ├── services/ # Business logic
+│   │   └── middleware/
+│   └── Dockerfile
+├── desktop/          # Frontend (React + TypeScript)
+│   ├── src/
+│   │   ├── components/
+│   │   ├── pages/
+│   │   ├── services/
+│   │   └── store/
+│   └── Dockerfile
+├── docker-compose.yml
+├── docker-compose.prod.yml
+└── deploy-vps.sh
+```
+
+## 🔧 Muhim Buyruqlar
+
+```bash
+# Development
+npm run dev              # Backend va frontend
+npm run dev:backend      # Faqat backend
+npm run dev:frontend     # Faqat frontend
+
+# Build
+npm run build            # Barcha build
+npm run build:backend    # Backend build
+npm run build:frontend   # Frontend build
+
+# O'rnatish
+npm run install:all      # Barcha dependencies
+```
+
+## 📝 Environment Variables
+
+### Backend (.env)
+```env
+NODE_ENV=production
+PORT=3000
+MONGODB_URI=mongodb://...
+JWT_SECRET=your-secret-key
+JWT_REFRESH_SECRET=your-refresh-secret
+TELEGRAM_SELLER_BOT_TOKEN=your-bot-token
+ALLOWED_ORIGINS=https://yourdomain.com
+```
+
+### Frontend (.env)
+```env
+VITE_API_URL=https://yourdomain.com/api
+VITE_STORE_NAME=XUJATECh Store
+VITE_VERSION=1.0.0
+```
+
+## � Xavfsizlik
+
+- JWT token autentifikatsiya
+- Bcrypt parol shifrlash
+- HTTPS/SSL
+- CORS sozlamalari
+- Rate limiting
+- Input validatsiya
+
+## � Yordam
+
+Texnik yordam: support@xujatech.uz
+
+## 📄 Litsenziya
+
+© 2024-2026 XUJATECh. Barcha huquqlar himoyalangan.
+
+## 🤝 Hissa qo'shish
+
+Pull request'lar qabul qilinadi. Katta o'zgarishlar uchun avval issue oching.
 
 ---
 
-**XUJATECh POS System** - Empowering home appliance stores with modern point-of-sale technology.
+**Ishlab chiqildi ❤️ bilan O'zbekiston uchun**

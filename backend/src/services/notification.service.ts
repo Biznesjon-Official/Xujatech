@@ -62,12 +62,12 @@ export async function checkAndNotifyDebtors(): Promise<void> {
   
   try {
     // Qarzli va telegram bilan bog'langan mijozlarni topish
-    const telegramUsers = await TelegramUser.find({ isActive: true, customerId: { $exists: true } });
+    const telegramUsers = await TelegramUser.find({ isActive: true, customerId: { $exists: true } }).maxTimeMS(5000);
     
     let sentCount = 0;
 
     for (const telegramUser of telegramUsers) {
-      const customer = await Customer.findById(telegramUser.customerId);
+      const customer = await Customer.findById(telegramUser.customerId).maxTimeMS(5000);
       
       if (!customer || customer.currentDebt <= 0 || !customer.debtDueDate) {
         continue;
@@ -125,7 +125,7 @@ export async function checkDebtsAndNotify(): Promise<void> {
       isActive: true,
       currentDebt: { $gt: 0 },
       debtDueDate: { $gte: tomorrow, $lte: tomorrowEnd },
-    });
+    }).maxTimeMS(5000);
 
     console.log(`📋 Ertaga to'lanadigan qarzlar: ${customersWithDebt.length} ta`);
 
@@ -175,7 +175,7 @@ export async function checkOverdueDebtsAndNotify(): Promise<void> {
       isActive: true,
       currentDebt: { $gt: 0 },
       debtDueDate: { $lt: today },
-    });
+    }).maxTimeMS(5000);
 
     console.log(`⚠️ Muddati o'tgan qarzlar: ${overdueDebts.length} ta`);
 

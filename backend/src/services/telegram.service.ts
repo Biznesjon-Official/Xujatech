@@ -172,7 +172,7 @@ async function registerCustomer(
     }
 
     // Telegram foydalanuvchini yaratish/yangilash
-    let telegramUser = await TelegramUser.findOne({ telegramId });
+    let telegramUser = await TelegramUser.findOne({ telegramId }).maxTimeMS(5000);
 
     if (telegramUser) {
       telegramUser.phone = formattedPhone;
@@ -201,7 +201,7 @@ async function registerCustomer(
         { phone: { $regex: phoneDigits.slice(-9), $options: 'i' } },
       ],
       isActive: true,
-    });
+    }).maxTimeMS(5000);
 
     if (customer) {
       telegramUser.customerId = customer._id;
@@ -253,7 +253,7 @@ async function registerCustomer(
  */
 async function checkCustomerDebt(telegramId: number): Promise<string> {
   try {
-    const telegramUser = await TelegramUser.findOne({ telegramId, isActive: true });
+    const telegramUser = await TelegramUser.findOne({ telegramId, isActive: true }).maxTimeMS(5000);
 
     if (!telegramUser) {
       return "⚠️ Siz hali ro'yxatdan o'tmagansiz.\n\n/start buyrug'ini yuboring va telefon raqamingizni ulashing.";
@@ -263,7 +263,7 @@ async function checkCustomerDebt(telegramId: number): Promise<string> {
       return "⚠️ Sizning telefon raqamingiz tizimda topilmadi.\n\nAgar sizda qarz bo'lsa, do'kon bilan bog'laning.";
     }
 
-    const customer = await Customer.findById(telegramUser.customerId);
+    const customer = await Customer.findById(telegramUser.customerId).maxTimeMS(5000);
 
     if (!customer) {
       return "⚠️ Ma'lumotlar topilmadi.";
@@ -365,13 +365,13 @@ Bu bot orqali siz o'z qarzlaringizni kuzatib borishingiz mumkin.
  */
 export async function sendDebtReminder(customerId: string, daysLeft: number): Promise<boolean> {
   try {
-    const customer = await Customer.findById(customerId);
+    const customer = await Customer.findById(customerId).maxTimeMS(5000);
     if (!customer || customer.currentDebt <= 0) return false;
 
     const telegramUser = await TelegramUser.findOne({
       customerId: customer._id,
       isActive: true,
-    });
+    }).maxTimeMS(5000);
 
     if (!telegramUser) return false;
 

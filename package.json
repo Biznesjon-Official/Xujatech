@@ -11,12 +11,34 @@
     "build:backend": "cd backend && npm run build",
     "build:frontend": "cd desktop && npm run build",
     "install:all": "npm install && cd backend && npm install && cd ../desktop && npm install",
-    "seed": "cd backend && npm run seed"
+    "seed": "cd backend && npm run seed",
+    "docker:dev": "docker-compose up -d",
+    "docker:prod": "docker-compose -f docker-compose.prod.yml up -d",
+    "docker:down": "docker-compose down",
+    "docker:logs": "docker-compose logs -f",
+    "docker:build": "docker-compose -f docker-compose.prod.yml up -d --build"
   },
   "devDependencies": {
     "concurrently": "^8.2.2"
   },
   "engines": {
-    "node": ">=18.0.0"
-  }
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-username/xujatech-pos.git"
+  },
+  "keywords": [
+    "pos",
+    "point-of-sale",
+    "inventory",
+    "warehouse",
+    "crm",
+    "uzbekistan",
+    "retail",
+    "offline-first"
+  ],
+  "author": "XUJATECh",
+  "license": "MIT"
 }

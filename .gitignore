@@ -4,6 +4,8 @@ node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+package-lock.json
+*/package-lock.json
 
 # Build outputs
 dist/
@@ -14,9 +16,15 @@ build/
 # Environment files
 .env
 .env.local
+.env.development
 .env.development.local
+.env.test
 .env.test.local
+.env.production
 .env.production.local
+*/.env
+*/.env.local
+*/.env.production
 
 # Logs
 logs/
@@ -26,6 +34,8 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 lerna-debug.log*
+combined.log
+error.log
 
 # Runtime data
 pids
@@ -33,20 +43,16 @@ pids
 *.seed
 *.pid.lock
 
-# Coverage directory used by tools like istanbul
+# Coverage directory
 coverage/
 *.lcov
-
-# nyc test coverage
 .nyc_output
 
 # Dependency directories
 jspm_packages/
 
-# Optional npm cache directory
+# Optional npm cache
 .npm
-
-# Optional eslint cache
 .eslintcache
 
 # Optional REPL history
@@ -58,17 +64,12 @@ jspm_packages/
 # Yarn Integrity file
 .yarn-integrity
 
-# dotenv environment variables file
-.env.test
-
-# parcel-bundler cache (https://parceljs.org/)
+# parcel-bundler cache
 .cache
 .parcel-cache
 
 # next.js build output
 .next
-
-# nuxt.js build output
 .nuxt
 
 # vuepress build output
@@ -86,7 +87,7 @@ jspm_packages/
 # TernJS port file
 .tern-port
 
-# Stores VSCode versions used for testing VSCode extensions
+# Stores VSCode versions
 .vscode-test
 
 # Backup files
@@ -94,6 +95,7 @@ jspm_packages/
 backup_*.json
 *.tar.gz
 *.zip
+mongodb_backup/
 
 # OS generated files
 .DS_Store
@@ -110,6 +112,8 @@ Thumbs.db
 *.swp
 *.swo
 *~
+*.sublime-project
+*.sublime-workspace
 
 # Temporary files
 tmp/
@@ -126,10 +130,6 @@ ssl/*.crt
 *.sqlite
 *.db
 
-# Package lock files (optional - uncomment if you want to ignore them)
-# package-lock.json
-# */package-lock.json
-
 # Electron build outputs
 out/
 app/dist/
@@ -139,8 +139,17 @@ app/dist/
 
 # Test files
 test-results/
-coverage/
 
 # Misc
 *.tsbuildinfo
 .eslintcache
+
+# Docker volumes
+mongodb_data/
+
+# Production files (don't commit production configs)
+docker-compose.override.yml
+
+# Sensitive data
+secrets/
+*.secret
